@@ -1,3 +1,6 @@
+import logging
+import numpy as np
+
 from bokeh.io import show, output_notebook,curdoc,save, output_file
 from bokeh.plotting import figure
 from bokeh.models import ColumnDataSource, Range1d, BBoxTileSource
@@ -13,4 +16,5 @@ import matplotlib.pyplot as plt
 
 class DataView:
     def __init__(self):
-        
+        self.logger=logging.getLogger(__name__)
+        self.logger.debug('DataView object started')
