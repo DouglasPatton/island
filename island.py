@@ -52,7 +52,17 @@ class IslandData():
         
     def plotTS(self,varlist=None,yearlist=None):
         if not varlist:
-            varlist=['saleprice','secchi','wateraccess','bayfront','waterhouse',]
+            varlist=[
+                'saleprice',
+                'assessedvalue',
+                'secchi',
+                'wateraccess',
+                'bayfront',
+                'waterhouse',
+                'shorelinedistance' 
+                    ]
+            
+    def plotGeog(self,yearlist=None):
         
         
         
