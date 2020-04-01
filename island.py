@@ -63,7 +63,7 @@ class IslandData(DataView):
         ylabel='Count'
         title='Count of Sales by Year'
         fig=self.my2dbarplot(
-            np.array(self.timelist),
+            np.array(self.timelist,dtype=np.int16),
             np.array(timelenlist),
             xlabel=xlabel,ylabel=ylabel,title=title,fig=None,subplot_idx=(1,1,1))
         if not 'hist2d' in self.figdict:
@@ -78,7 +78,7 @@ class IslandData(DataView):
             self.makeTSHistogram(varlist=[var])
         
     
-    def makeTSHistogram(self,varlist=None):
+    def makeTSHistogram(self,varlist=None,combined=1):
         try:self.time_arraylist
         except: self.makeTimeArrayList()
         time_arraylist=self.time_arraylist
@@ -87,15 +87,22 @@ class IslandData(DataView):
             var_idx_list=list(range(len(varlist)))
         else:
             var_idx_list=[self.varlist.index(var) for var in varlist]
+        if 'sale_year' in varlist:
+            varcount=len(varlist)-1
+        else:varcount=len(varlist)
+        fig=plt.figure(figsize=[14,varcount*12])
         
-        #subplot_idx=[len(varlist),1,1]
+        subplot_idx=[varcount,1,1]
         for idxidx,var in enumerate(varlist):
             if not var=='sale_year':
                 var_idx=var_idx_list[idxidx]
-                fig,histdict=self.my3dHistogram([nparray[:,var_idx] for nparray in time_arraylist],var,subplot_idx=(1,1,1))
+                if not combined:
+                    subplot_idx=[1,1,1]
+                    fig=None
+                fig,histdict=self.my3dHistogram([nparray[:,var_idx] for nparray in time_arraylist],var,subplot_idx=subplot_idx,fig=fig)
                 self.TSHistogramlist.append({'histTS':histdict})
                     
-                #subplot_idx[2]+=1
+                subplot_idx[2]+=1
         if not 'histTS' in self.figdict:
             self.figdict['histTS']=[fig]
         else:
