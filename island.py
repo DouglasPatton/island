@@ -10,8 +10,8 @@ from data_viz import DataView
 
 
 class IslandData(DataView):
-    def __init__(self):
-        
+    def __init__(self,dpi=100):
+        self.dpi=dpi
         logdir=os.path.join(os.getcwd(),'log')
         if not os.path.exists(logdir): os.mkdir(logdir)
         handlername=os.path.join(logdir,f'island.log')
@@ -49,6 +49,7 @@ class IslandData(DataView):
             'shorelinedistance'
             ]
         self.fig=None;self.ax=None
+        self.figheight=10;self.figwidth=10
         DataView.__init__(self)
         
         
@@ -91,23 +92,27 @@ class IslandData(DataView):
             varcount=len(varlist)-1
         else:varcount=len(varlist)
         if combined:
-            fig=plt.figure(figsize=[14,varcount*12])
-        
-        subplot_idx=[varcount,1,1]
+            fig=plt.figure(dpi=self.dpi,figsize=[self.figwidth*2,self.figheight*varcount])
+            
+        figlist=[]
+        subplot_idx=[varcount,2,1]
         for idxidx,var in enumerate(varlist):
             if not var=='sale_year':
                 var_idx=var_idx_list[idxidx]
                 if not combined:
-                    subplot_idx=[1,1,1]
-                    fig=None
-                fig,histdict=self.my3dHistogram([nparray[:,var_idx] for nparray in time_arraylist],var,subplot_idx=subplot_idx,fig=fig)
-                self.TSHistogramlist.append({'histTS':histdict})
+                        subplot_idx=[1,2,1]
+                        fig=None
+                for norm_hist in [0,1]:
                     
-                subplot_idx[2]+=1
+                    fig,histdict=self.my3dHistogram([nparray[:,var_idx] for nparray in time_arraylist],
+                                                    var,subplot_idx=subplot_idx,fig=fig,norm_hist=norm_hist)
+                    self.TSHistogramlist.append({'histTS':histdict})
+                    subplot_idx[2]+=1
+                figlist.append(fig)
         if not 'histTS' in self.figdict:
-            self.figdict['histTS']=[fig]
+            self.figdict['histTS']=figlist
         else:
-            self.figdict['histTS'].append(fig)
+            self.figdict['histTS'].extend(figlist)
       
         
     def doDictListToNpTS(self,datadictlist,timevar='sale_year'):
