@@ -90,7 +90,8 @@ class IslandData(DataView):
         if 'sale_year' in varlist:
             varcount=len(varlist)-1
         else:varcount=len(varlist)
-        fig=plt.figure(figsize=[14,varcount*12])
+        if combined:
+            fig=plt.figure(figsize=[14,varcount*12])
         
         subplot_idx=[varcount,1,1]
         for idxidx,var in enumerate(varlist):
