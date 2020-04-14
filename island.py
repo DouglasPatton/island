@@ -91,22 +91,27 @@ class IslandData(DataView):
     def addRealByCPI(self,to_year=2015):
         try:self.time_arraytup
         except: self.makeTimeArrayList()
-        dollarvarcount=self.dollarvarlist
-        deflated_array_list=[]
-        time_arraylist,varlist=self.time_arraytup
-        for t in range(len(time_arraylist)):
-            nparray=time_arraylist[t]
-            from_year=self.timelist[t]
-            cpi_factor=cpi.inflate(1,int(from_year),to=to_year)
-            #deflated_var_array=np.empty(nparray.shape[0],dollarvarcount,dtype=np.float64)
-            for dollarvar in self.dollarvarlist:
-                var_idx=varlist.index(dollarvar)
-                np.concatenate([nparray,nparray[:,var_idx][:,None]*cpi_factor],axis=1) 
-        for var in self.dollarvarlist:
-            varlist.append(var+'_real-'+str(to_year))
-        self.varlist=varlist
-        self.time_arraytup=(time_arraylist,varlist)
-            
+        try:
+            dollarvarcount=self.dollarvarlist
+            deflated_array_list=[]
+            time_arraylist,varlist=self.time_arraytup
+            for t in range(len(time_arraylist)):
+                nparray=time_arraylist[t]
+                from_year=self.timelist[t]
+                cpi_factor=cpi.inflate(1,int(from_year),to=to_year)
+                #deflated_var_array=np.empty(nparray.shape[0],dollarvarcount,dtype=np.float64)
+                for dollarvar in self.dollarvarlist:
+                    var_idx=varlist.index(dollarvar)
+                    nparray=np.concatenate([nparray,nparray[:,var_idx][:,None]*cpi_factor],axis=1) 
+                time_arraylist[t]=nparray
+            for var in self.dollarvarlist:
+                varlist.append(var+'_real-'+str(to_year))
+            self.logger.info(f'np.shape for time_arraylist:{[nparray.shape for nparray in time_arraylist]}')
+            self.varlist=varlist
+            self.time_arraytup=(time_arraylist,varlist)
+            return
+        except:
+            self.logger.exception('')
         
         
     def make2dHistogram(self,):   
@@ -137,9 +142,13 @@ class IslandData(DataView):
     
     def makeTSHistogram(self,varlist=None,combined=1):
         try:self.time_arraytup
-        except: self.makeTimeArrayList()
+        except: 
+            self.logger.exception('self.time_arraytup error, activating makeTimeArrayList')
+            self.makeTimeArrayList()
+        
         time_arraylist,time_array_varlist=self.time_arraytup
         self.logger.info(f'makeTSHistogram varlist:{varlist}')
+        self.logger.info(f'len(time_array_varlist):{len(time_array_varlist)}, time_array_varlist:{time_array_varlist}')
         if not varlist:
             varlist=time_array_varlist
             var_idx_list=list(range(len(varlist)))
