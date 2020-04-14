@@ -5,9 +5,9 @@ import os
 import logging
 from helpers import Helper
 import matplotlib.pyplot as plt
-#import cpi #https://github.com/datadesk/cpi
+import cpi #https://github.com/datadesk/cpi
 from data_viz import DataView
-from datetime import date
+#from datetime import date
 
 
 class IslandData(DataView):
@@ -47,10 +47,10 @@ class IslandData(DataView):
             'secchi',
             'wqbayfront',
             'wqwateraccess',
-            'wqwaterhouse'
+            'wqwaterhouse',
             'totalbathroomsedited',
             'totallivingarea',
-            'saleacres'
+            'saleacres',
             'distance_park',
             'distance_nyc',
             'distance_golf',
@@ -65,22 +65,20 @@ class IslandData(DataView):
             'pct_asian',
             'pct_black',
             'bayfront',
-            'wateraccess'
-            'waterhouse'
+            'wateraccess',
+            'waterhouse',
             'shorelinedistance',
             'shorelinedistancedv3_1000',
             'shorelinedistancedv1000_2000',
             'shorelinedistancedv2000_3000',
             'shorelinedistancedv3000_4000',
-            
-            
             'distance_shoreline',
             'soldmorethanonceinyear',
-            'soldmorethanonceovertheyears'
+            'soldmorethanonceovertheyears',
             'latitude',
             'longitude'            
             ]
-
+        self.geogvars=['latitude','longitude']
 
         
         
@@ -90,7 +88,7 @@ class IslandData(DataView):
         self.figheight=10;self.figwidth=10
         DataView.__init__(self)
     
-    def addRealByCPI(to_year=2015)
+    def addRealByCPI(self,to_year=2015):
         try:self.time_arraytup
         except: self.makeTimeArrayList()
         dollarvarcount=self.dollarvarlist
@@ -99,14 +97,15 @@ class IslandData(DataView):
         for t in range(len(time_arraylist)):
             nparray=time_arraylist[t]
             from_year=self.timelist[t]
-            cpi_factor=cpi.inflate(1,from_year,to=to_year)
-            deflated_var_array=np.empty([nparray.shape[0],dollarvarcount],dtype=np.float64)
+            cpi_factor=cpi.inflate(1,int(from_year),to=to_year)
+            #deflated_var_array=np.empty(nparray.shape[0],dollarvarcount,dtype=np.float64)
             for dollarvar in self.dollarvarlist:
-                var_idx=self.varlist.index(dollarvar)
-                np.concatenate(nparray,nparray[:,var_idx]*cpi_factor,axis=1) 
+                var_idx=varlist.index(dollarvar)
+                np.concatenate([nparray,nparray[:,var_idx][:,None]*cpi_factor],axis=1) 
         for var in self.dollarvarlist:
             varlist.append(var+'_real-'+str(to_year))
-        return (time_arraylist,varlist)
+        self.varlist=varlist
+        self.time_arraytup=(time_arraylist,varlist)
             
         
         
@@ -140,6 +139,7 @@ class IslandData(DataView):
         try:self.time_arraytup
         except: self.makeTimeArrayList()
         time_arraylist,time_array_varlist=self.time_arraytup
+        self.logger.info(f'makeTSHistogram varlist:{varlist}')
         if not varlist:
             varlist=time_array_varlist
             var_idx_list=list(range(len(varlist)))
@@ -178,6 +178,8 @@ class IslandData(DataView):
         '''
         if varlist is None:
             varlist=self.varlist
+        self.varlist.append('postsandy')
+        varlist.append('postsandy')
         timelist=[];whichdictdict={}
         for d_idx,datadict in enumerate(datadictlist):
             for time in datadict[timevar]:
@@ -200,14 +202,15 @@ class IslandData(DataView):
                 datadict=datadictlist[d_idx]
                 thisN=len(datadict[timevar])
                 datadict['postsandy']=[d_idx for _ in range(thisN)]
-                thistime_idxlist.extend([idx for idx,idx_time in enumerate(datadict[timevar]) if idx_time==time])
+
+                thistime_idxlist.extend([(d_idx,idx) for idx,idx_time in enumerate(datadict[timevar]) if idx_time==time])
             
             
                     
-            obsdata=[[datadict[varkey][idx] for varkey in varlist]for idx in thistime_idxlist]
+            obsdata=[[datadictlist[d_idx][varkey][idx] for varkey in varlist]for d_idx,idx in thistime_idxlist]
             time_arraylist.append(np.array(obsdata,dtype=np.float64))
         self.logger.info(f'time_arraylist shapes:{[_array.shape for _array in time_arraylist]}')
-        return time_arraylist
+        return time_arraylist,varlist
     
     
             
@@ -229,7 +232,7 @@ class IslandData(DataView):
             varlist=self.varlist
         try: self.datadictlist
         except:self.pickleDataDictList() 
-        time_arraylist=self.doDictListToNpTS(self.datadictlist,timevar='sale_year',varlist=varlist) #(time,obs,var) #also creates self.timelist
+        time_arraylist,varlist=self.doDictListToNpTS(self.datadictlist,timevar='sale_year',varlist=varlist) #(time,obs,var) #also creates self.timelist
         self.time_arraytup=(time_arraylist,varlist)
     
     
