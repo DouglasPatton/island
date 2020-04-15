@@ -1,4 +1,5 @@
 import numpy as np
+import pandas as pd
 import csv
 import pickle
 import os
@@ -112,7 +113,27 @@ class IslandData(DataView):
             return
         except:
             self.logger.exception('')
+    
+    '''
+    def makeLastIndex(self,nparray,varlist,indexlist):
+        uniquelist=[]
+        for index in indexlist:
+            pos=varlist.index(index)
+            uniquelist.append(np.unique(nparray[:,pos])
+    '''        
         
+        
+            
+    def arrayListToPandasTable(self,):
+        try:self.time_arraytup
+        except: self.makeTimeArrayList()
+        time_arraylist,varlist=self.time_arraytup
+        time_arraylist_indexed=[np.concatenate([nparray,np.arange(nparray.shape[0])[:,None]],axis=1) for nparray in time_arraylist] # add a new 'column' of data just numbering from 0 for pandas multi-index
+        varlist.append('idx') # name that column 'idx'
+        full2darray=np.concatenate(time_arraylist_indexed,axis=0)
+        indexvarlist=['postsandy','sale_year','idx']
+        index=[np.array(full2darray[:,varlist.index(idxvar)],dtype=str) for idxvar in indexvarlist]
+        self.df=pd.DataFrame(data=full2darray,columns=varlist,index=index)
         
     def make2dHistogram(self,):   
         try:self.time_arraytup
@@ -187,7 +208,7 @@ class IslandData(DataView):
         '''
         if varlist is None:
             varlist=self.varlist
-        self.varlist.append('postsandy')
+            self.varlist.append('postsandy')
         varlist.append('postsandy')
         timelist=[];whichdictdict={}
         for d_idx,datadict in enumerate(datadictlist):
