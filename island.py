@@ -18,8 +18,9 @@ class IslandData(DataView):
         logdir=os.path.join(os.getcwd(),'log')
         if not os.path.exists(logdir): os.mkdir(logdir)
         handlername=os.path.join(logdir,f'island.log')
+        logpath=os.path.join(logdir,handlername)
         logging.basicConfig(
-            handlers=[logging.handlers.RotatingFileHandler(os.path.join(logdir,handlername), maxBytes=10**6, backupCount=20)],
+            handlers=[logging.handlers.RotatingFileHandler(logpath, maxBytes=10**6, backupCount=20)],
             level=logging.INFO,
             format="[%(asctime)s] %(levelname)s [%(name)s.%(funcName)s:%(lineno)d] %(message)s",
             datefmt='%Y-%m-%dT%H:%M:%S')
@@ -28,67 +29,28 @@ class IslandData(DataView):
         self.TSHistogramlist=[]
         self.datadir=os.path.join(os.getcwd(),'data')
         self.printdir=os.path.join(os.getcwd(),'print')
-        if not os.path.exists(printdir):
-            os.mkdir(printdir)
-        
-        
-
+        if not os.path.exists(self.printdir):
+            os.mkdir(self.printdir)
         self.datadictlistpath=os.path.join(self.datadir,'datadictlist.pickle')
-        '''self.var_type_dict={
-            'sale_year':np.int16,
-            'saleprice':np.int64,
-            'assessedvalue':np.int64,
-            'secchi':np.float64,
-            'wateraccess':np.bool,
-            'bayfront':np.bool,
-            'waterhouse':np.bool,
-            'shorelinedistance':np.float32
-        }
-        self.varlist=[key for key in self.var_type_dict]'''
         self.varlist=[
-            'sale_year',
-            'saleprice',
-            'assessedvalue',
-            'postsandy',
-            'secchi',
-            'wqbayfront',
-            'wqwateraccess',
-            'wqwaterhouse',
-            'totalbathroomsedited',
-            'totallivingarea',
-            'saleacres',
-            'distance_park',
-            'distance_nyc',
-            'distance_golf',
-            'wqshorelinedistancedv3_1000',
-            'wqshorelinedistancedv1000_2000',
-            'wqshorelinedistancedv2000_3000',
-            'wqshorelinedistancedv3000_4000',
-            'education',
-            'income',
-            'povertylevel',
-            'pct_white',
-            'pct_asian',
-            'pct_black',
-            'bayfront',
-            'wateraccess',
-            'waterhouse',
-            'shorelinedistance',
-            'shorelinedistancedv3_1000',
-            'shorelinedistancedv1000_2000',
-            'shorelinedistancedv2000_3000',
-            'shorelinedistancedv3000_4000',
-            'distance_shoreline',
-            'soldmorethanonceinyear',
-            'soldmorethanonceovertheyears',
-            'latitude',
-            'longitude'            
+            'sale_year','saleprice','assessedvalue',
+            'postsandy','secchi',
+            'wqbayfront','wqwateraccess','wqwaterhouse',
+            'totalbathroomsedited','totallivingarea','saleacres',
+            'distance_park','distance_nyc','distance_golf',
+            'wqshorelinedistancedv3_1000','wqshorelinedistancedv1000_2000',
+            'wqshorelinedistancedv2000_3000','wqshorelinedistancedv3000_4000',
+            'education','income','povertylevel',
+            'pct_white','pct_asian','pct_black',
+            'bayfront','wateraccess','waterhouse',
+            'shorelinedistance', #float
+            'distance_shoreline', #ordinal
+            'shorelinedistancedv3_1000','shorelinedistancedv1000_2000',
+            'shorelinedistancedv2000_3000','shorelinedistancedv3000_4000',
+            'soldmorethanonceinyear','soldmorethanonceovertheyears',
+            'latitude','longitude'            
             ]
         self.geogvars=['latitude','longitude']
-
-        
-        
-        
         self.dollarvarlist=['saleprice','assessedvalue','income']
         self.fig=None;self.ax=None
         self.figheight=10;self.figwidth=10
@@ -145,10 +107,28 @@ class IslandData(DataView):
         self.df=pd.DataFrame(data=full2darray,columns=varlist,index=multi_index)
         
         
-        
-        
-        
-        
+    def printDFtoSumStats(self,df=None,varlist=None):
+        pd.set_option('display.max_colwidth', None)
+        printpath=os.path.join(self.printdir,'sumstats.html')
+        if df is None:
+            df=self.df
+        if varlist is None:
+            varlist=self.varlist
+        sumstats_html_list=[]
+        html_out=''
+        levelname=df.index.names[0]
+        for level in df.index.levels[0]:
+            for var in varlist:
+                series=df.loc[level][var]
+                try:series=series.astype(np.float64)
+                except:pass
+                sumstats=series.describe()
+                sumstats_df=pd.DataFrame(sumstats)
+                sumstats_html_list.append(sumstats_df.to_html())
+            html_out+=f'{levelname}:{level} <br>'+'<br>'.join(sumstats_html_list)
+        self.sumstats_html=html_out
+        with open(printpath,'w') as f:
+            f.write(self.sumstats_html)     
         
         
     def make2dHistogram(self,):   
@@ -169,6 +149,7 @@ class IslandData(DataView):
             self.figdict['hist2d']=[fig]
         else:
             self.figdict['hist2d'].append(fig)
+    
     
     def makeIndividualTSHistogram(self,varlist=None):
         if not varlist:
