@@ -14,6 +14,7 @@ from data_viz import DataView
 class IslandData(DataView):
     def __init__(self,dpi=100):
         self.dpi=dpi
+        self.helper=Helper()
         logdir=os.path.join(os.getcwd(),'log')
         if not os.path.exists(logdir): os.mkdir(logdir)
         handlername=os.path.join(logdir,f'island.log')
@@ -26,8 +27,12 @@ class IslandData(DataView):
         self.figdict={}
         self.TSHistogramlist=[]
         self.datadir=os.path.join(os.getcwd(),'data')
-        self.helper=Helper()
-        self.datadir=os.path.join(os.getcwd(),'data')
+        self.printdir=os.path.join(os.getcwd(),'print')
+        if not os.path.exists(printdir):
+            os.mkdir(printdir)
+        
+        
+
         self.datadictlistpath=os.path.join(self.datadir,'datadictlist.pickle')
         '''self.var_type_dict={
             'sale_year':np.int16,
