@@ -66,11 +66,13 @@ class IslandData(DataView):
             for t in range(len(time_arraylist)):
                 nparray=time_arraylist[t]
                 from_year=self.timelist[t]
-                cpi_factor=cpi.inflate(1,int(from_year),to=to_year)
+                cpi_factor_raw=cpi.inflate(1,int(from_year),to=to_year)
+                cpi_factor=np.float64(cpi_factor_raw)
+                self.logger.info(f'type(cpi_factor_raw),cpi_factor_raw:{(type(cpi_factor_raw),cpi_factor_raw)}')
                 #deflated_var_array=np.empty(nparray.shape[0],dollarvarcount,dtype=np.float64)
                 for dollarvar in self.dollarvarlist:
                     var_idx=varlist.index(dollarvar)
-                    nparray=np.concatenate([nparray,nparray[:,var_idx][:,None]*cpi_factor],axis=1) 
+                    nparray=np.concatenate([nparray,np.float64(nparray[:,var_idx][:,None])*cpi_factor],axis=1) 
                 time_arraylist[t]=nparray
             for var in self.dollarvarlist:
                 varlist.append(var+'_real-'+str(to_year))
@@ -115,6 +117,7 @@ class IslandData(DataView):
         if varlist is None:
             varlist=self.varlist
         sumstats_html_list=[]
+        sumstats_df_list=[]
         html_out=''
         levelname=df.index.names[0]
         for level in df.index.levels[0]:
@@ -124,12 +127,20 @@ class IslandData(DataView):
                 except:pass
                 sumstats=series.describe()
                 sumstats_df=pd.DataFrame(sumstats)
+                sumstats_df_list.append(sumstats_df)
                 sumstats_html_list.append(sumstats_df.to_html())
             html_out+=f'{levelname}:{level} <br>'+'<br>'.join(sumstats_html_list)
         self.sumstats_html=html_out
+        all_sumstats_df=pd.concat(sumstats_df_list,axis=1)
+        self.sumstats_html=all_sumstats_df.to_html()
         with open(printpath,'w') as f:
-            f.write(self.sumstats_html)     
+            f.write(self.sumstats_html) 
         
+      
+    def mergeTrySeriestoDFList(self,series,dflist):
+        while True:
+            for df in dflist:
+                pass
         
     def make2dHistogram(self,):   
         try:self.time_arraytup
@@ -205,8 +216,10 @@ class IslandData(DataView):
         '''
         if varlist is None:
             varlist=self.varlist
-            self.varlist.append('postsandy')
-        varlist.append('postsandy')
+            if not 'postsandy' in varlist:
+                   self.varlist.append('postsandy')
+        if not 'postsandy' in varlist:
+            varlist.append('postsandy')
         timelist=[];whichdictdict={}
         for d_idx,datadict in enumerate(datadictlist):
             for time in datadict[timevar]:
@@ -235,7 +248,7 @@ class IslandData(DataView):
             
                     
             obsdata=[[datadictlist[d_idx][varkey][idx] for varkey in varlist]for d_idx,idx in thistime_idxlist]
-            time_arraylist.append(np.array(obsdata))#,dtype=np.float64))
+            time_arraylist.append(np.array(obsdata,dtype=np.float64))
         self.logger.info(f'time_arraylist shapes:{[_array.shape for _array in time_arraylist]}')
         return time_arraylist,varlist
     
