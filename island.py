@@ -124,7 +124,7 @@ class IslandData(DataView):
         
         
             
-    def arrayListToPandasTable(self,):
+    def arrayListToPandasDF(self,):
         try:self.time_arraytup
         except: self.makeTimeArrayList()
         time_arraylist,varlist=self.time_arraytup
@@ -133,7 +133,18 @@ class IslandData(DataView):
         full2darray=np.concatenate(time_arraylist_indexed,axis=0)
         indexvarlist=['postsandy','sale_year','idx']
         index=[np.array(full2darray[:,varlist.index(idxvar)],dtype=str) for idxvar in indexvarlist]
-        self.df=pd.DataFrame(data=full2darray,columns=varlist,index=index)
+        index=[nparray[:,None] for nparray in index]
+        index=np.concatenate(index,axis=1)
+        index_df=pd.DataFrame(data=index,columns=indexvarlist)
+        multi_index=pd.MultiIndex.from_frame(index_df)
+        self.df=pd.DataFrame(data=full2darray,columns=varlist,index=multi_index)
+        
+        
+        
+        
+        
+        
+        
         
     def make2dHistogram(self,):   
         try:self.time_arraytup
@@ -238,7 +249,7 @@ class IslandData(DataView):
             
                     
             obsdata=[[datadictlist[d_idx][varkey][idx] for varkey in varlist]for d_idx,idx in thistime_idxlist]
-            time_arraylist.append(np.array(obsdata,dtype=np.float64))
+            time_arraylist.append(np.array(obsdata))#,dtype=np.float64))
         self.logger.info(f'time_arraylist shapes:{[_array.shape for _array in time_arraylist]}')
         return time_arraylist,varlist
     
