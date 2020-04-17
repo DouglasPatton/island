@@ -32,24 +32,24 @@ class IslandData(DataView):
         if not os.path.exists(self.printdir):
             os.mkdir(self.printdir)
         self.datadictlistpath=os.path.join(self.datadir,'datadictlist.pickle')
-        self.varlist=[
-            'sale_year','saleprice','assessedvalue',
-            'postsandy','secchi',
-            'wqbayfront','wqwateraccess','wqwaterhouse',
-            'totalbathroomsedited','totallivingarea','saleacres',
-            'distance_park','distance_nyc','distance_golf',
-            'wqshorelinedistancedv3_1000','wqshorelinedistancedv1000_2000',
-            'wqshorelinedistancedv2000_3000','wqshorelinedistancedv3000_4000',
-            'education','income','povertylevel',
-            'pct_white','pct_asian','pct_black',
-            'bayfront','wateraccess','waterhouse',
-            'shorelinedistance', #float
-            'distance_shoreline', #ordinal
-            'shorelinedistancedv3_1000','shorelinedistancedv1000_2000',
-            'shorelinedistancedv2000_3000','shorelinedistancedv3000_4000',
-            'soldmorethanonceinyear','soldmorethanonceovertheyears',
-            'latitude','longitude'            
-            ]
+        self.vardict={
+            'sale_year':np.uint16,'saleprice':np.int64,'assessedvalue':np.int64,
+            'postsandy':np.uint16,'secchi':np.float64,
+            'wqbayfront':np.uint16,'wqwateraccess':np.uint16,'wqwaterhouse':np.uint16,
+            'totalbathroomsedited':np.float64,'totallivingarea':np.float64,'saleacres':np.float64,
+            'distance_park':np.float64,'distance_nyc':np.float64,'distance_golf':np.float64,
+            'wqshorelinedistancedv3_1000':np.float64,'wqshorelinedistancedv1000_2000':np.float64,
+            'wqshorelinedistancedv2000_3000':np.float64,'wqshorelinedistancedv3000_4000':np.float64,
+            'education':np.float64,'income':np.float64,'povertylevel':np.float64,
+            'pct_white':np.float64,'pct_asian':np.float64,'pct_black':np.float64,
+            'bayfront':np.uint16,'wateraccess':np.uint16,'waterhouse':np.uint16,
+            'shorelinedistance':np.float64,'distance_shoreline':np.uint16, 
+            'shorelinedistancedv3_1000':np.uint16,'shorelinedistancedv1000_2000':np.uint16,
+            'shorelinedistancedv2000_3000':np.uint16,'shorelinedistancedv3000_4000':np.uint16,
+            'soldmorethanonceinyear':np.uint16,'soldmorethanonceovertheyears':np.uint16,
+            'latitude':np.float64,'longitude':np.float64            
+            }
+        self.varlist=[var for var in self.vardict]
         self.geogvars=['latitude','longitude']
         self.dollarvars=['saleprice','assessedvalue','income']
         self.fig=None;self.ax=None
@@ -245,10 +245,11 @@ class IslandData(DataView):
 
                 thistime_idxlist.extend([(d_idx,idx) for idx,idx_time in enumerate(datadict[timevar]) if idx_time==time])
             
-            
+            obsdata=np.concatenate([np.concatenate([np.array(datadictlist[d_idx][varkey][idx],dtype=self.vardict[varkey])[:,None] for varkey in varlist],axis=1)for d_idx,idx in thistime_idxlist],axis=0)
+            time_arraylist.append(obsdata)
                     
-            obsdata=[[datadictlist[d_idx][varkey][idx] for varkey in varlist]for d_idx,idx in thistime_idxlist]
-            time_arraylist.append(np.array(obsdata,dtype=np.float64))
+            #obsdata=[[datadictlist[d_idx][varkey][idx] for varkey in varlist]for d_idx,idx in thistime_idxlist]
+            #time_arraylist.append(np.array(obsdata,dtype=np.float64))
         self.logger.info(f'time_arraylist shapes:{[_array.shape for _array in time_arraylist]}')
         return time_arraylist,varlist
     
