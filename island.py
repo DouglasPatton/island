@@ -51,7 +51,7 @@ class IslandData(DataView):
             'latitude','longitude'            
             ]
         self.geogvars=['latitude','longitude']
-        self.dollarvarlist=['saleprice','assessedvalue','income']
+        self.dollarvars=['saleprice','assessedvalue','income']
         self.fig=None;self.ax=None
         self.figheight=10;self.figwidth=10
         DataView.__init__(self)
@@ -60,7 +60,7 @@ class IslandData(DataView):
         try:self.time_arraytup
         except: self.makeTimeArrayList()
         try:
-            dollarvarcount=self.dollarvarlist
+            dollarvarcount=self.dollarvars
             deflated_array_list=[]
             time_arraylist,varlist=self.time_arraytup
             for t in range(len(time_arraylist)):
@@ -70,11 +70,11 @@ class IslandData(DataView):
                 cpi_factor=np.float64(cpi_factor_raw)
                 self.logger.info(f'type(cpi_factor_raw),cpi_factor_raw:{(type(cpi_factor_raw),cpi_factor_raw)}')
                 #deflated_var_array=np.empty(nparray.shape[0],dollarvarcount,dtype=np.float64)
-                for dollarvar in self.dollarvarlist:
+                for dollarvar in self.dollarvars:
                     var_idx=varlist.index(dollarvar)
                     nparray=np.concatenate([nparray,np.float64(nparray[:,var_idx][:,None])*cpi_factor],axis=1) 
                 time_arraylist[t]=nparray
-            for var in self.dollarvarlist:
+            for var in self.dollarvars:
                 varlist.append(var+'_real-'+str(to_year))
             self.logger.info(f'np.shape for time_arraylist:{[nparray.shape for nparray in time_arraylist]}')
             self.varlist=varlist
