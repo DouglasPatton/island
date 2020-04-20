@@ -1,12 +1,12 @@
 import numpy as np
 import pandas as pd
 import csv
-import pickle
+import pickle,json
 import os
 import logging
 from helpers import Helper
 import matplotlib.pyplot as plt
-import cpi #https://github.com/datadesk/cpi
+#import cpi #https://github.com/datadesk/cpi
 from data_viz import DataView
 #from datetime import date
 
@@ -35,7 +35,7 @@ class IslandData(DataView):
         self.vardict={
             'sale_year':np.uint16,'saleprice':np.int64,'assessedvalue':np.int64,
             'postsandy':np.uint16,'secchi':np.float64,
-            'wqbayfront':np.uint16,'wqwateraccess':np.uint16,'wqwaterhouse':np.uint16,
+            'wqbayfront':np.float64,'wqwateraccess':np.float64,'wqwaterhouse':np.float64,
             'totalbathroomsedited':np.float64,'totallivingarea':np.float64,'saleacres':np.float64,
             'distance_park':np.float64,'distance_nyc':np.float64,'distance_golf':np.float64,
             'wqshorelinedistancedv3_1000':np.float64,'wqshorelinedistancedv1000_2000':np.float64,
@@ -43,7 +43,7 @@ class IslandData(DataView):
             'education':np.float64,'income':np.float64,'povertylevel':np.float64,
             'pct_white':np.float64,'pct_asian':np.float64,'pct_black':np.float64,
             'bayfront':np.uint16,'wateraccess':np.uint16,'waterhouse':np.uint16,
-            'shorelinedistance':np.float64,'distance_shoreline':np.uint16, 
+            'shorelinedistance':np.uint16,'distance_shoreline':np.float64, 
             'shorelinedistancedv3_1000':np.uint16,'shorelinedistancedv1000_2000':np.uint16,
             'shorelinedistancedv2000_3000':np.uint16,'shorelinedistancedv3000_4000':np.uint16,
             'soldmorethanonceinyear':np.uint16,'soldmorethanonceovertheyears':np.uint16,
@@ -56,82 +56,112 @@ class IslandData(DataView):
         self.figheight=10;self.figwidth=10
         DataView.__init__(self)
     
+    
+    def getCPI(self,to_year=2015):
+        cpi_factors_path=os.path.join(self.datadir,f'cpi_factors-{to_year}.json')
+        try:
+            with open(cpi_factors_path,'r') as f:
+                cpi_factors=json.load(f)
+            return cpi_factors
+        except:
+            self.logger.info('building cpi_factors')
+        import cpi
+        cpi_factor_list=[]
+        for t in self.timelist:#
+            cpi_factor=np.float64(cpi.inflate(1,int(t),to=to_year))
+            cpi_factor_list.append(cpi_factor)
+        with open(cpi_factors_path,'w') as f:
+            json.dump(cpi_factor_list,f)
+        return cpi_factor_list
+    
     def addRealByCPI(self,to_year=2015):
         try:self.time_arraytup
-        except: self.makeTimeArrayList()
+        except: self.makeTimeListArrayList()
+            
         try:
             dollarvarcount=self.dollarvars
             deflated_array_list=[]
-            time_arraylist,varlist=self.time_arraytup
-            for t in range(len(time_arraylist)):
-                nparray=time_arraylist[t]
-                from_year=self.timelist[t]
-                cpi_factor_raw=cpi.inflate(1,int(from_year),to=to_year)
-                cpi_factor=np.float64(cpi_factor_raw)
-                self.logger.info(f'type(cpi_factor_raw),cpi_factor_raw:{(type(cpi_factor_raw),cpi_factor_raw)}')
+            timelist_arraylist,varlist=self.time_arraytup
+            cpi_factor_list=self.getCPI(to_year=2015)
+            for t in range(len(timelist_arraylist)):
+                nparraylist=timelist_arraylist[t]
+                
                 #deflated_var_array=np.empty(nparray.shape[0],dollarvarcount,dtype=np.float64)
                 for dollarvar in self.dollarvars:
                     var_idx=varlist.index(dollarvar)
-                    nparray=np.concatenate([nparray,np.float64(nparray[:,var_idx][:,None])*cpi_factor],axis=1) 
-                time_arraylist[t]=nparray
-            for var in self.dollarvars:
+                    cpi_factor=cpi_factor_list[t]
+                    real_dollar_array=nparraylist[var_idx]*cpi_factor
+                    nparraylist.append(real_dollar_array)
+                    #nparray=np.concatenate([nparray,np.float64(nparray[:,var_idx][:,None])*cpi_factor],axis=1) 
+                #timelist_arraylist[t]=nparray
+            for var in self.dollarvars:#separate loop since just happens once per t
                 varlist.append(var+'_real-'+str(to_year))
-            self.logger.info(f'np.shape for time_arraylist:{[nparray.shape for nparray in time_arraylist]}')
+            self.logger.info(f'np.shape for timelist_arraylist:{[nparray.shape for arraylist in timelist_arraylist for nparray in arraylist]}')
             self.varlist=varlist
-            self.time_arraytup=(time_arraylist,varlist)
+            self.time_arraytup=(timelist_arraylist,varlist)
             return
         except:
             self.logger.exception('')
     
-    '''
-    def makeLastIndex(self,nparray,varlist,indexlist):
-        uniquelist=[]
-        for index in indexlist:
-            pos=varlist.index(index)
-            uniquelist.append(np.unique(nparray[:,pos])
-    '''        
-        
-        
             
     def arrayListToPandasDF(self,):
         try:self.time_arraytup
-        except: self.makeTimeArrayList()
-        time_arraylist,varlist=self.time_arraytup
-        time_arraylist_indexed=[np.concatenate([nparray,np.arange(nparray.shape[0])[:,None]],axis=1) for nparray in time_arraylist] # add a new 'column' of data just numbering from 0 for pandas multi-index
-        varlist.append('idx') # name that column 'idx'
-        full2darray=np.concatenate(time_arraylist_indexed,axis=0)
+        except: self.makeTimeListArrayList()
+        timelist_arraylist,varlist=self.time_arraytup
+        [nparraylist.append(np.arange(nparraylist[0].shape[0])) for nparraylist in timelist_arraylist]
+        varlist.append('idx') # name the new column 'idx'                                           
+        columnlist=[np.concatenate([nparraylist[varidx] for nparraylist in timelist_arraylist],axis=0) for varidx in range(len(varlist))]
+        #timelist_arraylist_indexed=[np.concatenate([nparray,np.arange(nparray.shape[0])[:,None]],axis=1) for nparray in timelist_arraylist] # add a new 'column' of data just numbering from 0 for pandas multi-index
+        
+        #full2darray=np.concatenate(timelist_arraylist_indexed,axis=0)
         indexvarlist=['postsandy','sale_year','idx']
-        index=[np.array(full2darray[:,varlist.index(idxvar)],dtype=str) for idxvar in indexvarlist]
+        index=[columnlist[varlist.index(idxvar)] for idxvar in indexvarlist]
+        self.logger.info(f'index:{index}')
         index=[nparray[:,None] for nparray in index]
         index=np.concatenate(index,axis=1)
         index_df=pd.DataFrame(data=index,columns=indexvarlist)
         multi_index=pd.MultiIndex.from_frame(index_df)
-        self.df=pd.DataFrame(data=full2darray,columns=varlist,index=multi_index)
+        pd_data_dict={varlist[i]:columnlist[i] for i in range(len(varlist))}
+        self.df=pd.DataFrame(pd_data_dict,index=multi_index)
         
         
     def printDFtoSumStats(self,df=None,varlist=None):
-        pd.set_option('display.max_colwidth', None)
+        #pd.set_option('display.max_colwidth', None)
         printpath=os.path.join(self.printdir,'sumstats.html')
         if df is None:
             df=self.df
         if varlist is None:
             varlist=self.varlist
-        sumstats_html_list=[]
-        sumstats_df_list=[]
+        #sumstats_html_list=[]
+        #sumstats_df_list=[]
+        #sumstats_index_list=[]
+        sumstatslist=[]
+        multiindex=[]
         html_out=''
         levelname=df.index.names[0]
         for level in df.index.levels[0]:
             for var in varlist:
                 series=df.loc[level][var]
-                try:series=series.astype(np.float64)
-                except:pass
+                #try:series=series.astype(np.float64)
+                #except:pass
                 sumstats=series.describe()
-                sumstats_df=pd.DataFrame(sumstats)
-                sumstats_df_list.append(sumstats_df)
-                sumstats_html_list.append(sumstats_df.to_html())
-            html_out+=f'{levelname}:{level} <br>'+'<br>'.join(sumstats_html_list)
-        self.sumstats_html=html_out
-        all_sumstats_df=pd.concat(sumstats_df_list,axis=1)
+                self.logger.info(f'sumstats:{sumstats}')
+                multiindex.extend([(level,var,statname) for statname in sumstats.index])
+                #sumstats=sumstats.reindex(index=multiindex)
+                #self.logger.info(f'after reinex, sumstats:{sumstats}')
+                #sumstats_index_list.append((level,var))
+                sumstatslist.append(sumstats.to_numpy())
+                #sumstats_df=pd.DataFrame(data=sumstats,index=(level,))
+                #self.logger.info(f'sumstats_df:{sumstats_df}')
+                #sumstats_df_list.append(sumstats_df)
+                #sumstats_html_list.append(sumstats_df.to_html())
+            #html_out+=f'{levelname}:{level} <br>'+'<br>'.join(sumstats_html_list)
+        #self.sumstats_html=html_out
+        all_sumstats_df=pd.DataFrame(np.concatenate(sumstatslist,axis=0),index=multiindex)
+        self.logger.info(f'all_sumstats_df.index:{all_sumstats_df.index}')
+        self.logger.info(f'all_sumstats_df.index.duplicated():{all_sumstats_df.index.duplicated()}')
+        #all_sumstats_df.reindex(index=multiindex)
+        self.sumstatsdf=all_sumstats_df
         self.sumstats_html=all_sumstats_df.to_html()
         with open(printpath,'w') as f:
             f.write(self.sumstats_html) 
@@ -144,11 +174,11 @@ class IslandData(DataView):
         
     def make2dHistogram(self,):   
         try:self.time_arraytup
-        except: self.makeTimeArrayList()
-        time_arraylist,varlist=self.time_arraytup
+        except: self.makeTimeListArrayList()
+        timelist_arraylist,varlist=self.time_arraytup
         #varlist=self.varlist
         #t_idx=varlist.index('sale_year')
-        timelenlist=[_array.shape[0] for _array in time_arraylist]
+        timelenlist=[_array.shape[0] for _array in timelist_arraylist]
         xlabel=f'Sale Years {self.timelist[0]}-{self.timelist[-1]}'
         ylabel='Count'
         title='Count of Sales by Year'
@@ -172,10 +202,10 @@ class IslandData(DataView):
     def makeTSHistogram(self,varlist=None,combined=1):
         try:self.time_arraytup
         except: 
-            self.logger.exception('self.time_arraytup error, activating makeTimeArrayList')
-            self.makeTimeArrayList()
+            self.logger.exception('self.time_arraytup error, activating makeTimeListArrayList')
+            self.makeTimeListArrayList()
         
-        time_arraylist,time_array_varlist=self.time_arraytup
+        timelist_arraylist,time_array_varlist=self.time_arraytup
         self.logger.info(f'makeTSHistogram varlist:{varlist}')
         self.logger.info(f'len(time_array_varlist):{len(time_array_varlist)}, time_array_varlist:{time_array_varlist}')
         if not varlist:
@@ -199,7 +229,7 @@ class IslandData(DataView):
                         fig=None
                 for norm_hist in [0,1]:
                     
-                    fig,histdict=self.my3dHistogram([nparray[:,var_idx] for nparray in time_arraylist],
+                    fig,histdict=self.my3dHistogram([nparray[:,var_idx] for nparray in timelist_arraylist],
                                                     var,self.timelist,subplot_idx=subplot_idx,fig=fig,norm_hist=norm_hist)
                     self.TSHistogramlist.append({'histTS':histdict})
                     subplot_idx[2]+=1
@@ -235,7 +265,7 @@ class IslandData(DataView):
         self.timelist=timelist
         self.logger.info(f'timecount:{timecount},timelist:{timelist}')
         timeposdict={time:i for i,time in enumerate(timelist)}
-        time_arraylist=[]
+        timelist_arraylist=[]
         for time in timelist:
             thistime_idxlist=[]
             for d_idx in whichdictdict[time]:
@@ -244,14 +274,35 @@ class IslandData(DataView):
                 datadict['postsandy']=[d_idx for _ in range(thisN)]
 
                 thistime_idxlist.extend([(d_idx,idx) for idx,idx_time in enumerate(datadict[timevar]) if idx_time==time])
-            
-            obsdata=np.concatenate([np.concatenate([np.array(datadictlist[d_idx][varkey][idx],dtype=self.vardict[varkey])[:,None] for varkey in varlist],axis=1)for d_idx,idx in thistime_idxlist],axis=0)
-            time_arraylist.append(obsdata)
+            vararraylist=[]
+            for var in varlist:
+                vartype=self.vardict[var]
+                column=[datadictlist[d_idx][var][idx] for d_idx,idx in thistime_idxlist] 
+                colarray=np.array(column,dtype=vartype) #columns vary along dim0
+                self.logger.info(f'for time:{time}, colarray.shape,type:{(colarray.shape,colarray.dtype)}')
+                vararraylist.append(colarray)
+            '''for d_idx,idx in thistime_idxlist:
+                idxdatalist=[]
+                for varkey in varlist:
+                    idxdatalist.append(datadictlist[d_idx][varkey][idx])
+                    #self.logger.info(f'datalist:{datalist}')
+                    newarray=np.array(datalist,dtype=self.vardict[varkey])
+                    arraylist.append(newarray)
+                    self.logger.info(f'newarray.shape:{newarray.shape}, newarray.dtype:{newarray.dtype}')
+                arraylist=[newarray[:,None] for newarray in arraylist]
+                array_t=np.concatenate(arraylist,axis=1)
+                arraylistlist.append(array_t)'''
+            #obsdata=np.concatenate(vararraylist,axis=1, dtype=object)
+            obsdata=vararraylist
+            #self.logger.info(f'for time:{time}, obsdata.shape:{obsdata.shape}')
+            timelist_arraylist.append(obsdata)
+            #obsdata=np.concatenate([np.concatenate([np.array(datadictlist[d_idx][varkey][idx],dtype=self.vardict[varkey])[:,None] for varkey in varlist],axis=1) for d_idx,idx in thistime_idxlist],axis=0)
+            #timelist_arraylist.append(obsdata)
                     
             #obsdata=[[datadictlist[d_idx][varkey][idx] for varkey in varlist]for d_idx,idx in thistime_idxlist]
-            #time_arraylist.append(np.array(obsdata,dtype=np.float64))
-        self.logger.info(f'time_arraylist shapes:{[_array.shape for _array in time_arraylist]}')
-        return time_arraylist,varlist
+            #timelist_arraylist.append(np.array(obsdata,dtype=np.float64))
+        self.logger.info(f'timelist_arraylist shapes:{[_array.shape for arraylist in timelist_arraylist for _array in arraylist]}')
+        return timelist_arraylist,varlist
     
     
             
@@ -268,13 +319,13 @@ class IslandData(DataView):
                     pydict[key][r_idx]=val
         return pydict
         
-    def makeTimeArrayList(self,varlist=None):
+    def makeTimeListArrayList(self,varlist=None):
         if varlist is None:
             varlist=self.varlist
         try: self.datadictlist
         except:self.pickleDataDictList() 
-        time_arraylist,varlist=self.doDictListToNpTS(self.datadictlist,timevar='sale_year',varlist=varlist) #(time,obs,var) #also creates self.timelist
-        self.time_arraytup=(time_arraylist,varlist)
+        timelist_arraylist,varlist=self.doDictListToNpTS(self.datadictlist,timevar='sale_year',varlist=varlist) #(time,obs,var) #also creates self.timelist
+        self.time_arraytup=(timelist_arraylist,varlist)
     
     
     def getDataFromCSV(self,):
