@@ -201,7 +201,7 @@ class IslandData(DataView):
                         fig=None
                 for norm_hist in [0,1]:
                     
-                    fig,histdict=self.my3dHistogram([nparray[:,var_idx] for nparray in timelist_arraylist],
+                    fig,histdict=self.my3dHistogram([nparraylist[var_idx] for nparraylist in timelist_arraylist],
                                                     var,self.timelist,subplot_idx=subplot_idx,fig=fig,norm_hist=norm_hist)
                     self.TSHistogramlist.append({'histTS':histdict})
                     subplot_idx[2]+=1
