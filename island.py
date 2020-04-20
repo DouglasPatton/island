@@ -123,10 +123,11 @@ class IslandData(DataView):
         multi_index=pd.MultiIndex.from_frame(index_df)
         pd_data_dict={varlist[i]:columnlist[i] for i in range(len(varlist))}
         self.df=pd.DataFrame(pd_data_dict,index=multi_index)
-        
+       
+    
         
     def printDFtoSumStats(self,df=None,varlist=None):
-        #pd.set_option('display.max_colwidth', None)
+        pd.set_option('display.max_colwidth', None)
         printpath=os.path.join(self.printdir,'sumstats.html')
         if df is None:
             df=self.df
@@ -135,34 +136,51 @@ class IslandData(DataView):
         #sumstats_html_list=[]
         #sumstats_df_list=[]
         #sumstats_index_list=[]
-        sumstatslist=[]
+        '''sumstatslist=[]
         multiindex=[]
         html_out=''
         levelname=df.index.names[0]
-        for level in df.index.levels[0]:
-            for var in varlist:
+        for var in varlist:
+        
+            levelsumstats=[]
+            for level in df.index.levels[0]:
+            
                 series=df.loc[level][var]
                 #try:series=series.astype(np.float64)
                 #except:pass
-                sumstats=series.describe()
-                self.logger.info(f'sumstats:{sumstats}')
-                multiindex.extend([(level,var,statname) for statname in sumstats.index])
+                sumstat_series=series.describe()
+                statnamelist=sumstat_series.index
+                #sumstats=[sumstat_series.loc[statname] for statname in statnamelist]
+                #self.logger.info(f'sumstats:{sumstats}')
+                
+                #multiindex.extend([(var,level,statname) for statname in sumstats.index])
                 #sumstats=sumstats.reindex(index=multiindex)
                 #self.logger.info(f'after reinex, sumstats:{sumstats}')
                 #sumstats_index_list.append((level,var))
-                sumstatslist.append(sumstats.to_numpy())
+                #sumstatslist.append(sumstats.to_numpy())
+                levelsumstats.append(sumstat_series)
                 #sumstats_df=pd.DataFrame(data=sumstats,index=(level,))
                 #self.logger.info(f'sumstats_df:{sumstats_df}')
                 #sumstats_df_list.append(sumstats_df)
                 #sumstats_html_list.append(sumstats_df.to_html())
+                if level:levelname='Post Sandy'
+                else: levelname='Pre Sandy'
+            sumstatslist.append(pd.DataFrame(levelsumstats,index=df.index.levels[0]))
+            multiindex.append([(var,level)])
             #html_out+=f'{levelname}:{level} <br>'+'<br>'.join(sumstats_html_list)
         #self.sumstats_html=html_out
-        all_sumstats_df=pd.DataFrame(np.concatenate(sumstatslist,axis=0),index=multiindex)
+        multiindex_dfidx=pd.MultiIndex.from_frame(pd.DataFrame(multiindex,columns=['Variable', 'Post Sandy']))
+        #all_sumstats_df=pd.DataFrame(np.concatenate(sumstatslist,axis=0),index=multiindex_dfidx)
+        all_sumstats_df=pd.DataFrame(sumstatslist,index=multiindex_dfidx)
         self.logger.info(f'all_sumstats_df.index:{all_sumstats_df.index}')
         self.logger.info(f'all_sumstats_df.index.duplicated():{all_sumstats_df.index.duplicated()}')
-        #all_sumstats_df.reindex(index=multiindex)
-        self.sumstatsdf=all_sumstats_df
-        self.sumstats_html=all_sumstats_df.to_html()
+        #all_sumstats_df.reindex(index=multiindex)'''
+        levels=['Pre-Sandy','Post-Sandy']
+        html_list=[]
+        for level in df.index.levels[0]:
+            html_list.append(levels[level]+'<br>'+df.loc[level].describe().to_html())
+        
+        self.sumstats_html='<br>'.join(html_list)
         with open(printpath,'w') as f:
             f.write(self.sumstats_html) 
         
