@@ -150,7 +150,8 @@ class IslandData(DataView):
         timelist_arraylist,varlist=self.time_arraytup
         #varlist=self.varlist
         #t_idx=varlist.index('sale_year')
-        timelenlist=[_array.shape[0] for _array in timelist_arraylist]
+        timelenlist=[arraylist[0].shape[0] for arraylist in timelist_arraylist]
+        
         xlabel=f'Sale Years {self.timelist[0]}-{self.timelist[-1]}'
         ylabel='Count'
         title='Count of Sales by Year'
@@ -268,11 +269,6 @@ class IslandData(DataView):
             obsdata=vararraylist
             #self.logger.info(f'for time:{time}, obsdata.shape:{obsdata.shape}')
             timelist_arraylist.append(obsdata)
-            #obsdata=np.concatenate([np.concatenate([np.array(datadictlist[d_idx][varkey][idx],dtype=self.vardict[varkey])[:,None] for varkey in varlist],axis=1) for d_idx,idx in thistime_idxlist],axis=0)
-            #timelist_arraylist.append(obsdata)
-                    
-            #obsdata=[[datadictlist[d_idx][varkey][idx] for varkey in varlist]for d_idx,idx in thistime_idxlist]
-            #timelist_arraylist.append(np.array(obsdata,dtype=np.float64))
         self.logger.info(f'timelist_arraylist shapes:{[_array.shape for arraylist in timelist_arraylist for _array in arraylist]}')
         return timelist_arraylist,varlist
     

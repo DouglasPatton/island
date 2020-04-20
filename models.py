@@ -14,7 +14,8 @@ class Model():
                  
                  
                  
-    def buildSpatialWFromDF(self,):
-        try:self.df
-        except: self.arrayListToPandasDF()
+    def buildSpatial_W_FromDF(self,df=None):
+        if df is None:
+            try:self.df
+            except: self.arrayListToPandasDF()
         lonarray=self.df[]
