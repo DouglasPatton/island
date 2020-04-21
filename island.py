@@ -56,6 +56,10 @@ class IslandData(DataView):
         self.figheight=10;self.figwidth=10
         DataView.__init__(self)
     
+    def runSpatialModel(self,modeldict=None):
+        sem=SpatialModel(modeldict)
+        sem.run(df=self.df)
+    
     
     def getCPI(self,to_year=2015):
         cpi_factors_path=os.path.join(self.datadir,f'cpi_factors-{to_year}.json')

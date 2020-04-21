@@ -9,7 +9,7 @@ class DataGeoTool():
         # https://geopy.readthedocs.io/en/latest/#module-geopy.distance
         # default geodesic distance assuming WGS-84
         n=lon_array.size
-        assert lon_array.size=lat_array.size,f'mismatch in lat lon, \
+        assert lon_array.size==lat_array.size,f'mismatch in lat lon, \
             (lon_array.shape,lat_array.shape):{(lon_array.shape,lat_array.shape)}'
         pointlist=self.makePointList(lon_array,lat_array)
         

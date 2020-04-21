@@ -5,13 +5,13 @@ import libpysal
 import geopandas
 import geopy
 
-class Model():
+class SpatialModel():
     def __init__(self,modeldict=None):
         if modeldict is None:
             modeldict={
                 'combine_pre_post':0,
-                'modeltype':'SEM'
-                'nneighbor':25
+                'modeltype':'SEM',
+                'nneighbor':[10,15,20],
                 'crs':'epsg:4326'
             }
         self.modeldict=modeldict
@@ -34,7 +34,11 @@ class Model():
     def run(self,df=None):
         # https://pysal.org/libpysal/generated/libpysal.weights.W.html#libpysal.weights.W
         nn=self.modeldict['nneighbor']
-    
+        if type(nn) is int:
+            klist=[nn]
+        elif type(nn) is list:
+            list=nn
+        else:assert False,f'halt, unrecongized nn:{nn}'
             
         if df is None:
             try:self.df
@@ -55,7 +59,7 @@ class Model():
             resultslistlist.append([self.runSpatialErrorModel(dfi,w) for w in wtlist])
         return resultslistlist
     
-    def runSpatialErrorModel(self,df,w)
+    def runSpatialErrorModel(self,df,w):
     
         y=np.log10(df.loc['saleprice'].to_numpy())
         varlist=self.varlist
@@ -80,12 +84,12 @@ class Model():
         neighbors_dictlist=[{} for _ in range(len(klist))]
         weights_dictlist=[{} for _ in range(len(klist))]
         for i in range(n):
-            dist,jlist=zip(*sorted(zip(self.distmat[i],list(range())))
+            dist,jlist=zip(*sorted(zip(self.distmat[i],list(range(n)))))
             for k_idx in range(len(klist)):
                 neighbors_dictlist[k_idx][i]=jlist[:klist[k_idx]]
                 weights_dictlist[k_idx][i]=dist[:klist[k_idx]]**(-1)
         wlist=[]
-        for k_idx in range(len(klist))
+        for k_idx in range(len(klist)):
             wlist.append(libpysal.weights.W(neighbors_dictlist[k_idx],weights_dictlist[k_idx]))
         return wlist
                            
@@ -97,9 +101,9 @@ class Model():
         pointlist=[(lon_array[i],lat_array[i]) for i in range(n)]
         distmat=[[[10**299] for _ in range(n)] for _ in range(n)] #
         for i0 in range(n):
-            for i1 in range(i0+1,n)
+            for i1 in range(i0+1,n):
                 distance=geopy.distance.geodesic(pointlist[i0],pointlist[i1])
-                distmat[i0][i1]=distance
+                distmat[i0][i1]=distance#not taking advantage of symmetry of distance, assuming ample ram
                 distmat[i1][i0]=distance
         self.distmat=distmat
                 
