@@ -9,7 +9,7 @@ import matplotlib.pyplot as plt
 #import cpi #https://github.com/datadesk/cpi
 from data_viz import DataView
 #from datetime import date
-
+from models import SpatialModel
 
 class IslandData(DataView):
     def __init__(self,dpi=100):
