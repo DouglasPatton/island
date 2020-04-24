@@ -61,12 +61,18 @@ class SpatialModel():
     
     def runSpatialErrorModel(self,df,w):
     
-        y=np.log10(df.loc['saleprice'].to_numpy())
-        varlist=self.varlist
-        excludevars=['saleprice','assessedvalue','postsandy',
-                     'shorelindistance','distance_shoreline','soldmorethanonceinyear',
-                     'soldmorethanonceovertheyears','latitude','longitude']
-        xvarlist=[varlist.pop(varlist.index(var)) for var in excludevars]
+        y=np.log10(df.loc['saleprice_real-2015'].to_numpy())
+        xvarlist=[
+            'secchi','bayfront','wateraccess','wqbayfront','wqwateraccess',
+            'totalbathroomsedited','totallivingarea','saleacres',
+            'distance_park','distance_nyc','distance_golf',
+            'shorelinedistancedv3_1000','shorelinedistancedv1000_2000',
+            'shorelinedistancedv2000_3000','shorelinedistancedv3000_4000',
+            'wqshorelinedistancedv3_1000','wqshorelinedistancedv1000_2000',
+            'wqshorelinedistancedv2000_3000','wqshorelinedistancedv3000_4000',
+            'education','income_real-2015','povertylevel','pct_white']
+                  
+        #xvarlist=[varlist.pop(varlist.index(var)) for var in excludevars]
         
         x=df.loc[xvarlist].to_numpy()
         sem=pysal.ML_Error(y,x,w,name_y=None,name_x=None,name_w=None)
