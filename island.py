@@ -25,6 +25,7 @@ class IslandData(DataView):
             format="[%(asctime)s] %(levelname)s [%(name)s.%(funcName)s:%(lineno)d] %(message)s",
             datefmt='%Y-%m-%dT%H:%M:%S')
         self.logger = logging.getLogger(handlername)
+        self.results=[]
         self.figdict={}
         self.TSHistogramlist=[]
         self.datadir=os.path.join(os.getcwd(),'data')
@@ -58,7 +59,8 @@ class IslandData(DataView):
     
     def runSpatialModel(self,modeldict=None):
         sem=SpatialModel(modeldict)
-        sem.run(df=self.df)
+        resultslist=sem.run(df=self.df)
+        self.results.append(resultslist)
     
     
     def getCPI(self,to_year=2015):

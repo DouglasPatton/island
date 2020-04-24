@@ -16,7 +16,7 @@ class DataGeoTool():
         
         distmat=[[[0.0]for _ in range(n)] for _ in range(n)]
         for idx0 in range(n):
-            for idx1 in range(idx0+1,n)# plus 1 to skip self.
+            for idx1 in range(idx0+1,n):# plus 1 to skip self.
                 dist01=distance.geodesic(pointlist[idx0],pointlist[idx1]) # default:WGS-84
                 distmat[idx0][idx1]=dist01
                 distmat[idx1][idx0]=dist01
