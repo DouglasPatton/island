@@ -79,27 +79,57 @@ class SpatialModel():
         return sem
     
     
-    def makeInverseDistanceWeights(self,dfi,klist=[20]):
+    def makeInverseDistanceWeights(self,dfi,klist=[20],distmat=None):
         '''
         from libpysal.weights import W
         neighbors = {0: [3, 1], 1: [0, 4, 2], 2: [1, 5], 3: [0, 6, 4], 4: [1, 3, 7, 5], 5: [2, 4, 8], 6: [3, 7], 7: [4, 6, 8], 8: [5, 7]}
         weights = {0: [1, 1], 1: [1, 1, 1], 2: [1, 1], 3: [1, 1, 1], 4: [1, 1, 1, 1], 5: [1, 1, 1], 6: [1, 1], 7: [1, 1, 1], 8: [1, 1]}
         w = W(neighbors, weights)
         '''
-        distmat=self.makeDistMat(dfi)
-        n=len(distmat)
+        n=dfi.shape[0
         neighbors_dictlist=[{} for _ in range(len(klist))]
         weights_dictlist=[{} for _ in range(len(klist))]
-        for i in range(n):
-            dist,jlist=zip(*sorted(zip(distmat[i],list(range(n)))))
-            for k_idx in range(len(klist)):
-                neighbors_dictlist[k_idx][i]=jlist[:klist[k_idx]]
-                weights_dictlist[k_idx][i]=dist[:klist[k_idx]]**(-1)
+        if distmat:
+            distmat=self.makeDistMat(dfi)
+            for i in range(n):
+                dist,jlist=zip(*sorted(zip(distmat[i],list(range(n)))))
+                for k_idx in range(len(klist)):
+                    neighbors_dictlist[k_idx][i]=jlist[:klist[k_idx]]
+                    weights_dictlist[k_idx][i]=dist[:klist[k_idx]]**(-1)
+        else:
+            pointlist=self.makePointListFromDF(dfi)
+            for idx in range(n):
+                distlist=self.makeDistList(idx,pointlist)
+                dist,j_idx=zip(*sorted(zip(distlist,list(range(n))))) 
+                #    j_idx indexes positions of other points, dist is their distance
+                for k_idx in range(len(klist)):
+                    neighbors_dictlist[k_idx][idx]=j_idx[:klist[k_idx]]
+                    weights_dictlist[k_idx][idx]=dist[:klist[k_idx]]**(-1)    
+                
         wlist=[]
         for k_idx in range(len(klist)):
             wlist.append(pysal.weights.W(neighbors_dictlist[k_idx],weights_dictlist[k_idx]))
         return wlist
-                           
+    
+    def makePointListFromDF(self,df):
+        lon_array=df['longitude'].to_numpy()
+        lat_array=df['latitude'].to_numpy()
+        n=lon_array.size
+        pointlist=[(lon_array[i],lat_array[i]) for i in range(n)]
+        return pointlist
+   
+    def makeDistList(self,idx,pointlist):
+        otherpoints=pointlist.copy()
+        thispoint=otherpoints.pop(idx)
+        distlist=[[10**299] for _ in range(len(otherpoints))]            
+        for p_idx in otherpoints:
+            thatpoint=otherpoints[p_idx]
+            distlist[p_idx]=geopy.distance.geodesic(thispoint,thatpoint)
+        return distlist
+            
+            
+        
+        
                            
     def makeDistMat(self,df):
         lon_array=df['longitude'].to_numpy()
