@@ -1,12 +1,15 @@
 import numpy as np
 import data_geo as dg
 import pysal
-#import libpysal
+import libpysal
 #import geopandas
 import geopy
+import logging
+#from scipy.sparse import dok_matrix
 
 class SpatialModel():
     def __init__(self,modeldict=None):
+        self.logger = logging.getLogger(__name__)
         if modeldict is None:
             modeldict={
                 'combine_pre_post':0,
@@ -52,6 +55,8 @@ class SpatialModel():
         wtlistlist=[];resultslistlist=[]
         for idx0 in df_idx_0_list:
             dfi=df.loc[idx0]
+            print('selecting first 20 obs only')
+            dfi=dfi.iloc[:20,:]
             #gdfi=self.buildGeoDF(df=dfi)
             
             wtlist=self.makeInverseDistanceWeights(dfi,klist=klist)
@@ -61,8 +66,9 @@ class SpatialModel():
     
     def runSpatialErrorModel(self,df,w):
     
-        y=np.log10(df.loc['saleprice_real-2015'].to_numpy())
-        xvarlist=[
+        y=np.log10(df.loc[:]['saleprice_real-2015'].to_numpy())[:,None]#make 2 dimensionsl for spreg
+        xvarlist=['secchi','totalbathroomsedited']
+        '''xvarlist=[
             'secchi','bayfront','wateraccess','wqbayfront','wqwateraccess',
             'totalbathroomsedited','totallivingarea','saleacres',
             'distance_park','distance_nyc','distance_golf',
@@ -70,12 +76,12 @@ class SpatialModel():
             'shorelinedistancedv2000_3000','shorelinedistancedv3000_4000',
             'wqshorelinedistancedv3_1000','wqshorelinedistancedv1000_2000',
             'wqshorelinedistancedv2000_3000','wqshorelinedistancedv3000_4000',
-            'education','income_real-2015','povertylevel','pct_white']
+            'education','income_real-2015','povertylevel','pct_white']'''
                   
         #xvarlist=[varlist.pop(varlist.index(var)) for var in excludevars]
         
-        x=df.loc[xvarlist].to_numpy()
-        sem=pysal.ML_Error(y,x,w,name_y=None,name_x=None,name_w=None)
+        x=df.loc[:][xvarlist].to_numpy()
+        sem=pysal.model.spreg.ML_Error(y,x,w,name_y=None,name_x=None,name_w=None)
         return sem
     
     
@@ -86,7 +92,7 @@ class SpatialModel():
         weights = {0: [1, 1], 1: [1, 1, 1], 2: [1, 1], 3: [1, 1, 1], 4: [1, 1, 1, 1], 5: [1, 1, 1], 6: [1, 1], 7: [1, 1, 1], 8: [1, 1]}
         w = W(neighbors, weights)
         '''
-        n=dfi.shape[0
+        n=dfi.shape[0]
         neighbors_dictlist=[{} for _ in range(len(klist))]
         weights_dictlist=[{} for _ in range(len(klist))]
         if distmat:
@@ -99,17 +105,40 @@ class SpatialModel():
         else:
             pointlist=self.makePointListFromDF(dfi)
             for idx in range(n):
+                self.logger.info(f'starting distances for idx/n-1:{idx}/{n-1}')
                 distlist=self.makeDistList(idx,pointlist)
                 dist,j_idx=zip(*sorted(zip(distlist,list(range(n))))) 
+                self.logger.info(f'for idx:{idx}, dist[0:5]:{dist[0:5]} for j_idx[0:5]:{j_idx[0:5]}')
                 #    j_idx indexes positions of other points, dist is their distance
+                dist,j_idx=self.removeOwnDist(idx,dist,j_idx)
                 for k_idx in range(len(klist)):
-                    neighbors_dictlist[k_idx][idx]=j_idx[:klist[k_idx]]
-                    weights_dictlist[k_idx][idx]=dist[:klist[k_idx]]**(-1)    
-                
+                    nn_stop_idx=klist[k_idx]
+                    neighbors_dictlist[k_idx][idx]=j_idx[:nn_stop_idx]
+                    weights_dictlist[k_idx][idx]=[dist_j**(-1) for dist_j in dist[:nn_stop_idx]]
+        #wlist=[]
+        #for k_idx in range(len(klist)):
+        #    wlist.append(self.makeSparseMat(neighbors_dictlist[k_idx],weights_dictlist[k_idx],n))
+        
         wlist=[]
         for k_idx in range(len(klist)):
-            wlist.append(pysal.weights.W(neighbors_dictlist[k_idx],weights_dictlist[k_idx]))
+            self.logger.info(f'neighbors and weights: {neighbors_dictlist[k_idx],weights_dictlist[k_idx]}')
+            wlist.append(libpysal.weights.W(neighbors_dictlist[k_idx],weights_dictlist[k_idx]))
+            self.wlist=wlist
         return wlist
+
+    def makeSparseMat(self,neighb_dict,weight_dict,n):
+        sparse_mat=dok_matrix((n,n),dtype=np.float32)
+        for i,jlist in neighb_dict.items():
+            for j_idx,j in enumerate(jlist):
+                sparse_mat[i,j]=weight_dict[i][j_idx]
+        return sparse_mat
+    
+    def removeOwnDist(self,idx,dist,j_idx):
+            iloc=j_idx.index(idx)
+            j_idx.pop(iloc)
+            dist.pop(iloc)
+        return dist,j_idx
+    
     
     def makePointListFromDF(self,df):
         lon_array=df['longitude'].to_numpy()
@@ -120,11 +149,14 @@ class SpatialModel():
    
     def makeDistList(self,idx,pointlist):
         otherpoints=pointlist.copy()
-        thispoint=otherpoints.pop(idx)
-        distlist=[[10**299] for _ in range(len(otherpoints))]            
-        for p_idx in otherpoints:
-            thatpoint=otherpoints[p_idx]
-            distlist[p_idx]=geopy.distance.geodesic(thispoint,thatpoint)
+        thispoint=otherpoints[idx]
+        distlist=[[10**299] for _ in range(len(otherpoints))]   
+        for p_idx in range(len(otherpoints)):
+            if p_idx!=idx:
+                thatpoint=otherpoints[p_idx]
+                distlist[p_idx]=geopy.distance.geodesic(thispoint,thatpoint).meters/1000
+            else:
+                distlist[idx]=0
         return distlist
             
             
