@@ -7,6 +7,8 @@ import libpysal
 import geopy
 import logging
 import joblib
+import pickle
+from haversine import haversine_vector, Unit
 #from scipy.sparse import dok_matrix
 
 class SpatialModel():
@@ -57,8 +59,8 @@ class SpatialModel():
         wtlistlist=[];resultslistlist=[]
         for idx0 in df_idx_0_list:
             dfi=df.loc[idx0]
-            print('selecting first 200 obs only')
-            dfi=dfi.iloc[:200,:]
+            #print('selecting first 200 obs only')
+            #dfi=dfi.iloc[:200,:]
             #gdfi=self.buildGeoDF(df=dfi)
             
             wtlist=self.makeInverseDistanceWeights(dfi,klist=klist)
@@ -84,6 +86,7 @@ class SpatialModel():
         
         x=df.loc[:][xvarlist].to_numpy()
         sem=pysal.model.spreg.ML_Error(y,x,w,name_y=yvar,name_x=xvarlist,name_w=f'inv_dist_nn{nn}')
+        print(f'sem.name_x:{sem.name_x}')
         print(f'sem.betas:{sem.betas}')
         print(f'sem.std_err:{sem.std_err}')
         print(f'sem.z_stat:{sem.z_stat}')
@@ -93,10 +96,14 @@ class SpatialModel():
         thehash=joblib.hash(df.to_csv().encode('utf-8'))
         path=os.path.join('data',thehash+'.pickle')
         if os.path.exists(path):
-            with open(path,'rb') as f:
-                Wlist=pickle.load(f)
-            self.logger.info(f'wlist retrieved from path:{path}')
-            return Wlist
+            try:
+                with open(path,'rb') as f:
+                    Wlist=pickle.load(f)
+                self.logger.info(f'wlist retrieved from path:{path}')
+                return Wlist
+            except:
+                self.logger.exception('path exists, but could not open wlist at path:{path}')
+                return None
         else:
             return None
     
@@ -125,11 +132,14 @@ class SpatialModel():
         if distmat:
             distmat=self.makeDistMat(dfi)
             for idx in range(n):
-                dist,j_idx=zip(*sorted(zip(distmat[i],list(range(n)))))
+                dist,j_idx=zip(*sorted(zip(distmat[idx],list(range(n)))))
+                dist=list(dist)
+                j_idx=list(j_idx)
                 dist,j_idx=self.removeOwnDist(idx,dist,j_idx)
+                dist,j_idx=self.remove0Dist(dist,j_idx)
                 for k_idx in range(len(klist)):
-                    neighbors_dictlist[k_idx][i]=jlist[:klist[k_idx]]
-                    weights_dictlist[k_idx][i]=dist[:klist[k_idx]]**(-1)
+                    neighbors_dictlist[k_idx][idx]=j_idx[:klist[k_idx]]
+                    weights_dictlist[k_idx][idx]=[distij**-1 for distij in dist[:klist[k_idx]]]
         else:
             #for year in self.
             pointlist=self.makePointListFromDF(dfi)
@@ -164,6 +174,15 @@ class SpatialModel():
             for j_idx,j in enumerate(jlist):
                 sparse_mat[i,j]=weight_dict[i][j_idx]
         return sparse_mat
+    def remove0Dist(self,dist,j_idx):
+        droplist=[]
+        for d_idx,d in enumerate(dist):
+            if d==0:
+                droplist.append(d_idx)
+        for d_idx in droplist[::-1]:#start on rhs of list so indices don't change for next pop
+            dist.pop(d_idx)
+            j_idx.pop(d_idx)
+        return (dist,j_idx)
     
     def removeOwnDist(self,idx,dist,j_idx):
         iloc=j_idx.index(idx)
@@ -199,12 +218,23 @@ class SpatialModel():
         lon_array=df['longitude'].to_numpy()
         lat_array=df['latitude'].to_numpy()
         n=lon_array.size
+        pointarray=np.array([(lat_array[i],lon_array[i]) for i in range(n)],dtype=np.float16)
+        istack=np.repeat(pointarray,repeats=n,axis=0)
+        jstack=np.repeat(np.expand_dims(pointarray,0),axis=0,repeats=n).reshape([n**2,2],order='C')
+        distmat=haversine_vector(istack,jstack).reshape(n,n)
+        '''for i in range(n):
+            ilatlon=pointarray[i,:]
+            ilatlonstack=np.repeat(ilatlon,n)
+            distmat[i,:]= #(lat,lon)
+                
+                
         pointlist=[(lon_array[i],lat_array[i]) for i in range(n)]
-        distmat=np.empty([n,n],dtype=np.float16) #
+        distmat=np.empty([n,n],dtype=np.float32) #
         for i0 in range(n):
             for i1 in range(i0+1,n):
                 distance=geopy.distance.great_circle(pointlist[i0],pointlist[i1]).meters #.geodesic is more accurate but slower
                 distmat[i0,i1]=distance#not taking advantage of symmetry of distance for storage, assuming ample ram
-                distmat[i1,i0]=distance
+                distmat[i1,i0]=distance'''
         self.distmat=distmat
+        return distmat
                 
