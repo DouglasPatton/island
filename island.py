@@ -57,9 +57,12 @@ class IslandData(DataView):
         self.figheight=10;self.figwidth=10
         DataView.__init__(self)
     
-    def runSpatialModel(self,modeldict=None):
-        sem=SpatialModel(modeldict)
-        resultslist=sem.run(df=self.df)
+    def runSpatialModel(self,modeldict=None,justW=0):
+        self.sem=SpatialModel(modeldict)
+        if justW:
+            self.sem.justMakeWeights()
+            return
+        resultslist=self.sem.run(df=self.df)
         self.results.append(resultslist)
     
     
