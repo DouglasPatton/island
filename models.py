@@ -59,8 +59,8 @@ class SpatialModel():
         wtlistlist=[];resultslistlist=[]
         for idx0 in df_idx_0_list:
             dfi=df.loc[idx0]
-            #print('selecting first 200 obs only')
-            #dfi=dfi.iloc[:200,:]
+            print('selecting first 200 obs only')
+            dfi=dfi.iloc[:200,:]
             #gdfi=self.buildGeoDF(df=dfi)
             
             wtlist=self.makeInverseDistanceWeights(dfi,klist=klist)
@@ -131,15 +131,14 @@ class SpatialModel():
         weights_dictlist=[{} for _ in range(len(klist))]
         if distmat:
             distmat=self.makeDistMat(dfi)
+            zeroblocker=np.array([[10**20]],dtype=np.float32).repeat(n,1).repeat(n,0)
+            distmat[distmat==0]=zeroblocker[distmat==0]
+            idxarray=np.arange(n)
+            sortidx=distmat.argsort()
             for idx in range(n):
-                dist,j_idx=zip(*sorted(zip(distmat[idx],list(range(n)))))
-                dist=list(dist)
-                j_idx=list(j_idx)
-                dist,j_idx=self.removeOwnDist(idx,dist,j_idx)
-                dist,j_idx=self.remove0Dist(dist,j_idx)
                 for k_idx in range(len(klist)):
-                    neighbors_dictlist[k_idx][idx]=j_idx[:klist[k_idx]]
-                    weights_dictlist[k_idx][idx]=[distij**-1 for distij in dist[:klist[k_idx]]]
+                    neighbors_dictlist[k_idx][idx]=idxarray[sortidx[:klist[k_idx]]]
+                    weights_dictlist[k_idx][idx]=distmat[idx][sortidx[:klist[k_idx]]]**-1
         else:
             #for year in self.
             pointlist=self.makePointListFromDF(dfi)
@@ -164,7 +163,7 @@ class SpatialModel():
         for k_idx in range(len(klist)):
             self.logger.info(f'neighbors and weights: {neighbors_dictlist[k_idx],weights_dictlist[k_idx]}')
             wlist.append(libpysal.weights.W(neighbors_dictlist[k_idx],weights_dictlist[k_idx]))
-            self.wlist=wlist
+        self.wlist=wlist
         self.saveWList(wlist,dfi)
         return wlist
 
@@ -218,10 +217,12 @@ class SpatialModel():
         lon_array=df['longitude'].to_numpy()
         lat_array=df['latitude'].to_numpy()
         n=lon_array.size
-        pointarray=np.array([(lat_array[i],lon_array[i]) for i in range(n)],dtype=np.float16)
+        pointarray=np.concatenate([lat_array[:,None],lon_array[:,None]],axis=1)
+        np.array(pointarray, dtype=np.float32)
         istack=np.repeat(pointarray,repeats=n,axis=0)
         jstack=np.repeat(np.expand_dims(pointarray,0),axis=0,repeats=n).reshape([n**2,2],order='C')
         distmat=haversine_vector(istack,jstack).reshape(n,n)
+        
         '''for i in range(n):
             ilatlon=pointarray[i,:]
             ilatlonstack=np.repeat(ilatlon,n)
