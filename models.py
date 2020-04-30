@@ -37,7 +37,7 @@ class SpatialModel():
         gdf=geopandas.GeoDataFrame(df,geometry=points,crs={'init':self.crs})
         return gdf         
                  
-    def justMakeWeights(self,df=None):
+    def justMakeWeights(self,df=None,skipW=1):
         nn=self.modeldict['nneighbor']
         if type(nn) is int:
             klist=[nn]
@@ -63,6 +63,9 @@ class SpatialModel():
             
             wtlist=self.makeInverseDistanceWeights(dfi,klist=klist)
             wtlistlist.append(wtlist)
+        wtlistlistpath=os.path.join('data','wtlistlist.pickle')
+        with open(wtlistlistpath,'wb') as f:
+            pickle.dump(wtlistlistpath,f)
         
     def run(self,df=None):
         # https://pysal.org/libpysal/generated/libpysal.weights.W.html#libpysal.weights.W
@@ -141,7 +144,7 @@ class SpatialModel():
         self.logger.info(f'wlist saved to path:{path}')
         return
     
-    def makeInverseDistanceWeights(self,dfi,klist=[20],distmat=1):
+    def makeInverseDistanceWeights(self,dfi,klist=[20],distmat=1,skipW=0):
         '''
         from libpysal.weights import W
         neighbors = {0: [3, 1], 1: [0, 4, 2], 2: [1, 5], 3: [0, 6, 4], 4: [1, 3, 7, 5], 5: [2, 4, 8], 6: [3, 7], 7: [4, 6, 8], 8: [5, 7]}
@@ -190,6 +193,8 @@ class SpatialModel():
         
         wlist=[]
         self.neighborsandweights=(neighbors_dictlist,weights_dictlist)
+        if skipW:
+            return self.neighborsandweights
         for k_idx in range(len(klist)):
             self.logger.info(f'neighbors and weights: {neighbors_dictlist[k_idx],weights_dictlist[k_idx]}')
             wlist.append(libpysal.weights.W(neighbors_dictlist[k_idx],weights_dictlist[k_idx]))
