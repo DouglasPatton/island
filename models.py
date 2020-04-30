@@ -37,7 +37,33 @@ class SpatialModel():
         gdf=geopandas.GeoDataFrame(df,geometry=points,crs={'init':self.crs})
         return gdf         
                  
-                 
+    def justMakeWeights(self,df=None):
+        nn=self.modeldict['nneighbor']
+        if type(nn) is int:
+            klist=[nn]
+        elif type(nn) is list:
+            klist=nn
+        else:assert False,f'halt, unrecongized nn:{nn}'
+            
+        if df is None:
+            try:self.df
+            except: self.arrayListToPandasDF()
+            df=self.df
+        
+        if self.modeldict['combine_pre_post']==1:
+            df_idx_0_list=[slice(None)]
+        else:
+            df_idx_0_list=[0,1]
+        wtlistlist=[];resultslistlist=[]
+        for idx0 in df_idx_0_list:
+            dfi=df.loc[idx0]
+            #print('selecting first 200 obs only')
+            #dfi=dfi.iloc[:200,:]
+            #gdfi=self.buildGeoDF(df=dfi)
+            
+            wtlist=self.makeInverseDistanceWeights(dfi,klist=klist)
+            wtlistlist.append(wtlist)
+        
     def run(self,df=None):
         # https://pysal.org/libpysal/generated/libpysal.weights.W.html#libpysal.weights.W
         nn=self.modeldict['nneighbor']
@@ -59,8 +85,8 @@ class SpatialModel():
         wtlistlist=[];resultslistlist=[]
         for idx0 in df_idx_0_list:
             dfi=df.loc[idx0]
-            print('selecting first 200 obs only')
-            dfi=dfi.iloc[:200,:]
+            #print('selecting first 200 obs only')
+            #dfi=dfi.iloc[:200,:]
             #gdfi=self.buildGeoDF(df=dfi)
             
             wtlist=self.makeInverseDistanceWeights(dfi,klist=klist)
@@ -71,8 +97,8 @@ class SpatialModel():
     def runSpatialErrorModel(self,df,w,nn=None):
         yvar='saleprice_real-2015'
         y=np.log10(df.loc[:][yvar].to_numpy())[:,None]#make 2 dimensionsl for spreg
-        xvarlist=['secchi','totalbathroomsedited']
-        '''xvarlist=[
+        #xvarlist=['secchi','totalbathroomsedited']
+        xvarlist=[
             'secchi','bayfront','wateraccess','wqbayfront','wqwateraccess',
             'totalbathroomsedited','totallivingarea','saleacres',
             'distance_park','distance_nyc','distance_golf',
@@ -80,7 +106,7 @@ class SpatialModel():
             'shorelinedistancedv2000_3000','shorelinedistancedv3000_4000',
             'wqshorelinedistancedv3_1000','wqshorelinedistancedv1000_2000',
             'wqshorelinedistancedv2000_3000','wqshorelinedistancedv3000_4000',
-            'education','income_real-2015','povertylevel','pct_white']'''
+            'education','income_real-2015','povertylevel','pct_white']
                   
         #xvarlist=[varlist.pop(varlist.index(var)) for var in excludevars]
         
@@ -136,9 +162,12 @@ class SpatialModel():
             idxarray=np.arange(n)
             sortidx=distmat.argsort()
             for idx in range(n):
+                sortvec=sortidx[idx]
                 for k_idx in range(len(klist)):
-                    neighbors_dictlist[k_idx][idx]=idxarray[sortidx[:klist[k_idx]]]
-                    weights_dictlist[k_idx][idx]=distmat[idx][sortidx[:klist[k_idx]]]**-1
+                    neighb_list=list(idxarray[sortvec[:klist[k_idx]]])
+                    weight_list=list(distmat[idx][sortvec[:klist[k_idx]]]**-1)
+                    neighbors_dictlist[k_idx][idx]=neighb_list
+                    weights_dictlist[k_idx][idx]=weight_list
         else:
             #for year in self.
             pointlist=self.makePointListFromDF(dfi)
@@ -160,6 +189,7 @@ class SpatialModel():
         #    wlist.append(self.makeSparseMat(neighbors_dictlist[k_idx],weights_dictlist[k_idx],n))
         
         wlist=[]
+        self.neighborsandweights=(neighbors_dictlist,weights_dictlist)
         for k_idx in range(len(klist)):
             self.logger.info(f'neighbors and weights: {neighbors_dictlist[k_idx],weights_dictlist[k_idx]}')
             wlist.append(libpysal.weights.W(neighbors_dictlist[k_idx],weights_dictlist[k_idx]))
