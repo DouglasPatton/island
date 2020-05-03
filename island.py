@@ -27,6 +27,7 @@ class IslandData(DataView):
         self.logger = logging.getLogger(handlername)
         self.results=[]
         self.figdict={}
+        self.sumstatsdict={}
         self.TSHistogramlist=[]
         self.datadir=os.path.join(os.getcwd(),'data')
         self.printdir=os.path.join(os.getcwd(),'print')
@@ -53,6 +54,7 @@ class IslandData(DataView):
         self.varlist=[var for var in self.vardict]
         self.geogvars=['latitude','longitude']
         self.dollarvars=['saleprice','assessedvalue','income']
+        self.std_transform=['saleprice','assessedvalue','totallivingarea','saleacres','distance_park','distance_nyc','distance_golf','income','distance_shoreline']
         self.fig=None;self.ax=None
         self.figheight=10;self.figwidth=10
         DataView.__init__(self)
@@ -60,7 +62,7 @@ class IslandData(DataView):
     def runSpatialModel(self,modeldict=None,justW=0):
         self.sem=SpatialModel(modeldict)
         if justW:
-            self.sem.justMakeWeights()
+            self.sem.justMakeWeights(df=self.df)
             return
         resultslist=self.sem.run(df=self.df)
         self.results.append(resultslist)
@@ -104,7 +106,10 @@ class IslandData(DataView):
                     #nparray=np.concatenate([nparray,np.float64(nparray[:,var_idx][:,None])*cpi_factor],axis=1) 
                 #timelist_arraylist[t]=nparray
             for var in self.dollarvars:#separate loop since just happens once per t
-                varlist.append(var+'_real-'+str(to_year))
+                newname=var+'_real-'+str(to_year)
+                varlist.append(newname)
+                if newname[:4]!='sale':
+                    self.std_transform.append(newname) #these will be standardized
             self.logger.info(f'np.shape for timelist_arraylist:{[nparray.shape for arraylist in timelist_arraylist for nparray in arraylist]}')
             self.varlist=varlist
             self.time_arraytup=(timelist_arraylist,varlist)
@@ -131,8 +136,30 @@ class IslandData(DataView):
         index_df=pd.DataFrame(data=index,columns=indexvarlist)
         multi_index=pd.MultiIndex.from_frame(index_df)
         pd_data_dict={varlist[i]:columnlist[i] for i in range(len(varlist))}
-        self.df=pd.DataFrame(pd_data_dict,index=multi_index)
-       
+        self.df_raw=pd.DataFrame(pd_data_dict,index=multi_index)
+        self.df=self.doStandardizeDF(self.df_raw)
+    
+    def doStandardizeDF(self,df):
+        df_t=df.apply(self.doSeriesSumStats,axis=0)
+        return df_t
+        
+    def doSeriesSumStats(self,aseries):
+        varname=aseries.name
+        if varname not in self.std_transform:
+            self.logger.info(f'varname:{varname} not in std_transform...pass')
+            return aseries
+        if varname not in self.sumstatsdict:
+            smean=aseries.mean()
+            sstd=aseries.std()
+            self.sumstatsdict[varname]={'mean':smean,
+                                        'std':sstd}
+            aseries=(aseries-smean)/sstd
+            self.logger.info(f'varname:{varname} standardized. mean:{smean},std:{sstd}')
+            return aseries
+        else:
+            self.logger.info(f'varname:{varname} already standardized')
+            return aseries
+        
     
         
     def printDFtoSumStats(self,df=None,varlist=None):

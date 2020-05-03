@@ -4,7 +4,7 @@ import data_geo as dg
 import pysal
 import libpysal
 #import geopandas
-import geopy
+#import geopy
 import logging
 import joblib
 import pickle
@@ -99,7 +99,7 @@ class SpatialModel():
     
     def runSpatialErrorModel(self,df,w,nn=None):
         yvar='saleprice_real-2015'
-        y=np.log10(df.loc[:][yvar].to_numpy())[:,None]#make 2 dimensionsl for spreg
+        y=np.log10(df.loc[:][yvar].to_numpy(dtype=np.float64))[:,None]#make 2 dimensionsl for spreg
         #xvarlist=['secchi','totalbathroomsedited']
         xvarlist=[
             'secchi','bayfront','wateraccess','wqbayfront','wqwateraccess',
@@ -113,7 +113,10 @@ class SpatialModel():
                   
         #xvarlist=[varlist.pop(varlist.index(var)) for var in excludevars]
         
-        x=df.loc[:][xvarlist].to_numpy()
+        x=df.loc[:][xvarlist].to_numpy(dtype=np.float64)
+        self.logger.info(f'y:{y}')
+        self.logger.info(f'x.shape:{x.shape}')
+        self.logger.info(f'x:{x}')
         sem=pysal.model.spreg.ML_Error(y,x,w,name_y=yvar,name_x=xvarlist,name_w=f'inv_dist_nn{nn}')
         print(f'sem.name_x:{sem.name_x}')
         print(f'sem.betas:{sem.betas}')
@@ -163,12 +166,14 @@ class SpatialModel():
             zeroblocker=np.array([[10**20]],dtype=np.float32).repeat(n,1).repeat(n,0)
             distmat[distmat==0]=zeroblocker[distmat==0]
             idxarray=np.arange(n)
-            sortidx=distmat.argsort()
+            sortidx=distmat.argsort() # default is axis=-1
             for idx in range(n):
                 sortvec=sortidx[idx]
                 for k_idx in range(len(klist)):
                     neighb_list=list(idxarray[sortvec[:klist[k_idx]]])
-                    weight_list=list(distmat[idx][sortvec[:klist[k_idx]]]**-1)
+                    inv_wt_arr=distmat[idx][sortvec[:klist[k_idx]]]**-1
+                    norm_inv_wt_arr=inv_wt_arry/inv_wt_array.amax(axis=-1,keepdims=1)
+                    weight_list=list(norm_inv_wt_arr)
                     neighbors_dictlist[k_idx][idx]=neighb_list
                     weights_dictlist[k_idx][idx]=weight_list
         else:

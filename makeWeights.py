@@ -11,6 +11,4 @@ if __name__=='__main__':
     idata_obj.addRealByCPI(to_year=2015)
     idata_obj.arrayListToPandasDF()
     idata_obj.runSpatialModel(justW=1)
-    savepickle(resultslistlist,'resultslistlist.pickle')
-    savepickle(idata_obj,'idata_obj.pickle')
     

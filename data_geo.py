@@ -1,4 +1,4 @@
-from geopy import distance
+#from geopy import distance
 
 class DataGeoTool():
     def __init__(self,):
