@@ -172,7 +172,7 @@ class SpatialModel():
                 for k_idx in range(len(klist)):
                     neighb_list=list(idxarray[sortvec[:klist[k_idx]]])
                     inv_wt_arr=distmat[idx][sortvec[:klist[k_idx]]]**-1
-                    norm_inv_wt_arr=inv_wt_arry/inv_wt_array.amax(axis=-1,keepdims=1)
+                    norm_inv_wt_arr=inv_wt_arr/inv_wt_arr.amax(axis=-1,keepdims=1)
                     weight_list=list(norm_inv_wt_arr)
                     neighbors_dictlist[k_idx][idx]=neighb_list
                     weights_dictlist[k_idx][idx]=weight_list
