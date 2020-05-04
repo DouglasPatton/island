@@ -88,8 +88,8 @@ class SpatialModel():
         wtlistlist=[];resultslistlist=[]
         for idx0 in df_idx_0_list:
             dfi=df.loc[idx0]
-            print('selecting first 200 obs only')
-            dfi=dfi.iloc[:200,:]
+            #print('selecting first 200 obs only')
+            #dfi=dfi.iloc[:200,:]
             #gdfi=self.buildGeoDF(df=dfi)
             
             wtlist=self.makeInverseDistanceWeights(dfi,klist=klist)
@@ -100,7 +100,7 @@ class SpatialModel():
                 print('===========================================')
                 print(f'SEM results for pre0/post1:{idx0} for k:{k}')
                 for i in range(len(sem.name_x)):
-                    print(f'variable:{sem.name_x[i]}, beta:{sem.betas[i]}, stderr:{sem.std_err[i]}, zstat,pval:{sem.z_stat[i]}')
+                    print(f'{sem.name_x[i]}, beta:{sem.betas[i]}, pval:{sem.z_stat[i][1]} stderr:{sem.std_err[i]}')
         return resultslistlist
     
     def runSpatialErrorModel(self,df,w,nn=None):

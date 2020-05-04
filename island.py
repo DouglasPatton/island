@@ -21,7 +21,7 @@ class IslandData(DataView):
         logpath=os.path.join(logdir,handlername)
         logging.basicConfig(
             handlers=[logging.handlers.RotatingFileHandler(logpath, maxBytes=10**6, backupCount=20)],
-            level=logging.INFO,
+            level=logging.DEBUG,
             format="[%(asctime)s] %(levelname)s [%(name)s.%(funcName)s:%(lineno)d] %(message)s",
             datefmt='%Y-%m-%dT%H:%M:%S')
         self.logger = logging.getLogger(handlername)
@@ -33,7 +33,7 @@ class IslandData(DataView):
         self.datadir=os.path.join(cwd,'data')
         self.resultsdir=os.path.join(cwd,'results');
         if not os.path.exists(self.resultsdir):os.mkdir(self.resultsdir)
-        self.restulspath=os.path.join(self.resultsdir,'resultslistlist.pickle')
+        self.resultspath=os.path.join(self.resultsdir,'resultslistlist.pickle')
         
         self.printdir=os.path.join(os.getcwd(),'print')
         if not os.path.exists(self.printdir):
