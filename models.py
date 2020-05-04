@@ -37,7 +37,7 @@ class SpatialModel():
         gdf=geopandas.GeoDataFrame(df,geometry=points,crs={'init':self.crs})
         return gdf         
                  
-    def justMakeWeights(self,df=None,skipW=1):
+    '''def justMakeWeights(self,df=None,skipW=1):
         nn=self.modeldict['nneighbor']
         if type(nn) is int:
             klist=[nn]
@@ -57,15 +57,15 @@ class SpatialModel():
         wtlistlist=[];resultslistlist=[]
         for idx0 in df_idx_0_list:
             dfi=df.loc[idx0]
-            #print('selecting first 200 obs only')
-            #dfi=dfi.iloc[:200,:]
+            print('selecting first 200 obs only')
+            dfi=dfi.iloc[:200,:]
             #gdfi=self.buildGeoDF(df=dfi)
             
             wtlist=self.makeInverseDistanceWeights(dfi,klist=klist)
             wtlistlist.append(wtlist)
         wtlistlistpath=os.path.join('data','wtlistlist.pickle')
         with open(wtlistlistpath,'wb') as f:
-            pickle.dump(wtlistlistpath,f)
+            pickle.dump(wtlistlistpath,f)'''
         
     def run(self,df=None):
         # https://pysal.org/libpysal/generated/libpysal.weights.W.html#libpysal.weights.W
@@ -88,13 +88,19 @@ class SpatialModel():
         wtlistlist=[];resultslistlist=[]
         for idx0 in df_idx_0_list:
             dfi=df.loc[idx0]
-            #print('selecting first 200 obs only')
-            #dfi=dfi.iloc[:200,:]
+            print('selecting first 200 obs only')
+            dfi=dfi.iloc[:200,:]
             #gdfi=self.buildGeoDF(df=dfi)
             
             wtlist=self.makeInverseDistanceWeights(dfi,klist=klist)
             wtlistlist.append(wtlist)
-            resultslistlist.append([self.runSpatialErrorModel(dfi,w,nn=k) for w,k in zip(wtlist,klist)])
+            for w,k in zip(wtlist,klist):
+                sem=self.runSpatialErrorModel(dfi,w,nn=k)
+                resultslistlist.append(sem)
+                print('===========================================')
+                print(f'SEM results for pre0/post1:{idx0} for k:{k}')
+                for i in range(len(sem.name_x)):
+                    print(f'variable:{sem.name_x[i]}, beta:{sem.betas[i]}, stderr:{sem.std_err[i]}, zstat,pval:{sem.z_stat[i]}')
         return resultslistlist
     
     def runSpatialErrorModel(self,df,w,nn=None):
@@ -118,10 +124,7 @@ class SpatialModel():
         self.logger.info(f'x.shape:{x.shape}')
         self.logger.info(f'x:{x}')
         sem=pysal.model.spreg.ML_Error(y,x,w,name_y=yvar,name_x=xvarlist,name_w=f'inv_dist_nn{nn}')
-        print(f'sem.name_x:{sem.name_x}')
-        print(f'sem.betas:{sem.betas}')
-        print(f'sem.std_err:{sem.std_err}')
-        print(f'sem.z_stat:{sem.z_stat}')
+        
         return sem
     
     def checkForWList(self,df):

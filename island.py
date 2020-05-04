@@ -29,7 +29,12 @@ class IslandData(DataView):
         self.figdict={}
         self.sumstatsdict={}
         self.TSHistogramlist=[]
-        self.datadir=os.path.join(os.getcwd(),'data')
+        cwd=os.getcwd()
+        self.datadir=os.path.join(cwd,'data')
+        self.resultsdir=os.path.join(cwd,'results');
+        if not os.path.exists(self.resultsdir):os.mkdir(self.resultsdir)
+        self.restulspath=os.path.join(self.resultsdir,'resultslistlist.pickle')
+        
         self.printdir=os.path.join(os.getcwd(),'print')
         if not os.path.exists(self.printdir):
             os.mkdir(self.printdir)
@@ -60,12 +65,13 @@ class IslandData(DataView):
         DataView.__init__(self)
     
     def runSpatialModel(self,modeldict=None,justW=0):
-        self.sem=SpatialModel(modeldict)
+        self.sem_tool=SpatialModel(modeldict)
         if justW:
             self.sem.justMakeWeights(df=self.df)
             return
-        resultslist=self.sem.run(df=self.df)
+        resultslist=self.sem_tool.run(df=self.df)
         self.results.append(resultslist)
+        return resultslist
     
     
     def getCPI(self,to_year=2015):
