@@ -95,7 +95,7 @@ class SpatialModel():
             wtlist=self.makeInverseDistanceWeights(dfi,klist=klist)
             wtlistlist.append(wtlist)
             for w,k in zip(wtlist,klist):
-                sem=self.runSpatialErrorModel(dfi,w,nn=k)
+                sem=self.runSpatialErrorModel(dfi,w,nn=k,t=idx0)
                 resultslistlist.append(sem)
                 print('===========================================')
                 print(f'SEM results for pre0/post1:{idx0} for k:{k}')
@@ -103,22 +103,23 @@ class SpatialModel():
                     print(f'{sem.name_x[i]}, beta:{sem.betas[i]}, pval:{sem.z_stat[i][1]} stderr:{sem.std_err[i]}')
         return resultslistlist
     
-    def runSpatialErrorModel(self,df,w,nn=None):
-        yvar='saleprice_real-2015'
+    def runSpatialErrorModel(self,df,w,nn=None,t=None):
+        modeldict=self.modeldict
+        yvar=modeldict['yvar']
         y=np.log10(df.loc[:][yvar].to_numpy(dtype=np.float64))[:,None]#make 2 dimensionsl for spreg
-        #xvarlist=['secchi','totalbathroomsedited']
-        xvarlist=[
-            'secchi','bayfront','wateraccess','wqbayfront','wqwateraccess',
-            'totalbathroomsedited','totallivingarea','saleacres',
-            'distance_park','distance_nyc','distance_golf',
-            'shorelinedistancedv3_1000','shorelinedistancedv1000_2000',
-            'shorelinedistancedv2000_3000',
-            'wqshorelinedistancedv3_1000','wqshorelinedistancedv1000_2000',
-            'wqshorelinedistancedv2000_3000',
-            'education','income_real-2015','povertylevel','pct_white']
-                  
-        #xvarlist=[varlist.pop(varlist.index(var)) for var in excludevars]
-        
+        xvarlist=modeldict['xvars'].copy()
+        preSdropyears=[i for i in range(2013,2016)]# 2015+1 b/c python
+        postSdropyears=[i for i in range(2002,2012)]# 2011+1 b/c python
+        dropyearslist=[preSdropyears,postSdropyears]
+        if t in [0,1]:
+            dropyears=dropyearslist[t]
+            if t:
+                dropyears.append('2015') #drop the excluded dummy
+            else:
+                dropyears.append('2003')
+        else: assert False, 'halt, not developed'
+        dropyear_dvs=[f'dv_{i}' for i in dropyears]
+        [xvarlist.pop(xvarlist.index(var)) for var in dropyear_dvs]
         x=df.loc[:][xvarlist].to_numpy(dtype=np.float64)
         self.logger.info(f'y:{y}')
         self.logger.info(f'x.shape:{x.shape}')

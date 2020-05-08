@@ -25,10 +25,12 @@ class IslandData(DataView):
             format="[%(asctime)s] %(levelname)s [%(name)s.%(funcName)s:%(lineno)d] %(message)s",
             datefmt='%Y-%m-%dT%H:%M:%S')
         self.logger = logging.getLogger(handlername)
+        self.klist=[10,15,20]
         self.results=[]
         self.figdict={}
         self.sumstatsdict={}
         self.TSHistogramlist=[]
+        self.resultsDFlist=[]
         cwd=os.getcwd()
         self.datadir=os.path.join(cwd,'data')
         self.resultsdir=os.path.join(cwd,'results');
@@ -43,7 +45,7 @@ class IslandData(DataView):
             'sale_year':np.uint16,'saleprice':np.int64,'assessedvalue':np.int64,
             'postsandy':np.uint16,'secchi':np.float64,
             'wqbayfront':np.float64,'wqwateraccess':np.float64,'wqwaterhouse':np.float64,
-            'totalbathroomsedited':np.float64,'totallivingarea':np.float64,'saleacres':np.float64,
+            'totalbathroomsedited':np.float64,'totallivingarea':np.float64,'parcel_area':np.float64,
             'distance_park':np.float64,'distance_nyc':np.float64,'distance_golf':np.float64,
             'wqshorelinedistancedv3_1000':np.float64,'wqshorelinedistancedv1000_2000':np.float64,
             'wqshorelinedistancedv2000_3000':np.float64,'wqshorelinedistancedv3000_4000':np.float64,
@@ -54,81 +56,131 @@ class IslandData(DataView):
             'shorelinedistancedv3_1000':np.uint16,'shorelinedistancedv1000_2000':np.uint16,
             'shorelinedistancedv2000_3000':np.uint16,'shorelinedistancedv3000_4000':np.uint16,
             'soldmorethanonceinyear':np.uint16,'soldmorethanonceovertheyears':np.uint16,
+            
             'latitude':np.float64,'longitude':np.float64            
             }
+        self.yeardummydict={f'dv_{i}':np.uint16 for i in range(2002,2016)}
+
+        self.yeardummylist=[key for key in self.yeardummydict]
+        self.vardict={**self.vardict, **self.yeardummydict}
         self.varlist=[var for var in self.vardict]
         self.geogvars=['latitude','longitude']
         self.dollarvars=['saleprice','assessedvalue','income']
-        self.std_transform=['saleprice','assessedvalue','totallivingarea','saleacres','distance_park','distance_nyc','distance_golf','income','distance_shoreline']
+        self.std_transform=[]#['saleprice','assessedvalue','totallivingarea','parcel_area','distance_park','distance_nyc','distance_golf','income','distance_shoreline']
         self.fig=None;self.ax=None
         self.figheight=10;self.figwidth=10
+        self.modeldict=self.setmodeldict()
         DataView.__init__(self)
+        
+        
+    def setmodeldict(self):
+        xvarlist=[
+            'secchi','bayfront','wateraccess','wqbayfront','wqwateraccess',
+            'totalbathroomsedited','totallivingarea','parcel_area',
+            'distance_park','distance_nyc','distance_golf',
+            'shorelinedistancedv3_1000','shorelinedistancedv1000_2000',
+            'shorelinedistancedv2000_3000',
+            'wqshorelinedistancedv3_1000','wqshorelinedistancedv1000_2000',
+            'wqshorelinedistancedv2000_3000',
+            'education','income_real-2015','povertylevel','pct_white']
+        xvarlist.extend(self.yeardummylist)
+        
+        modeldict={
+                'combine_pre_post':0,
+                'modeltype':'SEM',
+                'nneighbor':self.klist,
+                'crs':'epsg:4326',
+                'xvars':xvarlist,
+                'yvar':'saleprice_real-2015',
+            }
+        return modeldict
     
     def runSpatialModel(self,modeldict=None,justW=0):
+        if modeldict is None:
+            modeldict=self.modeldict
         self.sem_tool=SpatialModel(modeldict)
         if justW:
             self.sem.justMakeWeights(df=self.df)
             return
         resultslist=self.sem_tool.run(df=self.df)
         self.results.append(resultslist)
+        self.saveSpatialModelResults(resultslist)
+        
         return resultslist
     
-    
-    def getCPI(self,to_year=2015):
-        cpi_factors_path=os.path.join(self.datadir,f'cpi_factors-{to_year}.json')
-        try:
-            with open(cpi_factors_path,'r') as f:
-                cpi_factors=json.load(f)
-            return cpi_factors
-        except:
-            self.logger.info('building cpi_factors')
-        import cpi
-        cpi_factor_list=[]
-        for t in self.timelist:#
-            cpi_factor=np.float64(cpi.inflate(1,int(t),to=to_year))
-            cpi_factor_list.append(cpi_factor)
-        with open(cpi_factors_path,'w') as f:
-            json.dump(cpi_factor_list,f)
-        return cpi_factor_list
-    
-    def addRealByCPI(self,to_year=2015):
-        try:self.time_arraytup
-        except: self.makeTimeListArrayList()
+    def saveSpatialModelResults(self,resultslist,load=0):
+        if load:
+            with open('resultslistlist.pickle','rb') as f:
+                results=pickle.load(f)
+            self.results.append(results)
+            return results
+        else:
+            try:
+                with open('resultslistlist.pickle','rb') as f:
+                    oldresults=pickle.load(f)
+                oldresults.append(resultslist)
+            except:pass
             
+            with open('resultslistlist.pickle','wb') as f:
+                pickle.dump(resultslist,f)
+        return
+  
+
+    def flattenListList(self,listlist):
+        outlist=[]
+        for l in listlist:
+            if type(l) is list:
+                flatlist=self.flattenListList(l)
+            else:
+                flatlist=[l]
+            outlist.extend(flatlist)
+        return outlist
+            
+
+    def doSEMResultsToDF(self,):
+        try: 
+            assert self.results,"loading results"
+            results=self.results
+        except: 
+            results=self.saveSpatialModelResults([],load=1)
+        flatresults=self.flattenListList(results)
+        for semresult in flatresults:
+            resultsdata={}
+            resultsdata['xvarlist']=np.array(semresult.name_x)
+            resultsdata['betalist']=np.array(semresult.betas).flatten()
+            resultsdata['stderrlist']=np.array(semresult.std_err)
+            zstatlist,pvallist=zip(*semresult.z_stat)
+            resultsdata['zstatlist']=np.array(zstatlist)
+            resultsdata['pvallist']=np.array(pvallist)
+            self.logger.info(f'resultsdata:{resultsdata}')
+            resultsdf=pd.DataFrame(resultsdata)
+            self.resultsDFlist.append(resultsdf)
+    
+    def printSEMResults(self,):
         try:
-            dollarvarcount=self.dollarvars
-            deflated_array_list=[]
-            timelist_arraylist,varlist=self.time_arraytup
-            cpi_factor_list=self.getCPI(to_year=2015)
-            for t in range(len(timelist_arraylist)):
-                nparraylist=timelist_arraylist[t]
-                
-                #deflated_var_array=np.empty(nparray.shape[0],dollarvarcount,dtype=np.float64)
-                for dollarvar in self.dollarvars:
-                    var_idx=varlist.index(dollarvar)
-                    cpi_factor=cpi_factor_list[t]
-                    real_dollar_array=nparraylist[var_idx]*cpi_factor
-                    nparraylist.append(real_dollar_array)
-                    #nparray=np.concatenate([nparray,np.float64(nparray[:,var_idx][:,None])*cpi_factor],axis=1) 
-                #timelist_arraylist[t]=nparray
-            for var in self.dollarvars:#separate loop since just happens once per t
-                newname=var+'_real-'+str(to_year)
-                varlist.append(newname)
-                if newname[:4]!='sale':
-                    self.std_transform.append(newname) #these will be standardized
-            self.logger.info(f'np.shape for timelist_arraylist:{[nparray.shape for arraylist in timelist_arraylist for nparray in arraylist]}')
-            self.varlist=varlist
-            self.time_arraytup=(timelist_arraylist,varlist)
-            return
+            assert self.resultsDFlist,"building resultsDFlist"
         except:
-            self.logger.exception('')
+            self.doSEMResultsToDF()
+        resultsDFlist=self.resultsDFlist
+        modeltablehtml='SEM Results'
+        titlelist=[f'----{t}Sandy,k={k}----' for t in ['pre','post'] for k in self.klist]
+        for i,df in enumerate(resultsDFlist):
+            result_html=df.to_html()
+            modeltablehtml+='<br><br>'+titlelist[i]+result_html
+            
+        with open('semresults.html','w') as f:
+            f.write(modeltablehtml)
+            
+
+            
+            
     
             
     def arrayListToPandasDF(self,):
         try:self.time_arraytup
         except: self.makeTimeListArrayList()
         timelist_arraylist,varlist=self.time_arraytup
-        [nparraylist.append(np.arange(nparraylist[0].shape[0])) for nparraylist in timelist_arraylist]
+        [nparraylist.append(np.arange(nparraylist[0].shape[0])) for nparraylist in timelist_arraylist] #appending a column to serve as idx
         varlist.append('idx') # name the new column 'idx'                                           
         columnlist=[np.concatenate([nparraylist[varidx] for nparraylist in timelist_arraylist],axis=0) for varidx in range(len(varlist))]
         #timelist_arraylist_indexed=[np.concatenate([nparray,np.arange(nparray.shape[0])[:,None]],axis=1) for nparray in timelist_arraylist] # add a new 'column' of data just numbering from 0 for pandas multi-index
@@ -314,6 +366,55 @@ class IslandData(DataView):
         self.logger.info(f'timelist_arraylist shapes:{[_array.shape for arraylist in timelist_arraylist for _array in arraylist]}')
         return timelist_arraylist,varlist
     
+    
+    def getCPI(self,to_year=2015):
+        cpi_factors_path=os.path.join(self.datadir,f'cpi_factors-{to_year}.json')
+        try:
+            with open(cpi_factors_path,'r') as f:
+                cpi_factors=json.load(f)
+            return cpi_factors
+        except:
+            self.logger.info('building cpi_factors')
+        import cpi
+        cpi_factor_list=[]
+        for t in self.timelist:#
+            cpi_factor=np.float64(cpi.inflate(1,int(t),to=to_year))
+            cpi_factor_list.append(cpi_factor)
+        with open(cpi_factors_path,'w') as f:
+            json.dump(cpi_factor_list,f)
+        return cpi_factor_list
+    
+    def addRealByCPI(self,to_year=2015):
+        try:self.time_arraytup
+        except: self.makeTimeListArrayList()
+            
+        try:
+            dollarvarcount=self.dollarvars
+            deflated_array_list=[]
+            timelist_arraylist,varlist=self.time_arraytup
+            cpi_factor_list=self.getCPI(to_year=2015)
+            for t in range(len(timelist_arraylist)):
+                nparraylist=timelist_arraylist[t]
+                
+                #deflated_var_array=np.empty(nparray.shape[0],dollarvarcount,dtype=np.float64)
+                for dollarvar in self.dollarvars:
+                    var_idx=varlist.index(dollarvar)
+                    cpi_factor=cpi_factor_list[t]
+                    real_dollar_array=nparraylist[var_idx]*cpi_factor
+                    nparraylist.append(real_dollar_array)
+                    #nparray=np.concatenate([nparray,np.float64(nparray[:,var_idx][:,None])*cpi_factor],axis=1) 
+                #timelist_arraylist[t]=nparray
+            for var in self.dollarvars:#separate loop since just happens once per t
+                newname=var+'_real-'+str(to_year)
+                varlist.append(newname)
+                #if newname[:4]!='sale':
+                #    self.std_transform.append(newname) #these will be standardized
+            self.logger.info(f'np.shape for timelist_arraylist:{[nparray.shape for arraylist in timelist_arraylist for nparray in arraylist]}')
+            self.varlist=varlist
+            self.time_arraytup=(timelist_arraylist,varlist)
+            return
+        except:
+            self.logger.exception('')
     
             
     def unpackOrderedDict(self,odict):
