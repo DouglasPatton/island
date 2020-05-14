@@ -151,7 +151,7 @@ class SpatialModel():
         self.logger.info(f'wlist saved to path:{path}')
         return
     
-    def makeInverseDistanceWeights(self,dfi,klist=[20],distmat=1,skipW=0):
+    def makeInverseDistanceWeights(self,dfi,klist=[20],distmat=1,skipW=0,wt_type='NN'):
         '''
         from libpysal.weights import W
         neighbors = {0: [3, 1], 1: [0, 4, 2], 2: [1, 5], 3: [0, 6, 4], 4: [1, 3, 7, 5], 5: [2, 4, 8], 6: [3, 7], 7: [4, 6, 8], 8: [5, 7]}
@@ -171,13 +171,20 @@ class SpatialModel():
             distmat[distmat==0]=zeroblocker[distmat==0]
             idxarray=np.arange(n)
             sortidx=distmat.argsort() # default is axis=-1
+            self.logger.info(f'making weights with weight type:{wt_type}')
             for idx in range(n):
                 sortvec=sortidx[idx]
                 for k_idx in range(len(klist)):
                     neighb_list=list(idxarray[sortvec[:klist[k_idx]]])
-                    inv_wt_arr=distmat[idx][sortvec[:klist[k_idx]]]**-1
-                    norm_inv_wt_arr=inv_wt_arr/inv_wt_arr.max(axis=-1,keepdims=1)
-                    weight_list=list(norm_inv_wt_arr)
+                    if wt_type in ['inverse_distance','inverse_distance_NN']:
+                        
+                        inv_wt_arr=distmat[idx][sortvec[:klist[k_idx]]]**-1
+                        norm_inv_wt_arr=inv_wt_arr/inv_wt_arr.max(axis=-1,keepdims=1)
+                        weight_list=list(norm_inv_wt_arr)
+                    if wt_type=='NN':
+                        weight_list=[1 for _ in range(klist[k_idx])]
+                        
+                        
                     neighbors_dictlist[k_idx][idx]=neighb_list
                     weights_dictlist[k_idx][idx]=weight_list
         else:
