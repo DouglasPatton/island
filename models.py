@@ -9,6 +9,7 @@ import logging
 import joblib
 import pickle
 from haversine import haversine_vector, Unit
+import re
 #from scipy.sparse import dok_matrix
 
 class SpatialModel():
@@ -120,13 +121,27 @@ class SpatialModel():
         else: assert False, 'halt, not developed'
         dropyear_dvs=[f'dv_{i}' for i in dropyears]
         [xvarlist.pop(xvarlist.index(var)) for var in dropyear_dvs]
+        wqvar_idx_list=[idx for idx,var in enumerate(xvarlist) if re.search('wq',var) or var=='secchi']
+        
+        
         x=df.loc[:][xvarlist].to_numpy(dtype=np.float64)
+        
+        for idx in wqvar_idx_list:
+            self.logger.info(f'LogPos transform of variable: {xvarlist[idx]}')
+            x=self.myLogPos(x,col=idx)
+            
         self.logger.info(f'y:{y}')
         self.logger.info(f'x.shape:{x.shape}')
         self.logger.info(f'x:{x}')
         sem=pysal.model.spreg.ML_Error(y,x,w,name_y=yvar,name_x=xvarlist,name_w=f'inv_dist_nn{nn}')
         
         return sem
+    
+    def myLogPos(self,x,col=None):
+        if col is None:
+            col=slice(None)
+        x[:,col][x[:,col]>0]=np.log(x[:,col][x[:,col]>0])
+        return x
     
     def checkForWList(self,df):
         thehash=joblib.hash(df.to_csv().encode('utf-8'))
