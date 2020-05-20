@@ -10,7 +10,7 @@ import joblib
 import pickle
 from haversine import haversine_vector, Unit
 import re
-from copy import deeopcopy
+from copy import deepcopy
 #from scipy.sparse import dok_matrix
 
 class SpatialModel():

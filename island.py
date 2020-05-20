@@ -88,7 +88,7 @@ class IslandData(DataView):
         
         modeldict={
                 'combine_pre_post':0,
-                'period':None
+                'period':None,
                 'modeltype':'SEM',
                 'nneighbor':self.klist,
                 #'crs':'epsg:4326',
@@ -126,7 +126,7 @@ class IslandData(DataView):
                     oldresults=pickle.load(f)
                 oldresults.append(resultsdict)
                 resultsdictlist=oldresults
-            except:pass
+            except:
                 resultsdictlist=[resultsdict]
             with open('resultsdictlist.pickle','wb') as f:
                 pickle.dump(resultsdictlist,f)
@@ -177,12 +177,16 @@ class IslandData(DataView):
             self.doSEMResultsToDF()
         resultsDFdictlist=self.resultsDFdictlist
         modeltablehtml='SEM Results'
-        for resultsDFdict in resultsDFdictlist:
+        I=len(resultsDFdictlist)
+        for i,resultsDFdict in enumerate(resultsDFdictlist):
+            
             modeldict=resultsDFdict['modeldict']
-            title=f'----{modeldict['period']}Sandy,k={modeldict['klist']}----'
-        for i,df in enumerate(resultsDFdictlist):
+            #title=f"----{modeldict['period']}Sandy,k={modeldict['klist']}----""
+            titledf=pd.DataFrame(modeldict)
+            title=titledf.to_html()
+            df=resultsDFdict['resultsdf']
             result_html=df.to_html()
-            modeltablehtml+='<br><br>'+titlelist[i]+result_html
+            modeltablehtml+='<br><br>'+f'model #{i+1} of {I}<br>'+title+'<br>'+result_html
             
         with open('semresults.html','w') as f:
             f.write(modeltablehtml)
