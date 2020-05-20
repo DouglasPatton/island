@@ -25,23 +25,37 @@ class IslandData(DataView):
             format="[%(asctime)s] %(levelname)s [%(name)s.%(funcName)s:%(lineno)d] %(message)s",
             datefmt='%Y-%m-%dT%H:%M:%S')
         self.logger = logging.getLogger(handlername)
-        self.klist=[10,15,20]#[25,50,100]
+        self.klist=[10,15,20,25,50,100]#[25,50,100]
         self.results=[]
         self.figdict={}
         self.sumstatsdict={}
         self.TSHistogramlist=[]
-        self.resultsDFlist=[]
+        self.resultsDFdictlist=[]
         cwd=os.getcwd()
         self.datadir=os.path.join(cwd,'data')
         self.resultsdir=os.path.join(cwd,'results');
         if not os.path.exists(self.resultsdir):os.mkdir(self.resultsdir)
-        self.resultspath=os.path.join(self.resultsdir,'resultslistlist.pickle')
+        self.resultspath=os.path.join(self.resultsdir,'resultsdictlist.pickle')
         
         self.printdir=os.path.join(os.getcwd(),'print')
         if not os.path.exists(self.printdir):
             os.mkdir(self.printdir)
         self.datadictlistpath=os.path.join(self.datadir,'datadictlist.pickle')
-        self.vardict={
+        self.yeardummydict={f'dv_{i}':np.uint16 for i in range(2002,2016)}
+        self.yeardummylist=[key for key in self.yeardummydict]
+        self.vardict,self.modeldict,self.std_transform=self.setmodel()
+        self.varlist=[var for var in self.vardict]
+        self.geogvars=['latitude','longitude']
+        self.dollarvars=['saleprice','assessedvalue','income']
+        
+        self.fig=None;self.ax=None
+        self.figheight=10;self.figwidth=10
+        DataView.__init__(self)
+        
+        
+    def setmodel(self):
+        std_transform=[]#['saleprice','assessedvalue','totallivingarea','parcel_area','distance_park','distance_nyc','distance_golf','income','distance_shoreline']
+        vardict={
             'sale_year':np.uint16,'saleprice':np.int64,'assessedvalue':np.int64,
             'postsandy':np.uint16,'secchi':np.float64,
             'wqbayfront':np.float64,'wqwateraccess':np.float64,'wqwaterhouse':np.float64,
@@ -59,21 +73,8 @@ class IslandData(DataView):
             
             'latitude':np.float64,'longitude':np.float64            
             }
-        self.yeardummydict={f'dv_{i}':np.uint16 for i in range(2002,2016)}
+        vardict={**vardict, **self.yeardummydict}
 
-        self.yeardummylist=[key for key in self.yeardummydict]
-        self.vardict={**self.vardict, **self.yeardummydict}
-        self.varlist=[var for var in self.vardict]
-        self.geogvars=['latitude','longitude']
-        self.dollarvars=['saleprice','assessedvalue','income']
-        self.std_transform=[]#['saleprice','assessedvalue','totallivingarea','parcel_area','distance_park','distance_nyc','distance_golf','income','distance_shoreline']
-        self.fig=None;self.ax=None
-        self.figheight=10;self.figwidth=10
-        self.modeldict=self.setmodeldict()
-        DataView.__init__(self)
-        
-        
-    def setmodeldict(self):
         xvarlist=[
             'secchi','bayfront','wateraccess','wqbayfront','wqwateraccess',
             'totalbathroomsedited','totallivingarea','parcel_area',
@@ -87,13 +88,18 @@ class IslandData(DataView):
         
         modeldict={
                 'combine_pre_post':0,
+                'period':None
                 'modeltype':'SEM',
                 'nneighbor':self.klist,
-                'crs':'epsg:4326',
+                #'crs':'epsg:4326',
                 'xvars':xvarlist,
                 'yvar':'saleprice_real-2015',
+                'transform':{'ln_wq':1,'ln_y':1},
+                'wt_type':'NN',
+                'NNscope':'year',#'period',#     # 'period' groups obs by pre or post, 'year' groups by year
+                'distmat':1 # 0 if not enough ram to do all NN at once
             }
-        return modeldict
+        return vardict,modeldict,std_transform
     
     def runSpatialModel(self,modeldict=None,justW=0):
         if modeldict is None:
@@ -102,27 +108,28 @@ class IslandData(DataView):
         if justW:
             self.sem.justMakeWeights(df=self.df)
             return
-        resultslist=self.sem_tool.run(df=self.df)
-        self.results.append(resultslist)
-        self.saveSpatialModelResults(resultslist)
+        resultsdictlist=self.sem_tool.run(df=self.df)
+        self.resultsdictlist.extend(resultdictlist)
+        self.saveSpatialModelResults(resultdictlist)
         
-        return resultslist
+        return resultsdict
     
-    def saveSpatialModelResults(self,resultslist,load=0):
+    def saveSpatialModelResults(self,resultsdict,load=0):
         if load:
-            with open('resultslistlist.pickle','rb') as f:
-                results=pickle.load(f)
-            self.results.append(results)
-            return results
+            with open('resultsdictlist.pickle','rb') as f:
+                resultsdictlist=pickle.load(f)
+            self.resultsdictlist.extend(resultsdictlist)
+            return resultsdictlist
         else:
             try:
-                with open('resultslistlist.pickle','rb') as f:
+                with open('resultsdictlist.pickle','rb') as f:
                     oldresults=pickle.load(f)
-                oldresults.append(resultslist)
+                oldresults.append(resultsdict)
+                resultsdictlist=oldresults
             except:pass
-            
-            with open('resultslistlist.pickle','wb') as f:
-                pickle.dump(resultslist,f)
+                resultsdictlist=[resultsdict]
+            with open('resultsdictlist.pickle','wb') as f:
+                pickle.dump(resultsdictlist,f)
         return
   
 
@@ -139,12 +146,18 @@ class IslandData(DataView):
 
     def doSEMResultsToDF(self,):
         try: 
-            assert self.results,"loading results"
-            results=self.results
+            assert self.resultsdictlist,"results not loaded, loading results"
+            resultsdictlist=self.resultsdictlist
         except: 
-            results=self.saveSpatialModelResults([],load=1)
-        flatresults=self.flattenListList(results)
-        for semresult in flatresults:
+            resultsdictlist=self.saveSpatialModelResults([],load=1)
+        
+        #flatresults=self.flattenListList(results)
+        
+        for resultsdict in resultsdictlist:
+            modeldict=resultsdict['modeldict']
+            semresult=resultsdict['results']
+            
+        
             resultsdata={}
             resultsdata['xvarlist']=np.array(semresult.name_x)
             resultsdata['betalist']=np.array(semresult.betas).flatten()
@@ -154,17 +167,20 @@ class IslandData(DataView):
             resultsdata['pvallist']=np.array(pvallist)
             self.logger.info(f'resultsdata:{resultsdata}')
             resultsdf=pd.DataFrame(resultsdata)
-            self.resultsDFlist.append(resultsdf)
+            resultDFdict={'modeldict':modeldict,'resultsdf':resultsdf}
+            self.resultsDFdictlist.append(resultDFdict)
     
     def printSEMResults(self,):
         try:
-            assert self.resultsDFlist,"building resultsDFlist"
+            assert self.resultsDFdictlist,"building resultsDFdictlist"
         except:
             self.doSEMResultsToDF()
-        resultsDFlist=self.resultsDFlist
+        resultsDFdictlist=self.resultsDFdictlist
         modeltablehtml='SEM Results'
-        titlelist=[f'----{t}Sandy,k={k}----' for t in ['pre','post'] for k in self.klist]
-        for i,df in enumerate(resultsDFlist):
+        for resultsDFdict in resultsDFdictlist:
+            modeldict=resultsDFdict['modeldict']
+            title=f'----{modeldict['period']}Sandy,k={modeldict['klist']}----'
+        for i,df in enumerate(resultsDFdictlist):
             result_html=df.to_html()
             modeltablehtml+='<br><br>'+titlelist[i]+result_html
             
