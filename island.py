@@ -10,6 +10,7 @@ import matplotlib.pyplot as plt
 from data_viz import DataView
 #from datetime import date
 from models import SpatialModel
+import mlflow
 
 class IslandData(DataView):
     def __init__(self,dpi=100):
@@ -96,7 +97,7 @@ class IslandData(DataView):
                 'yvar':'saleprice_real-2015',
                 'transform':{'ln_wq':1,'ln_y':1},
                 'wt_type':'NN',
-                'NNscope':'year',#'period',#     # 'period' groups obs by pre or post, 'year' groups by year
+                'NNscope':'period',#'year',#     # 'period' groups obs by pre or post, 'year' groups by year
                 'distmat':1 # 0 if not enough ram to do all NN at once
             }
         return vardict,modeldict,std_transform

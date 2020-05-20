@@ -17,6 +17,7 @@ class SpatialModel():
     def __init__(self,modeldict):
         self.logger = logging.getLogger(__name__)
         self.modeldict=modeldict
+        mlflow.set_tracking_uri()
         
     
         
@@ -59,7 +60,7 @@ class SpatialModel():
             
             modeldict_i['period']=idx0
             #print('selecting first 200 obs only')
-            #dfi=dfi.iloc[:200,:]
+            dfi=dfi.iloc[:200,:]
             #gdfi=self.buildGeoDF(df=dfi)
             
             wtlist=self.makeInverseDistanceWeights(dfi,modeldict=modeldict_i)
@@ -104,7 +105,14 @@ class SpatialModel():
         self.logger.info(f'y:{y}')
         self.logger.info(f'x.shape:{x.shape}')
         self.logger.info(f'x:{x}')
-        sem=pysal.model.spreg.ML_Error(y,x,w,name_y=yvar,name_x=xvarlist,name_w=f'inv_dist_nn{nn}')
+        with mlflow.start_run() as run:
+            sem=pysal.model.spreg.ML_Error(y,x,w,name_y=yvar,name_x=xvarlist,name_w=f'{modeldict["wt_type"]}-{nn}')
+            artifactpath='artifact_'+joblib.hash(modeldict)+'.pkl'
+            with open(artifactpath,'wb') as f:
+                pickle.dump({'model':sem,'modeldict':modeldict,'w':w,'y':y,'x':x,'xvarlist':xvarlist},f)
+            mlflow.log_artifict(artifactpath)
+            mlflow.log_metric('pseudo-R2',sem.pr2)
+            mlflow.log_params(modeldict)
         resultsdict={'modeldict':deepcopy(modeldict),'results':sem}
         return resultsdict
     
