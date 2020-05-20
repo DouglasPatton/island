@@ -161,7 +161,7 @@ class SpatialModel():
         savedWlist=self.checkForWList(dfi,modeldict)
         if savedWlist:
             return savedWlist
-        timelist=dfi.index.levels[0]
+        timelist=dfi.index.remove_unused_levels().levels[0]#dfi.index.levels[0]
         neighbors_dictlist=[{} for _ in range(len(klist))]
         weights_dictlist=[{} for _ in range(len(klist))]
         if NNscope=='year':

@@ -95,7 +95,7 @@ class IslandData(DataView):
                 'xvars':xvarlist,
                 'yvar':'saleprice_real-2015',
                 'transform':{'ln_wq':1,'ln_y':1},
-                'wt_type':'NN',
+                'wt_type':'NN',zz
                 'NNscope':'year',#'period',#     # 'period' groups obs by pre or post, 'year' groups by year
                 'distmat':1 # 0 if not enough ram to do all NN at once
             }
