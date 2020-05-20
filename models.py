@@ -14,15 +14,8 @@ from copy import deepcopy
 #from scipy.sparse import dok_matrix
 
 class SpatialModel():
-    def __init__(self,modeldict=None):
+    def __init__(self,modeldict):
         self.logger = logging.getLogger(__name__)
-        if modeldict is None:
-            modeldict={
-                'combine_pre_post':0,
-                'modeltype':'SEM',
-                'nneighbor':[10,15,20],
-                'crs':'epsg:4326'
-            }
         self.modeldict=modeldict
         
     
@@ -39,39 +32,11 @@ class SpatialModel():
         gdf=geopandas.GeoDataFrame(df,geometry=points,crs={'init':self.crs})
         return gdf         
                  
-    '''def justMakeWeights(self,df=None,skipW=1):
-        nn=self.modeldict['nneighbor']
-        if type(nn) is int:
-            klist=[nn]
-        elif type(nn) is list:
-            klist=nn
-        else:assert False,f'halt, unrecongized nn:{nn}'
-            
-        if df is None:
-            try:self.df
-            except: self.arrayListToPandasDF()
-            df=self.df
-        
-        if self.modeldict['combine_pre_post']==1:
-            df_idx_0_list=[slice(None)]
-        else:
-            df_idx_0_list=[0,1]
-        wtlistlist=[];resultslistlist=[]
-        for idx0 in df_idx_0_list:
-            dfi=df.loc[idx0]
-            print('selecting first 200 obs only')
-            dfi=dfi.iloc[:200,:]
-            #gdfi=self.buildGeoDF(df=dfi)
-            
-            wtlist=self.makeInverseDistanceWeights(dfi,klist=klist)
-            wtlistlist.append(wtlist)
-        wtlistlistpath=os.path.join('data','wtlistlist.pickle')
-        with open(wtlistlistpath,'wb') as f:
-            pickle.dump(wtlistlistpath,f)'''
+    
         
     def run(self,df=None):
         # https://pysal.org/libpysal/generated/libpysal.weights.W.html#libpysal.weights.W
-        nn=self.modeldict['nneighbor']
+        nn=self.modeldict['klist']
         if type(nn) is int:
             klist=[nn]
         elif type(nn) is list:
@@ -191,7 +156,7 @@ class SpatialModel():
             klist=None
         wt_type=modeldict['wt_type']
         NNscope=modeldict['NNscope']
-        
+        klist=modeldict['klist']
         
         savedWlist=self.checkForWList(dfi,modeldict)
         if savedWlist:

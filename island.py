@@ -90,7 +90,7 @@ class IslandData(DataView):
                 'combine_pre_post':0,
                 'period':None,
                 'modeltype':'SEM',
-                'nneighbor':self.klist,
+                'klist':self.klist,
                 #'crs':'epsg:4326',
                 'xvars':xvarlist,
                 'yvar':'saleprice_real-2015',
