@@ -11,7 +11,8 @@ if __name__=='__main__':
     
     idata_obj=island.IslandData()
     idata_obj.makeTimeListArrayList()
-    idata_obj.addRealByCPI(to_year=2015)
+    idata_obj.addRealByCPI()
     idata_obj.arrayListToPandasDF()
     idata_obj.runSpatialModel()
+    idata_obj.printSEMResults()
     
