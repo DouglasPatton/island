@@ -71,6 +71,7 @@ class SpatialModel():
                 resultsdictlist.append(resultsdict)
                 print('===========================================')
                 print(f'SEM results for pre0/post1:{idx0} for k:{k}')
+                sem=resultsdict['results']
                 for i in range(len(sem.name_x)):
                     print(f'{sem.name_x[i]}, beta:{sem.betas[i]}, pval:{sem.z_stat[i][1]} stderr:{sem.std_err[i]}')
         return resultsdictlist
