@@ -158,6 +158,8 @@ class SpatialModel():
         wt_type=modeldict['wt_type']
         NNscope=modeldict['NNscope']
         klist=modeldict['klist']
+        if not type(klist) is list:
+            
         
         savedWlist=self.checkForWList(dfi,modeldict)
         if savedWlist:
