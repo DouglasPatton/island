@@ -11,13 +11,13 @@ import pickle
 from haversine import haversine_vector, Unit
 import re
 from copy import deepcopy
+import mlflow
 #from scipy.sparse import dok_matrix
 
 class SpatialModel():
     def __init__(self,modeldict):
         self.logger = logging.getLogger(__name__)
         self.modeldict=modeldict
-        mlflow.set_tracking_uri()
         
     
         
@@ -60,7 +60,7 @@ class SpatialModel():
             
             modeldict_i['period']=idx0
             #print('selecting first 200 obs only')
-            dfi=dfi.iloc[:200,:]
+            #dfi=dfi.iloc[:200,:]
             #gdfi=self.buildGeoDF(df=dfi)
             
             wtlist=self.makeInverseDistanceWeights(dfi,modeldict=modeldict_i)
@@ -165,6 +165,8 @@ class SpatialModel():
         wt_type=modeldict['wt_type']
         NNscope=modeldict['NNscope']
         klist=modeldict['klist']
+        if not type(klist) is list:
+            klist=[klist]
         
         savedWlist=self.checkForWList(dfi,modeldict)
         if savedWlist:

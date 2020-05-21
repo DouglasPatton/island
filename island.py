@@ -10,7 +10,7 @@ import matplotlib.pyplot as plt
 from data_viz import DataView
 #from datetime import date
 from models import SpatialModel
-import mlflow
+#import mlflow
 
 class IslandData(DataView):
     def __init__(self,dpi=100):
@@ -26,7 +26,7 @@ class IslandData(DataView):
             format="[%(asctime)s] %(levelname)s [%(name)s.%(funcName)s:%(lineno)d] %(message)s",
             datefmt='%Y-%m-%dT%H:%M:%S')
         self.logger = logging.getLogger(handlername)
-        self.klist=[10,15,20,25,50,100]#[25,50,100]
+        self.klist=[5,10,15,20,30,50,100]#[25,50,100]
         self.results=[]
         self.figdict={}
         self.sumstatsdict={}
@@ -97,7 +97,7 @@ class IslandData(DataView):
                 'yvar':'saleprice_real-2015',
                 'transform':{'ln_wq':1,'ln_y':1},
                 'wt_type':'NN',
-                'NNscope':'period',#'year',#     # 'period' groups obs by pre or post, 'year' groups by year
+                'NNscope':'year',# 'period',#    # 'period' groups obs by pre or post, 'year' groups by year
                 'distmat':1 # 0 if not enough ram to do all NN at once
             }
         return vardict,modeldict,std_transform
