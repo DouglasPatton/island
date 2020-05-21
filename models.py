@@ -110,7 +110,7 @@ class SpatialModel():
             artifactpath='artifact_'+joblib.hash(modeldict)+'.pkl'
             with open(artifactpath,'wb') as f:
                 pickle.dump({'model':sem,'modeldict':modeldict,'w':w,'y':y,'x':x,'xvarlist':xvarlist},f)
-            mlflow.log_artifict(artifactpath)
+            mlflow.log_artifact(artifactpath)
             mlflow.log_metric('pseudo-R2',sem.pr2)
             mlflow.log_params(modeldict)
         resultsdict={'modeldict':deepcopy(modeldict),'results':sem}
