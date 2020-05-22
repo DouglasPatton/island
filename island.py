@@ -25,8 +25,8 @@ class IslandData(DataView):
             format="[%(asctime)s] %(levelname)s [%(name)s.%(funcName)s:%(lineno)d] %(message)s",
             datefmt='%Y-%m-%dT%H:%M:%S')
         self.logger = logging.getLogger(handlername)
-        self.klist=[10,15,20,25,50,100]#[25,50,100]
-        self.results=[]
+        self.klist=[5,10,15,20,25,50,100]#[25,50,100]
+        self.resultsdictlist=[]
         self.figdict={}
         self.sumstatsdict={}
         self.TSHistogramlist=[]

@@ -65,8 +65,8 @@ class SpatialModel():
             wtlist=self.makeInverseDistanceWeights(dfi,modeldict=modeldict_i)
             wtlistlist.append(wtlist)
             for w,k in zip(wtlist,klist):
-                modeldict_i_k=modeldict_i # deepcopy(modeldict_i) # no copy needed b/c just overwriting same val and not using again.
-                modeldict_i_k['klist']=f'{k} nearest neighbors'
+                modeldict_i_k=deepcopy(modeldict_i) # deepcopy(modeldict_i) # no copy needed b/c just overwriting same val and not using again.
+                modeldict_i_k['klist']=k
                 resultsdict=self.runSpatialErrorModel(dfi,w,nn=k,t=idx0,modeldict=modeldict_i_k)
                 resultsdictlist.append(resultsdict)
                 print('===========================================')
@@ -105,7 +105,16 @@ class SpatialModel():
         self.logger.info(f'y:{y}')
         self.logger.info(f'x.shape:{x.shape}')
         self.logger.info(f'x:{x}')
-        sem=pysal.model.spreg.ML_Error(y,x,w,name_y=yvar,name_x=xvarlist,name_w=f'inv_dist_nn{nn}')
+        args=[y,x,w]
+        kwargs={name_y:yvar,name_x:xvarlist,name_w:f'inv_dist_nn{nn}'}
+        hashable_key=[args[:2],kwargs] # w probably not hashable, so exclude
+        trysavedsem=self.checkForSaveHash(hashable,filestring='_sem')
+        if trysavedsem:
+            self.logger.warning(f'hashkeysaved sem model already exists for modeldict:{modeldict}, skipping')
+            sem=trysavedsem
+        except:
+            sem=pysal.model.spreg.ML_Error(*args,**kwargs)
+            self.saveByHashID(hashable_key,sem,filestring='_sem')
         resultsdict={'modeldict':deepcopy(modeldict),'results':sem}
         return resultsdict
     
@@ -116,9 +125,12 @@ class SpatialModel():
         return x
     
     def checkForWList(self,df,modeldict):
-        nothashed=[df.to_csv().encode('utf-8'),modeldict]
-        thehash=joblib.hash(nothashed)
-        path=os.path.join('data',thehash+'.pickle')
+        hashable_key=[df.to_csv().encode('utf-8'),modeldict]
+        Wlist=self.checkForSaveHash(hashable_key,filestring='_Wlist')
+        
+    def checkForSaveHash(hashable_key,filestring=""):
+        thehash=joblib.hash(hashable_key)
+        path=os.path.join('data',thehash+filestring+'.pickle')
         if os.path.exists(path):
             try:
                 with open(path,'rb') as f:
@@ -132,12 +144,15 @@ class SpatialModel():
             return None
     
     def saveWList(self,Wlist,df,modeldict):
-        nothashed=[df.to_csv().encode('utf-8'),modeldict]
-        thehash=joblib.hash(nothashed)
-        path=os.path.join('data',thehash+'.pickle')
+        hashable_key=[df.to_csv().encode('utf-8'),modeldict]
+        self.saveByHashID(hashable_key,Wlist,filestring="_Wlist")
+        
+    def saveByHashID(hashable_key,thing,filestring="")
+        thehash=joblib.hash(hashable_key)
+        path=os.path.join('data',thehash+filestring+'.pickle')
         with open(path,'wb') as f:
-            pickle.dump(Wlist,f)
-        self.logger.info(f'wlist saved to path:{path}')
+            pickle.dump(thing,f)
+        self.logger.info(f'filestring saved to path:{path}')
         return
     
     def makeInverseDistanceWeights(self,dfi,modeldict=None,skipW=0,):
