@@ -112,7 +112,7 @@ class SpatialModel():
         if trysavedsem:
             self.logger.warning(f'hashkeysaved sem model already exists for modeldict:{modeldict}, skipping')
             sem=trysavedsem
-        except:
+        else:
             sem=pysal.model.spreg.ML_Error(*args,**kwargs)
             self.saveByHashID(hashable_key,sem,filestring='_sem')
         resultsdict={'modeldict':deepcopy(modeldict),'results':sem}
@@ -128,7 +128,7 @@ class SpatialModel():
         hashable_key=[df.to_csv().encode('utf-8'),modeldict]
         Wlist=self.checkForSaveHash(hashable_key,filestring='_Wlist')
         
-    def checkForSaveHash(hashable_key,filestring=""):
+    def checkForSaveHash(self,hashable_key,filestring=""):
         thehash=joblib.hash(hashable_key)
         path=os.path.join('data',thehash+filestring+'.pickle')
         if os.path.exists(path):
@@ -147,7 +147,7 @@ class SpatialModel():
         hashable_key=[df.to_csv().encode('utf-8'),modeldict]
         self.saveByHashID(hashable_key,Wlist,filestring="_Wlist")
         
-    def saveByHashID(hashable_key,thing,filestring="")
+    def saveByHashID(self,hashable_key,thing,filestring=""):
         thehash=joblib.hash(hashable_key)
         path=os.path.join('data',thehash+filestring+'.pickle')
         with open(path,'wb') as f:
