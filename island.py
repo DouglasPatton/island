@@ -109,11 +109,11 @@ class IslandData(DataView):
         if justW:
             self.sem.justMakeWeights(df=self.df)
             return
-        resultsdictlist=self.sem_tool.run(df=self.df)
+        resultdictlist=self.sem_tool.run(df=self.df)
         self.resultsdictlist.extend(resultdictlist)
         self.saveSpatialModelResults(resultdictlist)
         
-        return resultsdict
+        return self.resultsdictlist
     
     def saveSpatialModelResults(self,resultsdict,load=0):
         if load:
