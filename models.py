@@ -127,6 +127,7 @@ class SpatialModel():
     def checkForWList(self,df,modeldict):
         hashable_key=[df.to_csv().encode('utf-8'),modeldict]
         Wlist=self.checkForSaveHash(hashable_key,filestring='_Wlist')
+        return Wlist
         
     def checkForSaveHash(self,hashable_key,filestring=""):
         thehash=joblib.hash(hashable_key)
@@ -134,13 +135,14 @@ class SpatialModel():
         if os.path.exists(path):
             try:
                 with open(path,'rb') as f:
-                    Wlist=pickle.load(f)
-                self.logger.info(f'wlist retrieved from path:{path}')
-                return Wlist
+                    thing=pickle.load(f)
+                self.logger.info(f'thing retrieved from path:{path}')
+                return thing
             except:
-                self.logger.exception('path exists, but could not open wlist at path:{path}')
+                self.logger.exception('path exists, but could not open thing at path:{path}')
                 return None
         else:
+            self.logger.info(f'no file found for hash:{thehash} at path:{path}')
             return None
     
     def saveWList(self,Wlist,df,modeldict):
@@ -241,7 +243,7 @@ class SpatialModel():
         if skipW:
             return self.neighborsandweights
         for k_idx in range(len(klist)):
-            self.logger.info(f'neighbors and weights: {neighbors_dictlist[k_idx],weights_dictlist[k_idx]}')
+            #self.logger.info(f'neighbors and weights: {neighbors_dictlist[k_idx],weights_dictlist[k_idx]}')
             wlist.append(libpysal.weights.W(neighbors_dictlist[k_idx],weights_dictlist[k_idx]))
         self.wlist=wlist
         self.saveWList(wlist,dfi,modeldict)
