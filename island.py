@@ -171,13 +171,29 @@ class IslandData(DataView):
             resultDFdict={'modeldict':modeldict,'resultsdf':resultsdf}
             self.resultsDFdictlist.append(resultDFdict)
     
+    def myFlatDict(self, complexdict, keys=None):
+        thistype = type(complexdict)
+        if not thistype is dict:
+            return {'val': complexdict}
+        if keys == None and thistype is dict:
+            keys = [key for key, val in complexdict.items()]
+        flatdict = {}
+        for key in keys:
+            try:
+                val = complexdict[key]
+            except:
+                val = 'no val found'
+            newdict = self.myFlatDict(val)
+            for key2, val2 in newdict.items():
+                flatdict[f'{key}:{key2}'] = [val2]
+        return flatdict
     
     def simplifyDict(self,adict):
         sdict={};splitchar=','
         for key,val in adict.items():
             if type(val) is dict:
-                sval=splitchar.join([f'{key}:{val}' for key,val in adict.items()])
-            if type(val) in [tuple,list]:
+                sval=splitchar.join([f'{key}-{val}' for key,val in val.items()])
+            elif type(val) in [tuple,list]:
                 sval=splitchar.join(val)
             else:
                 sval=val
@@ -197,9 +213,11 @@ class IslandData(DataView):
         for i,resultsDFdict in enumerate(resultsDFdictlist):
             
             modeldict=resultsDFdict['modeldict']
-            simple_modeldict=self.simplifyDict(modeldict)
+            simple_modeldict=self.myFlatDict(modeldict)
+            print(f'simple_modeldict:{simple_modeldict}')
             #title=f"----{modeldict['period']}Sandy,k={modeldict['klist']}----""
-            titledf=pd.DataFrame(data=simple_modeldict).T
+            titledf=pd.DataFrame(simple_modeldict).T
+
             title=titledf.to_html()
             df=resultsDFdict['resultsdf']
             result_html=df.to_html()
