@@ -125,7 +125,7 @@ class IslandData(DataView):
             try:
                 with open('resultsdictlist.pickle','rb') as f:
                     oldresults=pickle.load(f)
-                oldresults.append(resultsdict)
+                oldresults.extend(resultsdict)
                 resultsdictlist=oldresults
             except:
                 resultsdictlist=[resultsdict]
