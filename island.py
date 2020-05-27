@@ -171,6 +171,21 @@ class IslandData(DataView):
             resultDFdict={'modeldict':modeldict,'resultsdf':resultsdf}
             self.resultsDFdictlist.append(resultDFdict)
     
+    
+    def simplifyDict(self,adict):
+        sdict={};splitchar=','
+        for key,val in adict.items():
+            if type(val) is dict:
+                sval=splitchar.join([f'{key}:{val}' for key,val in adict.items()])
+            if type(val) in [tuple,list]:
+                sval=splitchar.join(val)
+            else:
+                sval=val
+            sdict[key]=sval
+        return sdict
+        
+    
+    
     def printSEMResults(self,):
         try:
             assert self.resultsDFdictlist,"building resultsDFdictlist"
@@ -182,8 +197,9 @@ class IslandData(DataView):
         for i,resultsDFdict in enumerate(resultsDFdictlist):
             
             modeldict=resultsDFdict['modeldict']
+            simple_modeldict=self.simplifyDict(modeldict)
             #title=f"----{modeldict['period']}Sandy,k={modeldict['klist']}----""
-            titledf=pd.DataFrame(modeldict)
+            titledf=pd.DataFrame(data=simple_modeldict).T
             title=titledf.to_html()
             df=resultsDFdict['resultsdf']
             result_html=df.to_html()
