@@ -116,7 +116,11 @@ class SpatialModel():
             sem=pysal.model.spreg.ML_Error(*args,**kwargs)
             self.saveByHashID(hashable_key,sem,filestring='_sem')
         try:
-            sem.summary
+            print(sem.summary)
+            self.logger.info(sem.summary)
+        except:
+            self.logger.exception('could not print summary')
+            
         resultsdict={'modeldict':deepcopy(modeldict),'results':sem}
         return resultsdict
     
@@ -156,6 +160,8 @@ class SpatialModel():
         path=os.path.join('data',thehash+filestring+'.pickle')
         with open(path,'wb') as f:
             pickle.dump(thing,f)
+        with open(path[:-7]+'_hashable-key.pickle','wb') as f:
+            pickle.dump(hashable_key,f)
         self.logger.info(f'filestring saved to path:{path}')
         return
     
