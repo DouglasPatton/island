@@ -173,6 +173,7 @@ class SpatialModel():
         except:
             klist=None
         wt_type=modeldict['wt_type']
+        wt_norm=modeldict['wt_norm']
         NNscope=modeldict['NNscope']
         klist=modeldict['klist']
         if not type(klist) is list:
@@ -207,12 +208,24 @@ class SpatialModel():
                     for k_idx in range(len(klist)):
                         neighb_list=list(idxarray[sortvec[:klist[k_idx]]])
                         if wt_type in ['inverse_distance','inverse_distance_NN']:
-
+                        
                             inv_wt_arr=distmat[pos][sortvec[:klist[k_idx]]]**-1
-                            norm_inv_wt_arr=inv_wt_arr/inv_wt_arr.max(axis=-1,keepdims=1)
+                            if wt_norm=='rowmax':
+                                norm_inv_wt_arr=inv_wt_arr/inv_wt_arr.max(axis=-1,keepdims=1)
+                            elif wt_norm=='rowsum':
+                                norm_inv_wt_arr=inv_wt_arr/inv_wt_arr.sum(axis=-1,keepdims=1)
                             weight_list=list(norm_inv_wt_arr)
                         if wt_type=='NN':
                             weight_list=[1 for _ in range(klist[k_idx])]
+                        
+                        if wt_norm:
+                            wt_arr=np.array(weight_list, dtype=np.float64)
+                            if wt_norm=='rowmax':
+                                norm_wt_arr=wt_arr/wt_arr.max(axis=-1,keepdims=1)
+                            elif wt_norm=='rowsum':
+                                norm_wt_arr=wt_arr/wt_arr.sum(axis=-1,keepdims=1)
+                            weight_list=list(norm_wt_arr)
+                        
 
 
                         neighbors_dictlist[k_idx][idx]=neighb_list #notably idx not pos since idx is cumulative across time
