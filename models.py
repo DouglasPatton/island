@@ -106,7 +106,7 @@ class SpatialModel():
         self.logger.info(f'x.shape:{x.shape}')
         self.logger.info(f'x:{x}')
         args=[y,x,w]
-        kwargs={'name_y':yvar,'name_x':xvarlist,'name_w':f'inv_dist_nn{nn}'}
+        kwargs={'name_y':yvar,'name_x':xvarlist,'name_w':f'inv_dist_nn{nn}','spat_diag':True,}
         hashable_key=[args[:2],kwargs] # w probably not hashable, so exclude
         trysavedsem=self.checkForSaveHash(hashable_key,filestring='_sem')
         if trysavedsem:
@@ -115,6 +115,8 @@ class SpatialModel():
         else:
             sem=pysal.model.spreg.ML_Error(*args,**kwargs)
             self.saveByHashID(hashable_key,sem,filestring='_sem')
+        try:
+            sem.summary
         resultsdict={'modeldict':deepcopy(modeldict),'results':sem}
         return resultsdict
     
