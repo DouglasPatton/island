@@ -65,19 +65,22 @@ class SpatialModel():
             wtlist=self.makeInverseDistanceWeights(dfi,modeldict=modeldict_i)
             wtlistlist.append(wtlist)
             for w,k in zip(wtlist,klist):
-                modeldict_i_k=deepcopy(modeldict_i) # deepcopy(modeldict_i) # no copy needed b/c just overwriting same val and not using again.
+                modeldict_i_k=deepcopy(modeldict_i) 
                 modeldict_i_k['klist']=k
-                resultsdict=self.runSpatialErrorModel(dfi,w,nn=k,t=idx0,modeldict=modeldict_i_k)
+                resultsdict=self.runPysalModel(dfi,w,nn=k,t=idx0,modeldict=modeldict_i_k)
                 resultsdictlist.append(resultsdict)
-                print('===========================================')
-                print(f'SEM results for pre0/post1:{idx0} for k:{k}')
-                sem=resultsdict['results']
-                for i in range(len(sem.name_x)):
-                    print(f'{sem.name_x[i]}, beta:{sem.betas[i]}, pval:{sem.z_stat[i][1]} stderr:{sem.std_err[i]}')
+                '''print('===========================================') # printing via .summary instead
+                print(f'model results for pre0/post1:{idx0} for k:{k}')
+                model=resultsdict['results']
+                for i in range(len(model.name_x)):
+                    print(f'{model.name_x[i]}, beta:{model.betas[i]}, pval:{model.z_stat[i][1]} stderr:{model.std_err[i]}')'''
         return resultsdictlist
     
-    def runSpatialErrorModel(self,df,w,nn=None,t=None,modeldict=None):
+    def runPysalModel(self,df,w,nn=None,t=None,modeldict=None):
         if modeldict is None: modeldict=self.modeldict
+        wt_type=modeldict['wt_type']
+        wt_norm=modeldict['wt_norm']
+        modeltype=modeldict['modeltype']
         yvar=modeldict['yvar']
         y=np.log10(df.loc[:][yvar].to_numpy(dtype=np.float64))[:,None]#make 2 dimensionsl for spreg
         xvarlist=modeldict['xvars'].copy()
@@ -105,23 +108,33 @@ class SpatialModel():
         self.logger.info(f'y:{y}')
         self.logger.info(f'x.shape:{x.shape}')
         self.logger.info(f'x:{x}')
+
         args=[y,x,w]
-        kwargs={'name_y':yvar,'name_x':xvarlist,'name_w':f'nn{nn}','spat_diag':True,}
+        kwargs={'name_y':yvar,'name_x':xvarlist,'name_w':f'{wt_type}-{wt_norm}-{nn}'}
         hashable_key=[args[:2],kwargs] # w probably not hashable, so exclude
-        trysavedsem=self.checkForSaveHash(hashable_key,filestring='_sem')
-        if trysavedsem:
-            self.logger.warning(f'hashkeysaved sem model already exists for modeldict:{modeldict}, skipping')
-            sem=trysavedsem
+        model_filestring=f'_{modeltype}'
+        trysavedmodel=self.checkForSaveHash(hashable_key,filestring=model_filestring)
+        if trysavedmodel:
+            self.logger.warning(f'hashkeysaved model model already exists for modeldict:{modeldict}, skipping')
+            model=trysavedmodel
         else:
-            sem=pysal.model.spreg.ML_Error(*args,**kwargs)
-            self.saveByHashID(hashable_key,sem,filestring='_sem')
+            if modeltype.lower()=='sem':
+                estimator=pysal.model.spreg.ML_Error
+            elif modeltype.lower()=='slm':
+                estimator=pysal.model.spreg.ML_Lag
+            elif modeltype.lower()=='ols':
+                kwargs['spat_diag']=True
+                estimator=pysal.model.spreg.OLS
+                
+            model=estimator(*args,**kwargs)
+            self.saveByHashID(hashable_key,model,filestring='model_filestring')
         try:
-            print(sem.summary)
-            self.logger.info(sem.summary)
+            print(model.summary)
+            self.logger.info(model.summary)
         except:
             self.logger.exception('could not print summary')
             
-        resultsdict={'modeldict':deepcopy(modeldict),'results':sem}
+        resultsdict={'modeldict':deepcopy(modeldict),'results':model}
         return resultsdict
     
     def myLogPos(self,x,col=None):

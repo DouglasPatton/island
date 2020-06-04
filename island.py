@@ -89,7 +89,7 @@ class IslandData(DataView):
         
         modeldict={
                 'combine_pre_post':0,
-                'period':None,
+                'period':None, # used later to record which time period is included in data for a model
                 'modeltype':'SEM',
                 'klist':self.klist,
                 #'crs':'epsg:4326',
@@ -106,11 +106,11 @@ class IslandData(DataView):
     def runSpatialModel(self,modeldict=None,justW=0):
         if modeldict is None:
             modeldict=self.modeldict
-        self.sem_tool=SpatialModel(modeldict)
+        spatial_model_tool_tool=SpatialModel(modeldict)
         if justW:
-            self.sem.justMakeWeights(df=self.df)
+            spatial_model_tool.justMakeWeights(df=self.df)
             return
-        resultdictlist=self.sem_tool.run(df=self.df)
+        resultdictlist=spatial_model_tool_tool.run(df=self.df)
         self.resultsdictlist.extend(resultdictlist)
         self.saveSpatialModelResults(resultdictlist)
         
@@ -146,7 +146,7 @@ class IslandData(DataView):
         return outlist
             
 
-    def doSEMResultsToDF(self,):
+    def doModelResultsToDF(self,):
         try: 
             assert self.resultsdictlist,"results not loaded, loading results"
             resultsdictlist=self.resultsdictlist
@@ -157,14 +157,14 @@ class IslandData(DataView):
         
         for resultsdict in resultsdictlist:
             modeldict=resultsdict['modeldict']
-            semresult=resultsdict['results']
+            modelresult=resultsdict['results']
             
         
             resultsdata={}
-            resultsdata['xvarlist']=np.array(semresult.name_x)
-            resultsdata['betalist']=np.array(semresult.betas).flatten()
-            resultsdata['stderrlist']=np.array(semresult.std_err)
-            zstatlist,pvallist=zip(*semresult.z_stat)
+            resultsdata['xvarlist']=np.array(modelresult.name_x)
+            resultsdata['betalist']=np.array(modelresult.betas).flatten()
+            resultsdata['stderrlist']=np.array(modelresult.std_err)
+            zstatlist,pvallist=zip(*modelresult.z_stat)
             resultsdata['zstatlist']=np.array(zstatlist)
             resultsdata['pvallist']=np.array(pvallist)
             self.logger.info(f'resultsdata:{resultsdata}')
@@ -203,13 +203,13 @@ class IslandData(DataView):
         
     
     
-    def printSEMResults(self,):
+    def printModelResults(self,):
         try:
             assert self.resultsDFdictlist,"building resultsDFdictlist"
         except:
-            self.doSEMResultsToDF()
+            self.doModelResultsToDF()
         resultsDFdictlist=self.resultsDFdictlist
-        modeltablehtml='SEM Results'
+        modeltablehtml='Model Results'
         I=len(resultsDFdictlist)
         for i,resultsDFdict in enumerate(resultsDFdictlist):
             
