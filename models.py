@@ -80,6 +80,7 @@ class SpatialModel():
         if modeldict is None: modeldict=self.modeldict
         wt_type=modeldict['wt_type']
         wt_norm=modeldict['wt_norm']
+        NNscope=modeldict['NNscope']
         modeltype=modeldict['modeltype']
         yvar=modeldict['yvar']
         y=np.log10(df.loc[:][yvar].to_numpy(dtype=np.float64))[:,None]#make 2 dimensionsl for spreg
@@ -110,7 +111,7 @@ class SpatialModel():
         self.logger.info(f'x:{x}')
 
         args=[y,x,w]
-        kwargs={'name_y':yvar,'name_x':xvarlist,'name_w':f'{wt_type}-{wt_norm}-{nn}'}
+        kwargs={'name_y':yvar,'name_x':xvarlist,'name_w':f'{wt_type}-{wt_norm}-{NNscope}-{nn}'}
         hashable_key=[args[:2],kwargs] # w probably not hashable, so exclude
         model_filestring=f'_{modeltype}'
         trysavedmodel=self.checkForSaveHash(hashable_key,filestring=model_filestring)
@@ -127,7 +128,7 @@ class SpatialModel():
                 estimator=pysal.model.spreg.OLS
                 
             model=estimator(*args,**kwargs)
-            self.saveByHashID(hashable_key,model,filestring='model_filestring')
+            self.saveByHashID(hashable_key,model,filestring=model_filestring)
         try:
             print(model.summary)
             self.logger.info(model.summary)
@@ -200,8 +201,9 @@ class SpatialModel():
         if not type(klist) is list:
             klist=[klist]
             
+        wt_modeldict={key:modeldict['key'] for key in ['wt_type','wt_norm','NNscope','klist','combine_pre_post']}
         
-        savedWlist=self.checkForWList(dfi,modeldict)
+        savedWlist=self.checkForWList(dfi,wt_modeldict)
         if savedWlist:
             return savedWlist
         timelist=dfi.index.remove_unused_levels().levels[0]#dfi.index.levels[0]
@@ -280,7 +282,7 @@ class SpatialModel():
             #self.logger.info(f'neighbors and weights: {neighbors_dictlist[k_idx],weights_dictlist[k_idx]}')
             wlist.append(libpysal.weights.W(neighbors_dictlist[k_idx],weights_dictlist[k_idx]))
         self.wlist=wlist
-        self.saveWList(wlist,dfi,modeldict)
+        self.saveWList(wlist,dfi,wt_modeldict)
         return wlist
     
                              
