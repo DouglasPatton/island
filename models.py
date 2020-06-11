@@ -201,7 +201,7 @@ class SpatialModel():
         if not type(klist) is list:
             klist=[klist]
             
-        wt_modeldict={key:modeldict['key'] for key in ['wt_type','wt_norm','NNscope','klist','combine_pre_post']}
+        wt_modeldict={key:modeldict[key] for key in ['wt_type','wt_norm','NNscope','klist','combine_pre_post']}
         
         savedWlist=self.checkForWList(dfi,wt_modeldict)
         if savedWlist:
