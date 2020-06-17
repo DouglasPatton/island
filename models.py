@@ -83,7 +83,11 @@ class SpatialModel():
         NNscope=modeldict['NNscope']
         modeltype=modeldict['modeltype']
         yvar=modeldict['yvar']
-        y=np.log10(df.loc[:][yvar].to_numpy(dtype=np.float64))[:,None]#make 2 dimensionsl for spreg
+        transform_dict=modeldict['transform']
+        do_log_y=transform_dict['ln_y']
+        do_log_wq=transform_dict['ln_wq']
+        y=df.loc[:][yvar].to_numpy(dtype=np.float64)[:,None]#make 2 dimensionsl for spreg
+        if do_log_y: y=np.log(y)
         xvarlist=modeldict['xvars'].copy()
         preSdropyears=[i for i in range(2013,2016)]# 2015+1 b/c python
         postSdropyears=[i for i in range(2002,2012)]# 2011+1 b/c python
@@ -101,10 +105,10 @@ class SpatialModel():
         
         
         x=df.loc[:][xvarlist].to_numpy(dtype=np.float64)
-        
-        for idx in wqvar_idx_list:
-            self.logger.info(f'LogPos transform of variable: {xvarlist[idx]}')
-            x=self.myLogPos(x,col=idx)
+        if do_log_wq:
+            for idx in wqvar_idx_list:
+                self.logger.info(f'LogPos transform of variable: {xvarlist[idx]}')
+                x=self.myLogPos(x,col=idx)
             
         self.logger.info(f'y:{y}')
         self.logger.info(f'x.shape:{x.shape}')
