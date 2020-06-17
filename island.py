@@ -90,7 +90,7 @@ class IslandData(DataView):
         modeldict={
                 'combine_pre_post':0,
                 'period':None, # used later to record which time period is included in data for a model
-                'modeltype':'OLS',#'SLM',#'SEM',#'OLS',#'SLM',
+                'modeltype':'SEM',#'SLM',#'SEM',#'OLS',#'SLM',
                 'klist':self.klist,
                 #'crs':'epsg:4326',
                 'xvars':xvarlist,
@@ -208,15 +208,16 @@ class IslandData(DataView):
         except: 
             resultsdictlist=self.saveSpatialModelResults([],load=1)
         I=len(resultsdictlist)
-        summary_text=['Model Summaries','\'
-            f'for {I}  models'\
-            ''
-
-        for resultsdict in resultsdictlist:
+        summary_text='Model Summaries\n'+f'for {I}  models\n'
+        
+        resultsdictflatlist=self.flattenListList(resultsdictlist)
+        for resultsdict in resultsdictflatlist:
             modeldict=resultsdict['modeldict']
             modelresult=resultsdict['results']
-            summary_text+=str(modeldict)
-            summary_text+=modelresult.summary
+            summary_text+=str(modeldict)+'\n'
+            summary_text+=modelresult.summary+'\n\n\n'
+        with open('semresults.txt','w') as f:
+            f.write(summary_text)
             
             
     
