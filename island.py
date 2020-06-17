@@ -201,7 +201,24 @@ class IslandData(DataView):
             sdict[key]=sval
         return sdict
         
-    
+    def printModelSummary(self,):
+        try: 
+            assert self.resultsdictlist,"results not loaded, loading results"
+            resultsdictlist=self.resultsdictlist
+        except: 
+            resultsdictlist=self.saveSpatialModelResults([],load=1)
+        I=len(resultsdictlist)
+        summary_text=['Model Summaries','\'
+            f'for {I}  models'\
+            ''
+
+        for resultsdict in resultsdictlist:
+            modeldict=resultsdict['modeldict']
+            modelresult=resultsdict['results']
+            summary_text+=str(modeldict)
+            summary_text+=modelresult.summary
+            
+            
     
     def printModelResults(self,):
         try:

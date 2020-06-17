@@ -14,5 +14,5 @@ if __name__=='__main__':
     idata_obj.addRealByCPI()
     idata_obj.arrayListToPandasDF()
     idata_obj.runSpatialModel()
-    idata_obj.printSEMResults()
+    idata_obj.printModelResults()
     
