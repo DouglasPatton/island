@@ -42,6 +42,9 @@ class SpatialModel():
         elif type(nn) is list:
             klist=nn
         else:assert False,f'halt, unrecongized nn:{nn}'
+        if not re.search('nn',modeldict['wt_type']):
+            klist=['all']
+            
             
         if df is None:
             try:self.df
@@ -130,8 +133,8 @@ class SpatialModel():
             elif modeltype.lower()=='ols':
                 kwargs['spat_diag']=True
                 estimator=pysal.model.spreg.OLS
-            elif modeltype.lower()=='gm_combo_het':
-                estimator=pysal.model.spreg.Gm_Combo_Het
+            elif modeltype.lower()=='gm_error_het':
+                estimator=pysal.model.spreg.GM_Error_Het
             
                 
                 
@@ -237,7 +240,10 @@ class SpatialModel():
                 for pos,idx in enumerate(idxarray):
                     sortvec=sortidx[pos]
                     for k_idx in range(len(klist)):
-                        neighb_list=list(idxarray[sortvec[:klist[k_idx]]])
+                        if re.search('nn',wt_type.lower()):
+                            neighb_list=list(idxarray[sortvec[:klist[k_idx]]])
+                        else:
+                            neighb_list=list(idxarray[sortvec])
                         if wt_type in ['inverse_distance','inverse_distance_NN']:
                         
                             inv_wt_arr=distmat[pos][sortvec[:klist[k_idx]]]**-1
@@ -246,7 +252,7 @@ class SpatialModel():
                             elif wt_norm=='rowsum':
                                 norm_inv_wt_arr=inv_wt_arr/inv_wt_arr.sum(axis=-1,keepdims=1)
                             weight_list=list(norm_inv_wt_arr)
-                        if wt_type=='NN':
+                        elif wt_type=='NN':
                             weight_list=[1 for _ in range(klist[k_idx])]
                         
                         if wt_norm:
@@ -255,6 +261,8 @@ class SpatialModel():
                                 norm_wt_arr=wt_arr/wt_arr.max(axis=-1,keepdims=1)
                             elif wt_norm=='rowsum':
                                 norm_wt_arr=wt_arr/wt_arr.sum(axis=-1,keepdims=1)
+                            elif wt_norm=='doublesum'
+                                norm_wt_arr=wt_arr/wt_arr.sum(keepdims=1)
                             weight_list=list(norm_wt_arr)
                         
 
