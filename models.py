@@ -130,6 +130,10 @@ class SpatialModel():
             elif modeltype.lower()=='ols':
                 kwargs['spat_diag']=True
                 estimator=pysal.model.spreg.OLS
+            elif modeltype.lower()=='gm_combo_het':
+                estimator=pysal.model.spreg.Gm_Combo_Het
+            
+                
                 
             model=estimator(*args,**kwargs)
             self.saveByHashID(hashable_key,model,filestring=model_filestring)
