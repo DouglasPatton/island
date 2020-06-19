@@ -1,3 +1,4 @@
+
 import numpy as np
 import pandas as pd
 import csv
@@ -26,7 +27,7 @@ class IslandData(DataView):
             format="[%(asctime)s] %(levelname)s [%(name)s.%(funcName)s:%(lineno)d] %(message)s",
             datefmt='%Y-%m-%dT%H:%M:%S')
         self.logger = logging.getLogger(handlername)
-        self.klist=[5,10,15,20,25,50,100]#[25,50,100]
+        self.klist=[2,8,32,128]#[25,50,100]
         self.resultsdictlist=[]
         self.figdict={}
         self.sumstatsdict={}
@@ -38,9 +39,10 @@ class IslandData(DataView):
         if not os.path.exists(self.resultsdir):os.mkdir(self.resultsdir)
         self.resultspath=os.path.join(self.resultsdir,'resultsdictlist.pickle')
         
-        self.printdir=os.path.join(os.getcwd(),'print')
+        self.printdir=os.path.join(cwd,'print')
         if not os.path.exists(self.printdir):
             os.mkdir(self.printdir)
+        
         self.datadictlistpath=os.path.join(self.datadir,'datadictlist.pickle')
         self.yeardummydict={f'dv_{i}':np.uint16 for i in range(2002,2016)}
         self.yeardummylist=[key for key in self.yeardummydict]
@@ -90,13 +92,13 @@ class IslandData(DataView):
         modeldict={
                 'combine_pre_post':0,
                 'period':None, # used later to record which time period is included in data for a model
-                'modeltype':'GM_Error_Het',#'SLM',#'SEM',#'OLS',#'SLM',
+                'modeltype':'GM_Lag',#'OLS',#'GM_Error_Het',#'SLM',#'SEM',#'SLM',
                 'klist':self.klist,
                 #'crs':'epsg:4326',
                 'xvars':xvarlist,
                 'yvar':'saleprice_real-2015',
-                'transform':{'ln_wq':1,'ln_y':1},
-                'wt_type':'inverse_distance',#'inverse_distance_NN',#'NN',#
+                'transform':{'ln_wq':0,'ln_y':1},
+                'wt_type':'inverse_distance_nn_exp2',#'inverse_distance_NN_exp1',#'inverse_distance',#'NN',#
                 'wt_norm':'rowsum',#'rowmax',#'doublesum',#
                 'NNscope':'year',#'period',#     # 'period' groups obs by pre or post, 'year' groups by year
                 'distmat':1 # 0 if not enough ram to do all NN at once
