@@ -105,7 +105,7 @@ class SpatialModel():
         postSdropyears=[i for i in range(2002,2012)]# 2011+1 b/c python
         dropyearslist=[preSdropyears,postSdropyears]
         if t in [0,1]:
-            dropyears=dropyearslist[t]
+            dropyears=dropyearslist[t]     
             if t:
                 dropyears.append('2015') #drop the excluded dummy
             else:
