@@ -27,7 +27,7 @@ class IslandData(DataView):
             format="[%(asctime)s] %(levelname)s [%(name)s.%(funcName)s:%(lineno)d] %(message)s",
             datefmt='%Y-%m-%dT%H:%M:%S')
         self.logger = logging.getLogger(handlername)
-        self.klist=[2,4,8,16,32]#[25,50,100]
+        self.klist=[2,3,4,8,16,32]#[25,50,100]
         self.resultsdictlist=[]
         self.figdict={}
         self.sumstatsdict={}
@@ -220,7 +220,13 @@ class IslandData(DataView):
             modelresult=resultsdict['results']
             summary_text+=str(modeldict)+'\n'
             summary_text+=modelresult.summary+'\n\n\n'
-        with open('semresults.txt','w') as f:
+        try: 
+            with open('modelresults.txt','r') as f:
+                old=f.read()
+            summary_text=old+'\n------------------\n\n'+summary_text
+        except:
+            self.logger.exception('error reading modelresults.txt')
+        with open('modelresults.txt','w') as f:
             f.write(summary_text)
             
             
