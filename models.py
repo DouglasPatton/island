@@ -1,4 +1,9 @@
 import os
+os.environ["OMP_NUM_THREADS"] = "10" # export OMP_NUM_THREADS=4
+os.environ["OPENBLAS_NUM_THREADS"] = "10" # export OPENBLAS_NUM_THREADS=4 
+os.environ["MKL_NUM_THREADS"] = "10" # export MKL_NUM_THREADS=6
+os.environ["VECLIB_MAXIMUM_THREADS"] = "10" # export VECLIB_MAXIMUM_THREADS=4
+os.environ["NUMEXPR_NUM_THREADS"] = "10" # export NUMEXPR_NUM_THREADS=4
 import numpy as np
 import data_geo as dg
 import pysal
@@ -17,7 +22,8 @@ class SpatialModel():
     def __init__(self,modeldict):
         self.logger = logging.getLogger(__name__)
         self.modeldict=modeldict
-        
+        self.savespath=os.path.join(os.getcwd(),'data','saves')
+        if not os.path.exists(self.savespath):os.makedirs(self.savespath)
     
         
     def buildGeoDF(self,df=None):
@@ -36,12 +42,18 @@ class SpatialModel():
         
     def run(self,df=None):
         # https://pysal.org/libpysal/generated/libpysal.weights.W.html#libpysal.weights.W
+        
+        modeldict=self.modeldict
+        
         nn=self.modeldict['klist']
         if type(nn) is int:
             klist=[nn]
         elif type(nn) is list:
             klist=nn
         else:assert False,f'halt, unrecongized nn:{nn}'
+        if not re.search('nn',modeldict['wt_type'].lower()):
+            klist=['all']
+            
             
         if df is None:
             try:self.df
@@ -53,7 +65,7 @@ class SpatialModel():
         else:
             df_idx_0_list=[0,1]
         wtlistlist=[];resultsdictlist=[]
-        modeldict_i=deepcopy(self.modeldict) 
+        modeldict_i=deepcopy(modeldict) 
         for idx0 in df_idx_0_list:
             dfi=df.loc[idx0]
             
@@ -80,15 +92,20 @@ class SpatialModel():
         if modeldict is None: modeldict=self.modeldict
         wt_type=modeldict['wt_type']
         wt_norm=modeldict['wt_norm']
+        NNscope=modeldict['NNscope']
         modeltype=modeldict['modeltype']
         yvar=modeldict['yvar']
-        y=np.log10(df.loc[:][yvar].to_numpy(dtype=np.float64))[:,None]#make 2 dimensionsl for spreg
+        transform_dict=modeldict['transform']
+        do_log_y=transform_dict['ln_y']
+        do_log_wq=transform_dict['ln_wq']
+        y=df.loc[:][yvar].to_numpy(dtype=np.float32)[:,None]#make 2 dimensionsl for spreg
+        if do_log_y: y=np.log(y)
         xvarlist=modeldict['xvars'].copy()
         preSdropyears=[i for i in range(2013,2016)]# 2015+1 b/c python
         postSdropyears=[i for i in range(2002,2012)]# 2011+1 b/c python
         dropyearslist=[preSdropyears,postSdropyears]
         if t in [0,1]:
-            dropyears=dropyearslist[t]
+            dropyears=dropyearslist[t]     
             if t:
                 dropyears.append('2015') #drop the excluded dummy
             else:
@@ -99,18 +116,18 @@ class SpatialModel():
         wqvar_idx_list=[idx for idx,var in enumerate(xvarlist) if re.search('wq',var) or var=='secchi']
         
         
-        x=df.loc[:][xvarlist].to_numpy(dtype=np.float64)
-        
-        for idx in wqvar_idx_list:
-            self.logger.info(f'LogPos transform of variable: {xvarlist[idx]}')
-            x=self.myLogPos(x,col=idx)
+        x=df.loc[:][xvarlist].to_numpy(dtype=np.float32)
+        if do_log_wq:
+            for idx in wqvar_idx_list:
+                self.logger.info(f'LogPos transform of variable: {xvarlist[idx]}')
+                x=self.myLogPos(x,col=idx)
             
         self.logger.info(f'y:{y}')
         self.logger.info(f'x.shape:{x.shape}')
         self.logger.info(f'x:{x}')
 
         args=[y,x,w]
-        kwargs={'name_y':yvar,'name_x':xvarlist,'name_w':f'{wt_type}-{wt_norm}-{nn}'}
+        kwargs={'name_y':yvar,'name_x':xvarlist,'name_w':f'{wt_type}-{wt_norm}-{NNscope}-{nn}'}
         hashable_key=[args[:2],kwargs] # w probably not hashable, so exclude
         model_filestring=f'_{modeltype}'
         trysavedmodel=self.checkForSaveHash(hashable_key,filestring=model_filestring)
@@ -125,9 +142,22 @@ class SpatialModel():
             elif modeltype.lower()=='ols':
                 kwargs['spat_diag']=True
                 estimator=pysal.model.spreg.OLS
+            elif modeltype.lower()=='gm_error_het':
+                estimator=pysal.model.spreg.GM_Error_Het
+                kwargs['w']=args.pop(-1) #  move arg to kwarg for these estimators
+            elif modeltype.lower()=='gm_combo_het':
+                estimator=pysal.model.spreg.GM_Combo_Het
+                kwargs['w']=args.pop(-1)
+            elif modeltype.lower()=='gm_lag':
+                estimator=pysal.model.spreg.GM_Lag
+                kwargs['w']=args.pop(-1)
+                
+               
+            
+                
                 
             model=estimator(*args,**kwargs)
-            self.saveByHashID(hashable_key,model,filestring='model_filestring')
+            self.saveByHashID(hashable_key,model,filestring=model_filestring)
         try:
             print(model.summary)
             self.logger.info(model.summary)
@@ -150,7 +180,7 @@ class SpatialModel():
         
     def checkForSaveHash(self,hashable_key,filestring=""):
         thehash=joblib.hash(hashable_key)
-        path=os.path.join('data',thehash+filestring+'.pickle')
+        path=os.path.join(self.savespath,thehash+filestring+'.pickle')
         if os.path.exists(path):
             try:
                 with open(path,'rb') as f:
@@ -170,7 +200,7 @@ class SpatialModel():
         
     def saveByHashID(self,hashable_key,thing,filestring=""):
         thehash=joblib.hash(hashable_key)
-        path=os.path.join('data',thehash+filestring+'.pickle')
+        path=os.path.join(self.savespath,thehash+filestring+'.pickle')
         with open(path,'wb') as f:
             pickle.dump(thing,f)
         with open(path[:-7]+'_hashable-key.pickle','wb') as f:
@@ -200,8 +230,19 @@ class SpatialModel():
         if not type(klist) is list:
             klist=[klist]
             
+        is_inv_dist=re.search('inverse_distance',wt_type.lower())
+        if is_inv_dist:
+            exp_srch=re.search('exp',wt_type)
+            if exp_srch:
+                exp=float(wt_type[exp_srch.end():])
+
+            else:
+                exp=1
+        is_nn=re.search('nn',wt_type.lower())
+            
+        wt_modeldict={key:modeldict[key] for key in ['wt_type','wt_norm','NNscope','klist','combine_pre_post']}
         
-        savedWlist=self.checkForWList(dfi,modeldict)
+        savedWlist=self.checkForWList(dfi,wt_modeldict)
         if savedWlist:
             return savedWlist
         timelist=dfi.index.remove_unused_levels().levels[0]#dfi.index.levels[0]
@@ -218,33 +259,47 @@ class SpatialModel():
                 dfi_s=dfi.loc[scope_idx]
                 n=dfi_s.shape[0]
                 distmat=self.makeDistMat(dfi_s)
-                zeroblocker=np.array([[10**20]],dtype=np.float32).repeat(n,1).repeat(n,0)
-                distmat[distmat==0]=zeroblocker[distmat==0] # assuming only one's self can be zero distance away, also treats self if sold more than once
+                #zeroblocker=np.array([[10**20]],dtype=np.float32).repeat(n,1).repeat(n,0)
+                #distmat[distmat==0]=zeroblocker[distmat==0]
+                distmat[distmat==0]=10**20# assuming only one's self can be zero distance away, also treats self if sold more than once
                 idxarray=np.arange(n_cum,n_cum+n)
                 n_cum+=n # for the next iteration
                 sortidx=distmat.argsort(axis=-1) # default is axis=-1, the 'columns' of the 2d array
                 self.logger.info(f'making weights with weight type:{wt_type}')
                 for pos,idx in enumerate(idxarray):
-                    sortvec=sortidx[pos]
+                    sortvec=sortidx[pos,:]
                     for k_idx in range(len(klist)):
-                        neighb_list=list(idxarray[sortvec[:klist[k_idx]]])
-                        if wt_type in ['inverse_distance','inverse_distance_NN']:
-                        
-                            inv_wt_arr=distmat[pos][sortvec[:klist[k_idx]]]**-1
-                            if wt_norm=='rowmax':
-                                norm_inv_wt_arr=inv_wt_arr/inv_wt_arr.max(axis=-1,keepdims=1)
-                            elif wt_norm=='rowsum':
-                                norm_inv_wt_arr=inv_wt_arr/inv_wt_arr.sum(axis=-1,keepdims=1)
-                            weight_list=list(norm_inv_wt_arr)
-                        if wt_type=='NN':
+                        if is_nn:
+                            neighb_list=list(idxarray[sortvec[:klist[k_idx]]])
+                        else:
+                            neighb_list=list(idxarray[sortvec])
+                        if is_inv_dist:
+                            if is_nn:
+                                inv_wt_arr=distmat[pos,sortvec[:klist[k_idx]]]**-exp
+                            else:
+                                dist_arr=distmat[pos,sortvec]
+                                inv_wt_arr=dist_arr**-exp
+                                inv_wt_arr[dist_arr>10**19]=0
+                            
+                            weight_list=list(inv_wt_arr)
+                            '''try:
+                                selfpos=neighb_list.index(idx)
+                            except:
+                                selfpos=None
+                            if selfpos:
+                                print(f'selfpos:{selfpos},weight_list[selfpos]:{weight_list[selfpos]}')'''
+                                
+                        elif wt_type.lower()=='nn':
                             weight_list=[1 for _ in range(klist[k_idx])]
                         
                         if wt_norm:
-                            wt_arr=np.array(weight_list, dtype=np.float64)
+                            wt_arr=np.array(weight_list, dtype=np.float32)
                             if wt_norm=='rowmax':
                                 norm_wt_arr=wt_arr/wt_arr.max(axis=-1,keepdims=1)
                             elif wt_norm=='rowsum':
                                 norm_wt_arr=wt_arr/wt_arr.sum(axis=-1,keepdims=1)
+                            elif wt_norm=='doublesum':
+                                norm_wt_arr=wt_arr/wt_arr.sum(keepdims=1)
                             weight_list=list(norm_wt_arr)
                         
 
@@ -280,7 +335,7 @@ class SpatialModel():
             #self.logger.info(f'neighbors and weights: {neighbors_dictlist[k_idx],weights_dictlist[k_idx]}')
             wlist.append(libpysal.weights.W(neighbors_dictlist[k_idx],weights_dictlist[k_idx]))
         self.wlist=wlist
-        self.saveWList(wlist,dfi,modeldict)
+        self.saveWList(wlist,dfi,wt_modeldict)
         return wlist
     
                              
@@ -293,6 +348,7 @@ class SpatialModel():
         istack=np.repeat(pointarray,repeats=n,axis=0)
         jstack=np.repeat(np.expand_dims(pointarray,0),axis=0,repeats=n).reshape([n**2,2],order='C')
         distmat=haversine_vector(istack,jstack).reshape(n,n)
+        self.logger.info(f'lon_array[:5],lat_array[:5],distmat[0:5,0:5]:{[lon_array[:5],lat_array[:5],distmat[0:5,0:5]]}')
         '''for i in range(n):
             ilatlon=pointarray[i,:]
             ilatlonstack=np.repeat(ilatlon,n)

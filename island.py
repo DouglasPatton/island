@@ -1,3 +1,4 @@
+
 import numpy as np
 import pandas as pd
 import csv
@@ -7,7 +8,7 @@ import logging
 from logging import handlers
 from helpers import Helper
 import matplotlib.pyplot as plt
-#import cpi #https://github.com/datadesk/cpi
+#import cpi # imported conditionally, later on #https://github.com/datadesk/cpi
 from data_viz import DataView
 #from datetime import date
 from models import SpatialModel
@@ -26,7 +27,7 @@ class IslandData(DataView):
             format="[%(asctime)s] %(levelname)s [%(name)s.%(funcName)s:%(lineno)d] %(message)s",
             datefmt='%Y-%m-%dT%H:%M:%S')
         self.logger = logging.getLogger(handlername)
-        self.klist=[5,10,15,20,25,50,100]#[25,50,100]
+        self.klist=[2,3,4,8,16,32]#[25,50,100]
         self.resultsdictlist=[]
         self.figdict={}
         self.sumstatsdict={}
@@ -38,9 +39,10 @@ class IslandData(DataView):
         if not os.path.exists(self.resultsdir):os.mkdir(self.resultsdir)
         self.resultspath=os.path.join(self.resultsdir,'resultsdictlist.pickle')
         
-        self.printdir=os.path.join(os.getcwd(),'print')
+        self.printdir=os.path.join(cwd,'print')
         if not os.path.exists(self.printdir):
             os.mkdir(self.printdir)
+        
         self.datadictlistpath=os.path.join(self.datadir,'datadictlist.pickle')
         self.yeardummydict={f'dv_{i}':np.uint16 for i in range(2002,2016)}
         self.yeardummylist=[key for key in self.yeardummydict]
@@ -90,16 +92,18 @@ class IslandData(DataView):
         modeldict={
                 'combine_pre_post':0,
                 'period':None, # used later to record which time period is included in data for a model
-                'modeltype':'SEM',
+                'modeltype':'GM_Error_Het',#'OLS',#'GM_Lag',#'SLM',#'SEM',#'SLM',
                 'klist':self.klist,
                 #'crs':'epsg:4326',
                 'xvars':xvarlist,
                 'yvar':'saleprice_real-2015',
                 'transform':{'ln_wq':1,'ln_y':1},
-                'wt_type':'inverse_distance_NN',#'NN',#'inverse_distance',
-                'wt_norm':'rowsum',#'rowmax'
+                'wt_type':'NN',#'inverse_distance_nn_exp2',#'inverse_distance_NN_exp1',#'inverse_distance',#
+                'wt_norm':'rowsum',#'rowmax',#'doublesum',#
                 'NNscope':'year',#'period',#     # 'period' groups obs by pre or post, 'year' groups by year
-                'distmat':1 # 0 if not enough ram to do all NN at once
+                'distmat':1, # 0 if not enough ram to do all NN at once
+                'cpi-area':"New York-Newark-Jersey City, NY-NJ-PA",#"Northeast - Size Class B/C",#
+                'cpi-items':"Housing"
             }
         return vardict,modeldict,std_transform
     
@@ -201,7 +205,31 @@ class IslandData(DataView):
             sdict[key]=sval
         return sdict
         
-    
+    def printModelSummary(self,):
+        try: 
+            assert self.resultsdictlist,"results not loaded, loading results"
+            resultsdictlist=self.resultsdictlist
+        except: 
+            resultsdictlist=self.saveSpatialModelResults([],load=1)
+        I=len(resultsdictlist)
+        summary_text='Model Summaries\n'+f'for {I}  models\n'
+        
+        resultsdictflatlist=self.flattenListList(resultsdictlist)
+        for resultsdict in resultsdictflatlist:
+            modeldict=resultsdict['modeldict']
+            modelresult=resultsdict['results']
+            summary_text+=str(modeldict)+'\n'
+            summary_text+=modelresult.summary+'\n\n\n'
+        try: 
+            with open('modelresults.txt','r') as f:
+                old=f.read()
+            summary_text=old+'\n------------------\n\n'+summary_text
+        except:
+            self.logger.exception('error reading modelresults.txt')
+        with open('modelresults.txt','w') as f:
+            f.write(summary_text)
+            
+            
     
     def printModelResults(self,):
         try:
@@ -424,7 +452,18 @@ class IslandData(DataView):
     
     
     def getCPI(self,to_year=2015):
-        cpi_factors_path=os.path.join(self.datadir,f'cpi_factors-{to_year}.json')
+        modeldict=self.modeldict
+        kwargs={}
+        if 'cpi-area' in modeldict:
+            kwargs['area']=modeldict['cpi-area']
+        if 'cpi-items' in modeldict:
+            kwargs['items']=modeldict['cpi-items']
+        kwargs['to']=to_year
+        kwargstring=''.join([key+"-"+str(val)+'_' for key,val in kwargs.items()])
+        stem=f'cpi_factors-{kwargstring}.json'
+        excludechars=['\\', '/', ',',' ']
+        stem=''.join([char for char in stem if char not in excludechars])
+        cpi_factors_path=os.path.join(self.datadir,stem)
         try:
             with open(cpi_factors_path,'r') as f:
                 cpi_factors=json.load(f)
@@ -434,7 +473,7 @@ class IslandData(DataView):
         import cpi
         cpi_factor_list=[]
         for t in self.timelist:#
-            cpi_factor=np.float64(cpi.inflate(1,int(t),to=to_year))
+            cpi_factor=np.float64(cpi.inflate(1,int(t),**kwargs))
             cpi_factor_list.append(cpi_factor)
         with open(cpi_factors_path,'w') as f:
             json.dump(cpi_factor_list,f)
@@ -459,7 +498,7 @@ class IslandData(DataView):
                     real_dollar_array=nparraylist[var_idx]*cpi_factor
                     nparraylist.append(real_dollar_array)
                     #nparray=np.concatenate([nparray,np.float64(nparray[:,var_idx][:,None])*cpi_factor],axis=1) 
-                #timelist_arraylist[t]=nparray
+                timelist_arraylist[t]=nparraylist
             for var in self.dollarvars:#separate loop since just happens once per t
                 newname=var+'_real-'+str(to_year)
                 varlist.append(newname)
@@ -467,7 +506,7 @@ class IslandData(DataView):
                 #    self.std_transform.append(newname) #these will be standardized
             self.logger.info(f'np.shape for timelist_arraylist:{[nparray.shape for arraylist in timelist_arraylist for nparray in arraylist]}')
             self.varlist=varlist
-            self.time_arraytup=(timelist_arraylist,varlist)
+            self.time_arraytup_cpi=(timelist_arraylist,varlist)
             return
         except:
             self.logger.exception('')
