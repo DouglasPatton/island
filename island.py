@@ -92,13 +92,13 @@ class IslandData(DataView):
         modeldict={
                 'combine_pre_post':0,
                 'period':None, # used later to record which time period is included in data for a model
-                'modeltype':'GM_Error_Het',#'OLS',#'GM_Lag',#'SLM',#'SEM',#'SLM',
+                'modeltype':'OLS',#'GM_Error_Het',#'GM_Lag',#'SLM',#'SEM',#'SLM',
                 'klist':self.klist,
                 #'crs':'epsg:4326',
                 'xvars':xvarlist,
                 'yvar':'saleprice_real-2015',
                 'transform':{'ln_wq':1,'ln_y':1},
-                'wt_type':'NN',#'inverse_distance_nn_exp2',#'inverse_distance_NN_exp1',#'inverse_distance',#
+                'wt_type':'inverse_distance_NN',#'NN',#'inverse_distance_nn_exp2',#'inverse_distance_NN_exp1',#'inverse_distance',#
                 'wt_norm':'rowsum',#'rowmax',#'doublesum',#
                 'NNscope':'year',#'period',#     # 'period' groups obs by pre or post, 'year' groups by year
                 'distmat':1, # 0 if not enough ram to do all NN at once

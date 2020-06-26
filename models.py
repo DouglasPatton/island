@@ -6,8 +6,8 @@ os.environ["VECLIB_MAXIMUM_THREADS"] = "10" # export VECLIB_MAXIMUM_THREADS=4
 os.environ["NUMEXPR_NUM_THREADS"] = "10" # export NUMEXPR_NUM_THREADS=4
 import numpy as np
 import data_geo as dg
-import pysal
-import libpysal
+from pysal import model as pysal_model
+from libpysal import weights as libpysal_weights
 #import geopandas
 #import geopy
 import logging
@@ -16,14 +16,15 @@ import pickle
 from haversine import haversine_vector, Unit
 import re
 from copy import deepcopy
-from mlflow import log_metric, log_param, log_artifact, start_run
+#from mlflow import log_metric, log_param, log_artifact, start_run
+import mlflow
 #from scipy.sparse import dok_matrix
 
 class SpatialModel():
     def __init__(self,modeldict):
         self.logger = logging.getLogger(__name__)
         self.modeldict=modeldict
-        self.savespath=os.path.join(os.getcwd(),'data','saves')
+        self.savespath=os.path.join(os.getcwd(),'saves')
         if not os.path.exists(self.savespath):os.makedirs(self.savespath)
     
         
@@ -80,7 +81,7 @@ class SpatialModel():
             for w,k in zip(wtlist,klist):
                 modeldict_i_k=deepcopy(modeldict_i) 
                 modeldict_i_k['klist']=k
-                with start_run(): # mlflow context manager
+                with mlflow.start_run(): # mlflow context manager
                     resultsdict=self.runPysalModel(dfi,w,nn=k,t=idx0,modeldict=modeldict_i_k)
                 resultsdictlist.append(resultsdict)
                 '''print('===========================================') # printing via .summary instead
@@ -139,27 +140,32 @@ class SpatialModel():
             model=trysavedmodel
         else:
             if modeltype.lower()=='sem':
-                estimator=pysal.model.spreg.ML_Error
+                estimator=pysal_model.spreg.ML_Error
             elif modeltype.lower()=='slm':
-                estimator=pysal.model.spreg.ML_Lag
+                estimator=pysal_model.spreg.ML_Lag
             elif modeltype.lower()=='ols':
                 kwargs['spat_diag']=True
-                estimator=pysal.model.spreg.OLS
+                estimator=pysal_model.spreg.OLS
             elif modeltype.lower()=='gm_error_het':
-                estimator=pysal.model.spreg.GM_Error_Het
+                estimator=pysal_model.spreg.GM_Error_Het
                 kwargs['w']=args.pop(-1) #  move arg to kwarg for these estimators
             elif modeltype.lower()=='gm_combo_het':
-                estimator=pysal.model.spreg.GM_Combo_Het
+                estimator=pysal_model.spreg.GM_Combo_Het
                 kwargs['w']=args.pop(-1)
             elif modeltype.lower()=='gm_lag':
-                estimator=pysal.model.spreg.GM_Lag
+                estimator=pysal_model.spreg.GM_Lag
                 kwargs['w']=args.pop(-1)
                 
                 
             model=estimator(*args,**kwargs) # this is it!
-            log_metric('Pseudo_R2',model.pr2)
+            try:
+                mlflow.log_metric('Pseudo_R2',model.pr2)
+            except AttributeError:
+                mlflow.log_metric('R2',model.r2)
+            except:
+                assert False, 'unexpected error'
             
-            self.saveByHashID(hashable_key,model,filestring=model_filestring,log_artifact=1,log_arifact_key=1)
+            self.saveByHashID(hashable_key,model,filestring=model_filestring,log_artifact=1,log_artifact_key=1)
         try:
             print(model.summary)
             self.logger.info(model.summary)
@@ -172,9 +178,9 @@ class SpatialModel():
     def logparams(self,modeldict,recursivekey=''):
         for key,val in modeldict.items():
             if recursivekey:
-                key=recursivekey+':'+key
+                key=recursivekey+'..'+key
             if not type(val) is dict:
-                log_param(key,val)
+                mlflow.log_param(key,val)
             else:
                 self.logparams(val,recursivekey=key)
     
@@ -206,11 +212,11 @@ class SpatialModel():
             self.logger.info(f'no file found for hash:{thehash} at path:{path}')
             return None
     
-    def saveWList(self,Wlist,df,modeldict,log_artifact=0,log_arifact_key=0):
+    def saveWList(self,Wlist,df,modeldict,log_artifact=0,log_artifact_key=0):
         hashable_key=[df.to_csv().encode('utf-8'),modeldict]
-        self.saveByHashID(hashable_key,Wlist,filestring="_Wlist",log_artifact=log_arifact,log_arifact_key=log_arifact_key)
+        self.saveByHashID(hashable_key,Wlist,filestring="_Wlist",log_artifact=log_artifact,log_artifact_key=log_artifact_key)
         
-    def saveByHashID(self,hashable_key,thing,filestring="",log_artifact=0,log_arifact_key=0):
+    def saveByHashID(self,hashable_key,thing,filestring="",log_artifact=0,log_artifact_key=0):
         thehash=joblib.hash(hashable_key)
         path=os.path.join(self.savespath,thehash+filestring+'.pickle')
         keypath=path[:-7]+'_hashable-key.pickle'
@@ -219,9 +225,9 @@ class SpatialModel():
         with open(keypath,'wb') as f:
             pickle.dump(hashable_key,f)
         if log_artifact:
-            log_artifact(path)
+            mlflow.log_artifact(path)
         if log_artifact_key:
-            log_artifact(keypath)
+            mlflow.log_artifact(keypath)
         self.logger.info(f'filestring saved to path:{path}')
         return
     
@@ -350,7 +356,7 @@ class SpatialModel():
             return self.neighborsandweights
         for k_idx in range(len(klist)):
             #self.logger.info(f'neighbors and weights: {neighbors_dictlist[k_idx],weights_dictlist[k_idx]}')
-            wlist.append(libpysal.weights.W(neighbors_dictlist[k_idx],weights_dictlist[k_idx]))
+            wlist.append(libpysal_weights.W(neighbors_dictlist[k_idx],weights_dictlist[k_idx]))
         self.wlist=wlist
         self.saveWList(wlist,dfi,wt_modeldict,log_artifact=1)
         return wlist
@@ -365,7 +371,7 @@ class SpatialModel():
         istack=np.repeat(pointarray,repeats=n,axis=0)
         jstack=np.repeat(np.expand_dims(pointarray,0),axis=0,repeats=n).reshape([n**2,2],order='C')
         distmat=haversine_vector(istack,jstack).reshape(n,n)
-        self.logger.info(f'lon_array[:5],lat_array[:5],distmat[0:5,0:5]:{[lon_array[:5],lat_array[:5],distmat[0:5,0:5]]}')
+        #self.logger.info(f'lon_array[:5],lat_array[:5],distmat[0:5,0:5]:{[lon_array[:5],lat_array[:5],distmat[0:5,0:5]]}')
         '''for i in range(n):
             ilatlon=pointarray[i,:]
             ilatlonstack=np.repeat(ilatlon,n)
