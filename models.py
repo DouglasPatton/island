@@ -16,6 +16,7 @@ import pickle
 from haversine import haversine_vector, Unit
 import re
 from copy import deepcopy
+from mlflow import log_metric, log_param, log_artifact, start_run
 #from scipy.sparse import dok_matrix
 
 class SpatialModel():
@@ -79,7 +80,8 @@ class SpatialModel():
             for w,k in zip(wtlist,klist):
                 modeldict_i_k=deepcopy(modeldict_i) 
                 modeldict_i_k['klist']=k
-                resultsdict=self.runPysalModel(dfi,w,nn=k,t=idx0,modeldict=modeldict_i_k)
+                with start_run(): # mlflow context manager
+                    resultsdict=self.runPysalModel(dfi,w,nn=k,t=idx0,modeldict=modeldict_i_k)
                 resultsdictlist.append(resultsdict)
                 '''print('===========================================') # printing via .summary instead
                 print(f'model results for pre0/post1:{idx0} for k:{k}')
@@ -129,8 +131,9 @@ class SpatialModel():
         args=[y,x,w]
         kwargs={'name_y':yvar,'name_x':xvarlist,'name_w':f'{wt_type}-{wt_norm}-{NNscope}-{nn}'}
         hashable_key=[args[:2],kwargs] # w probably not hashable, so exclude
-        model_filestring=f'_{modeltype}'
+        model_filestring=f'_model_{modeltype}'
         trysavedmodel=self.checkForSaveHash(hashable_key,filestring=model_filestring)
+        self.logparams(modeldict)
         if trysavedmodel:
             self.logger.warning(f'hashkeysaved model model already exists for modeldict:{modeldict}, skipping')
             model=trysavedmodel
@@ -152,12 +155,11 @@ class SpatialModel():
                 estimator=pysal.model.spreg.GM_Lag
                 kwargs['w']=args.pop(-1)
                 
-               
+                
+            model=estimator(*args,**kwargs) # this is it!
+            log_metric('Pseudo_R2',model.pr2)
             
-                
-                
-            model=estimator(*args,**kwargs)
-            self.saveByHashID(hashable_key,model,filestring=model_filestring)
+            self.saveByHashID(hashable_key,model,filestring=model_filestring,log_artifact=1,log_arifact_key=1)
         try:
             print(model.summary)
             self.logger.info(model.summary)
@@ -166,6 +168,16 @@ class SpatialModel():
             
         resultsdict={'modeldict':deepcopy(modeldict),'results':model}
         return resultsdict
+    
+    def logparams(self,modeldict,recursivekey=''):
+        for key,val in modeldict.items():
+            if recursivekey:
+                key=recursivekey+':'+key
+            if not type(val) is dict:
+                log_param(key,val)
+            else:
+                self.logparams(val,recursivekey=key)
+    
     
     def myLogPos(self,x,col=None):
         if col is None:
@@ -194,17 +206,22 @@ class SpatialModel():
             self.logger.info(f'no file found for hash:{thehash} at path:{path}')
             return None
     
-    def saveWList(self,Wlist,df,modeldict):
+    def saveWList(self,Wlist,df,modeldict,log_artifact=0,log_arifact_key=0):
         hashable_key=[df.to_csv().encode('utf-8'),modeldict]
-        self.saveByHashID(hashable_key,Wlist,filestring="_Wlist")
+        self.saveByHashID(hashable_key,Wlist,filestring="_Wlist",log_artifact=log_arifact,log_arifact_key=log_arifact_key)
         
-    def saveByHashID(self,hashable_key,thing,filestring=""):
+    def saveByHashID(self,hashable_key,thing,filestring="",log_artifact=0,log_arifact_key=0):
         thehash=joblib.hash(hashable_key)
         path=os.path.join(self.savespath,thehash+filestring+'.pickle')
+        keypath=path[:-7]+'_hashable-key.pickle'
         with open(path,'wb') as f:
             pickle.dump(thing,f)
-        with open(path[:-7]+'_hashable-key.pickle','wb') as f:
+        with open(keypath,'wb') as f:
             pickle.dump(hashable_key,f)
+        if log_artifact:
+            log_artifact(path)
+        if log_artifact_key:
+            log_artifact(keypath)
         self.logger.info(f'filestring saved to path:{path}')
         return
     
@@ -335,7 +352,7 @@ class SpatialModel():
             #self.logger.info(f'neighbors and weights: {neighbors_dictlist[k_idx],weights_dictlist[k_idx]}')
             wlist.append(libpysal.weights.W(neighbors_dictlist[k_idx],weights_dictlist[k_idx]))
         self.wlist=wlist
-        self.saveWList(wlist,dfi,wt_modeldict)
+        self.saveWList(wlist,dfi,wt_modeldict,log_artifact=1)
         return wlist
     
                              
