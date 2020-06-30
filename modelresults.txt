@@ -1,0 +1,1259 @@
+Model Summaries
+for 16  models
+Printed on 2020-06-30 18:07:31.613691
+{'combine_pre_post': 0, 'period': 0, 'modeltype': 'OLS', 'klist': 2, 'xvars': ['secchi', 'bayfront', 'wateraccess', 'wqbayfront', 'wqwateraccess', 'totalbathroomsedited', 'totallivingarea', 'parcel_area', 'distance_park', 'distance_nyc', 'distance_golf', 'education', 'income_real-2015', 'povertylevel', 'pct_white', 'dv_2002', 'dv_2004', 'dv_2005', 'dv_2006', 'dv_2007', 'dv_2008', 'dv_2009', 'dv_2010', 'dv_2011', 'dv_2012', 'shorelinedistance_0-50', 'wq_shorelinedistance_0-50', 'shorelinedistance_50-75', 'wq_shorelinedistance_50-75', 'shorelinedistance_75-100', 'wq_shorelinedistance_75-100', 'shorelinedistance_100-150', 'wq_shorelinedistance_100-150', 'shorelinedistance_150-200', 'wq_shorelinedistance_150-200', 'shorelinedistance_200-300', 'wq_shorelinedistance_200-300', 'shorelinedistance_300-400', 'wq_shorelinedistance_300-400', 'shorelinedistance_400-600', 'wq_shorelinedistance_400-600', 'shorelinedistance_600-800', 'wq_shorelinedistance_600-800', 'shorelinedistance_800-1600', 'wq_shorelinedistance_800-1600', 'shorelinedistance_1600-3200', 'wq_shorelinedistance_1600-3200'], 'yvar': 'saleprice_real-2015', 'transform': {'ln_wq': 1, 'ln_y': 1}, 'wt_type': 'NN', 'wt_norm': 'rowsum', 'NNscope': 'year', 'distmat': 1, 'cpi-area': 'New York-Newark-Jersey City, NY-NJ-PA', 'cpi-items': 'Housing', 'distance': [50, 75, 100, 150, 200, 300, 400, 600, 800, 1600, 3200]}
+REGRESSION
+----------
+SUMMARY OF OUTPUT: ORDINARY LEAST SQUARES
+-----------------------------------------
+Data set            :     unknown
+Weights matrix      :NN-rowsum-year-2
+Dependent Variable  :saleprice_real-2015                Number of Observations:       23174
+Mean dependent var  :     13.1530                Number of Variables   :          48
+S.D. dependent var  :      0.3759                Degrees of Freedom    :       23126
+R-squared           :      0.5174
+Adjusted R-squared  :      0.5164
+Sum squared residual:    1579.831                F-statistic           :    527.5740
+Sigma-square        :       0.068                Prob(F-statistic)     :           0
+S.E. of regression  :       0.261                Log likelihood        :   -1763.123
+Sigma-square ML     :       0.068                Akaike info criterion :    3622.246
+S.E of regression ML:      0.2611                Schwarz criterion     :    4008.684
+
+------------------------------------------------------------------------------------
+            Variable     Coefficient       Std.Error     t-Statistic     Probability
+------------------------------------------------------------------------------------
+            CONSTANT      12.2691916       0.0168243     729.2562709       0.0000000
+              secchi       0.0156352       0.0235775       0.6631432       0.5072454
+            bayfront       0.4385756       0.0653510       6.7110732       0.0000000
+         wateraccess       0.0209008       0.0303129       0.6895013       0.4905148
+          wqbayfront       0.4197219       0.0894615       4.6916491       0.0000027
+       wqwateraccess       0.1758288       0.0453030       3.8811743       0.0001042
+totalbathroomsedited       0.0158510       0.0032363       4.8978143       0.0000010
+     totallivingarea       0.0000119       0.0000037       3.2117007       0.0013213
+         parcel_area       0.0000283       0.0000005      53.7871799       0.0000000
+       distance_park      -0.0000130       0.0000037      -3.5453975       0.0003928
+        distance_nyc      -0.0000073       0.0000005     -15.6862547       0.0000000
+       distance_golf       0.0000027       0.0000013       2.0423034       0.0411328
+           education       0.0072638       0.0001605      45.2715387       0.0000000
+    income_real-2015       0.0000009       0.0000001      11.7930820       0.0000000
+        povertylevel       0.0033283       0.0003862       8.6177408       0.0000000
+           pct_white       0.0034667       0.0000835      41.5207624       0.0000000
+             dv_2002      -0.0925672       0.0164700      -5.6203379       0.0000000
+             dv_2004       0.0830025       0.0069729      11.9035692       0.0000000
+             dv_2005       0.1495245       0.0074899      19.9634844       0.0000000
+             dv_2006       0.1245380       0.0078117      15.9424301       0.0000000
+             dv_2007       0.0269050       0.0095942       2.8043108       0.0050466
+             dv_2008      -0.0571260       0.0093466      -6.1119572       0.0000000
+             dv_2009      -0.1465824       0.0095911     -15.2832012       0.0000000
+             dv_2010      -0.1671435       0.0096879     -17.2528374       0.0000000
+             dv_2011      -0.2315099       0.0092490     -25.0308600       0.0000000
+             dv_2012      -0.3141084       0.0092337     -34.0176852       0.0000000
+shorelinedistance_0-50      -0.0770078       0.0438994      -1.7541872       0.0794117
+wq_shorelinedistance_0-50       0.1764045       0.0673078       2.6208638       0.0087765
+shorelinedistance_50-75      -0.0663462       0.0312760      -2.1213136       0.0339060
+wq_shorelinedistance_50-75       0.1701187       0.0468883       3.6281662       0.0002861
+shorelinedistance_75-100      -0.0425520       0.0299515      -1.4206942       0.1554191
+wq_shorelinedistance_75-100       0.1214484       0.0442949       2.7418117       0.0061148
+shorelinedistance_100-150      -0.0240747       0.0248193      -0.9700015       0.3320559
+wq_shorelinedistance_100-150       0.0483991       0.0372902       1.2979067       0.1943324
+shorelinedistance_150-200      -0.0035433       0.0259960      -0.1363000       0.8915853
+wq_shorelinedistance_150-200       0.0164988       0.0395613       0.4170448       0.6766495
+shorelinedistance_200-300      -0.0269116       0.0217263      -1.2386645       0.2154824
+wq_shorelinedistance_200-300       0.0905927       0.0336975       2.6884086       0.0071845
+shorelinedistance_300-400      -0.0006853       0.0226897      -0.0302052       0.9759037
+wq_shorelinedistance_300-400       0.0450319       0.0347999       1.2940217       0.1956709
+shorelinedistance_400-600      -0.0194335       0.0208618      -0.9315379       0.3515851
+wq_shorelinedistance_400-600       0.0400525       0.0330344       1.2124476       0.2253535
+shorelinedistance_600-800       0.0411379       0.0211647       1.9437043       0.0519432
+wq_shorelinedistance_600-800      -0.0306900       0.0350843      -0.8747518       0.3817181
+shorelinedistance_800-1600      -0.0200859       0.0167870      -1.1965193       0.2315062
+wq_shorelinedistance_800-1600       0.0374488       0.0270921       1.3822779       0.1668998
+shorelinedistance_1600-3200      -0.0208026       0.0151344      -1.3745233       0.1692926
+wq_shorelinedistance_1600-3200       0.0599447       0.0246223       2.4345690       0.0149171
+------------------------------------------------------------------------------------
+
+REGRESSION DIAGNOSTICS
+MULTICOLLINEARITY CONDITION NUMBER           53.308
+
+TEST ON NORMALITY OF ERRORS
+TEST                             DF        VALUE           PROB
+Jarque-Bera                       2      564986.299           0.0000
+
+DIAGNOSTICS FOR HETEROSKEDASTICITY
+RANDOM COEFFICIENTS
+TEST                             DF        VALUE           PROB
+Breusch-Pagan test               47        2080.502           0.0000
+Koenker-Bassett test             47         160.663           0.0000
+
+DIAGNOSTICS FOR SPATIAL DEPENDENCE
+TEST                           MI/DF       VALUE           PROB
+Lagrange Multiplier (lag)         1        2100.422           0.0000
+Robust LM (lag)                   1         356.619           0.0000
+Lagrange Multiplier (error)       1        1747.117           0.0000
+Robust LM (error)                 1           3.313           0.0687
+Lagrange Multiplier (SARMA)       2        2103.735           0.0000
+
+================================ END OF REPORT =====================================
+
+
+{'combine_pre_post': 0, 'period': 0, 'modeltype': 'OLS', 'klist': 4, 'xvars': ['secchi', 'bayfront', 'wateraccess', 'wqbayfront', 'wqwateraccess', 'totalbathroomsedited', 'totallivingarea', 'parcel_area', 'distance_park', 'distance_nyc', 'distance_golf', 'education', 'income_real-2015', 'povertylevel', 'pct_white', 'dv_2002', 'dv_2004', 'dv_2005', 'dv_2006', 'dv_2007', 'dv_2008', 'dv_2009', 'dv_2010', 'dv_2011', 'dv_2012', 'shorelinedistance_0-50', 'wq_shorelinedistance_0-50', 'shorelinedistance_50-75', 'wq_shorelinedistance_50-75', 'shorelinedistance_75-100', 'wq_shorelinedistance_75-100', 'shorelinedistance_100-150', 'wq_shorelinedistance_100-150', 'shorelinedistance_150-200', 'wq_shorelinedistance_150-200', 'shorelinedistance_200-300', 'wq_shorelinedistance_200-300', 'shorelinedistance_300-400', 'wq_shorelinedistance_300-400', 'shorelinedistance_400-600', 'wq_shorelinedistance_400-600', 'shorelinedistance_600-800', 'wq_shorelinedistance_600-800', 'shorelinedistance_800-1600', 'wq_shorelinedistance_800-1600', 'shorelinedistance_1600-3200', 'wq_shorelinedistance_1600-3200'], 'yvar': 'saleprice_real-2015', 'transform': {'ln_wq': 1, 'ln_y': 1}, 'wt_type': 'NN', 'wt_norm': 'rowsum', 'NNscope': 'year', 'distmat': 1, 'cpi-area': 'New York-Newark-Jersey City, NY-NJ-PA', 'cpi-items': 'Housing', 'distance': [50, 75, 100, 150, 200, 300, 400, 600, 800, 1600, 3200]}
+REGRESSION
+----------
+SUMMARY OF OUTPUT: ORDINARY LEAST SQUARES
+-----------------------------------------
+Data set            :     unknown
+Weights matrix      :NN-rowsum-year-4
+Dependent Variable  :saleprice_real-2015                Number of Observations:       23174
+Mean dependent var  :     13.1530                Number of Variables   :          48
+S.D. dependent var  :      0.3759                Degrees of Freedom    :       23126
+R-squared           :      0.5174
+Adjusted R-squared  :      0.5164
+Sum squared residual:    1579.831                F-statistic           :    527.5740
+Sigma-square        :       0.068                Prob(F-statistic)     :           0
+S.E. of regression  :       0.261                Log likelihood        :   -1763.123
+Sigma-square ML     :       0.068                Akaike info criterion :    3622.246
+S.E of regression ML:      0.2611                Schwarz criterion     :    4008.684
+
+------------------------------------------------------------------------------------
+            Variable     Coefficient       Std.Error     t-Statistic     Probability
+------------------------------------------------------------------------------------
+            CONSTANT      12.2691916       0.0168243     729.2562709       0.0000000
+              secchi       0.0156352       0.0235775       0.6631432       0.5072454
+            bayfront       0.4385756       0.0653510       6.7110732       0.0000000
+         wateraccess       0.0209008       0.0303129       0.6895013       0.4905148
+          wqbayfront       0.4197219       0.0894615       4.6916491       0.0000027
+       wqwateraccess       0.1758288       0.0453030       3.8811743       0.0001042
+totalbathroomsedited       0.0158510       0.0032363       4.8978143       0.0000010
+     totallivingarea       0.0000119       0.0000037       3.2117007       0.0013213
+         parcel_area       0.0000283       0.0000005      53.7871799       0.0000000
+       distance_park      -0.0000130       0.0000037      -3.5453975       0.0003928
+        distance_nyc      -0.0000073       0.0000005     -15.6862547       0.0000000
+       distance_golf       0.0000027       0.0000013       2.0423034       0.0411328
+           education       0.0072638       0.0001605      45.2715387       0.0000000
+    income_real-2015       0.0000009       0.0000001      11.7930820       0.0000000
+        povertylevel       0.0033283       0.0003862       8.6177408       0.0000000
+           pct_white       0.0034667       0.0000835      41.5207624       0.0000000
+             dv_2002      -0.0925672       0.0164700      -5.6203379       0.0000000
+             dv_2004       0.0830025       0.0069729      11.9035692       0.0000000
+             dv_2005       0.1495245       0.0074899      19.9634844       0.0000000
+             dv_2006       0.1245380       0.0078117      15.9424301       0.0000000
+             dv_2007       0.0269050       0.0095942       2.8043108       0.0050466
+             dv_2008      -0.0571260       0.0093466      -6.1119572       0.0000000
+             dv_2009      -0.1465824       0.0095911     -15.2832012       0.0000000
+             dv_2010      -0.1671435       0.0096879     -17.2528374       0.0000000
+             dv_2011      -0.2315099       0.0092490     -25.0308600       0.0000000
+             dv_2012      -0.3141084       0.0092337     -34.0176852       0.0000000
+shorelinedistance_0-50      -0.0770078       0.0438994      -1.7541872       0.0794117
+wq_shorelinedistance_0-50       0.1764045       0.0673078       2.6208638       0.0087765
+shorelinedistance_50-75      -0.0663462       0.0312760      -2.1213136       0.0339060
+wq_shorelinedistance_50-75       0.1701187       0.0468883       3.6281662       0.0002861
+shorelinedistance_75-100      -0.0425520       0.0299515      -1.4206942       0.1554191
+wq_shorelinedistance_75-100       0.1214484       0.0442949       2.7418117       0.0061148
+shorelinedistance_100-150      -0.0240747       0.0248193      -0.9700015       0.3320559
+wq_shorelinedistance_100-150       0.0483991       0.0372902       1.2979067       0.1943324
+shorelinedistance_150-200      -0.0035433       0.0259960      -0.1363000       0.8915853
+wq_shorelinedistance_150-200       0.0164988       0.0395613       0.4170448       0.6766495
+shorelinedistance_200-300      -0.0269116       0.0217263      -1.2386645       0.2154824
+wq_shorelinedistance_200-300       0.0905927       0.0336975       2.6884086       0.0071845
+shorelinedistance_300-400      -0.0006853       0.0226897      -0.0302052       0.9759037
+wq_shorelinedistance_300-400       0.0450319       0.0347999       1.2940217       0.1956709
+shorelinedistance_400-600      -0.0194335       0.0208618      -0.9315379       0.3515851
+wq_shorelinedistance_400-600       0.0400525       0.0330344       1.2124476       0.2253535
+shorelinedistance_600-800       0.0411379       0.0211647       1.9437043       0.0519432
+wq_shorelinedistance_600-800      -0.0306900       0.0350843      -0.8747518       0.3817181
+shorelinedistance_800-1600      -0.0200859       0.0167870      -1.1965193       0.2315062
+wq_shorelinedistance_800-1600       0.0374488       0.0270921       1.3822779       0.1668998
+shorelinedistance_1600-3200      -0.0208026       0.0151344      -1.3745233       0.1692926
+wq_shorelinedistance_1600-3200       0.0599447       0.0246223       2.4345690       0.0149171
+------------------------------------------------------------------------------------
+
+REGRESSION DIAGNOSTICS
+MULTICOLLINEARITY CONDITION NUMBER           53.308
+
+TEST ON NORMALITY OF ERRORS
+TEST                             DF        VALUE           PROB
+Jarque-Bera                       2      564986.299           0.0000
+
+DIAGNOSTICS FOR HETEROSKEDASTICITY
+RANDOM COEFFICIENTS
+TEST                             DF        VALUE           PROB
+Breusch-Pagan test               47        2080.502           0.0000
+Koenker-Bassett test             47         160.663           0.0000
+
+DIAGNOSTICS FOR SPATIAL DEPENDENCE
+TEST                           MI/DF       VALUE           PROB
+Lagrange Multiplier (lag)         1        3278.945           0.0000
+Robust LM (lag)                   1         613.523           0.0000
+Lagrange Multiplier (error)       1        2666.702           0.0000
+Robust LM (error)                 1           1.280           0.2579
+Lagrange Multiplier (SARMA)       2        3280.225           0.0000
+
+================================ END OF REPORT =====================================
+
+
+{'combine_pre_post': 0, 'period': 0, 'modeltype': 'OLS', 'klist': 6, 'xvars': ['secchi', 'bayfront', 'wateraccess', 'wqbayfront', 'wqwateraccess', 'totalbathroomsedited', 'totallivingarea', 'parcel_area', 'distance_park', 'distance_nyc', 'distance_golf', 'education', 'income_real-2015', 'povertylevel', 'pct_white', 'dv_2002', 'dv_2004', 'dv_2005', 'dv_2006', 'dv_2007', 'dv_2008', 'dv_2009', 'dv_2010', 'dv_2011', 'dv_2012', 'shorelinedistance_0-50', 'wq_shorelinedistance_0-50', 'shorelinedistance_50-75', 'wq_shorelinedistance_50-75', 'shorelinedistance_75-100', 'wq_shorelinedistance_75-100', 'shorelinedistance_100-150', 'wq_shorelinedistance_100-150', 'shorelinedistance_150-200', 'wq_shorelinedistance_150-200', 'shorelinedistance_200-300', 'wq_shorelinedistance_200-300', 'shorelinedistance_300-400', 'wq_shorelinedistance_300-400', 'shorelinedistance_400-600', 'wq_shorelinedistance_400-600', 'shorelinedistance_600-800', 'wq_shorelinedistance_600-800', 'shorelinedistance_800-1600', 'wq_shorelinedistance_800-1600', 'shorelinedistance_1600-3200', 'wq_shorelinedistance_1600-3200'], 'yvar': 'saleprice_real-2015', 'transform': {'ln_wq': 1, 'ln_y': 1}, 'wt_type': 'NN', 'wt_norm': 'rowsum', 'NNscope': 'year', 'distmat': 1, 'cpi-area': 'New York-Newark-Jersey City, NY-NJ-PA', 'cpi-items': 'Housing', 'distance': [50, 75, 100, 150, 200, 300, 400, 600, 800, 1600, 3200]}
+REGRESSION
+----------
+SUMMARY OF OUTPUT: ORDINARY LEAST SQUARES
+-----------------------------------------
+Data set            :     unknown
+Weights matrix      :NN-rowsum-year-6
+Dependent Variable  :saleprice_real-2015                Number of Observations:       23174
+Mean dependent var  :     13.1530                Number of Variables   :          48
+S.D. dependent var  :      0.3759                Degrees of Freedom    :       23126
+R-squared           :      0.5174
+Adjusted R-squared  :      0.5164
+Sum squared residual:    1579.831                F-statistic           :    527.5740
+Sigma-square        :       0.068                Prob(F-statistic)     :           0
+S.E. of regression  :       0.261                Log likelihood        :   -1763.123
+Sigma-square ML     :       0.068                Akaike info criterion :    3622.246
+S.E of regression ML:      0.2611                Schwarz criterion     :    4008.684
+
+------------------------------------------------------------------------------------
+            Variable     Coefficient       Std.Error     t-Statistic     Probability
+------------------------------------------------------------------------------------
+            CONSTANT      12.2691916       0.0168243     729.2562709       0.0000000
+              secchi       0.0156352       0.0235775       0.6631432       0.5072454
+            bayfront       0.4385756       0.0653510       6.7110732       0.0000000
+         wateraccess       0.0209008       0.0303129       0.6895013       0.4905148
+          wqbayfront       0.4197219       0.0894615       4.6916491       0.0000027
+       wqwateraccess       0.1758288       0.0453030       3.8811743       0.0001042
+totalbathroomsedited       0.0158510       0.0032363       4.8978143       0.0000010
+     totallivingarea       0.0000119       0.0000037       3.2117007       0.0013213
+         parcel_area       0.0000283       0.0000005      53.7871799       0.0000000
+       distance_park      -0.0000130       0.0000037      -3.5453975       0.0003928
+        distance_nyc      -0.0000073       0.0000005     -15.6862547       0.0000000
+       distance_golf       0.0000027       0.0000013       2.0423034       0.0411328
+           education       0.0072638       0.0001605      45.2715387       0.0000000
+    income_real-2015       0.0000009       0.0000001      11.7930820       0.0000000
+        povertylevel       0.0033283       0.0003862       8.6177408       0.0000000
+           pct_white       0.0034667       0.0000835      41.5207624       0.0000000
+             dv_2002      -0.0925672       0.0164700      -5.6203379       0.0000000
+             dv_2004       0.0830025       0.0069729      11.9035692       0.0000000
+             dv_2005       0.1495245       0.0074899      19.9634844       0.0000000
+             dv_2006       0.1245380       0.0078117      15.9424301       0.0000000
+             dv_2007       0.0269050       0.0095942       2.8043108       0.0050466
+             dv_2008      -0.0571260       0.0093466      -6.1119572       0.0000000
+             dv_2009      -0.1465824       0.0095911     -15.2832012       0.0000000
+             dv_2010      -0.1671435       0.0096879     -17.2528374       0.0000000
+             dv_2011      -0.2315099       0.0092490     -25.0308600       0.0000000
+             dv_2012      -0.3141084       0.0092337     -34.0176852       0.0000000
+shorelinedistance_0-50      -0.0770078       0.0438994      -1.7541872       0.0794117
+wq_shorelinedistance_0-50       0.1764045       0.0673078       2.6208638       0.0087765
+shorelinedistance_50-75      -0.0663462       0.0312760      -2.1213136       0.0339060
+wq_shorelinedistance_50-75       0.1701187       0.0468883       3.6281662       0.0002861
+shorelinedistance_75-100      -0.0425520       0.0299515      -1.4206942       0.1554191
+wq_shorelinedistance_75-100       0.1214484       0.0442949       2.7418117       0.0061148
+shorelinedistance_100-150      -0.0240747       0.0248193      -0.9700015       0.3320559
+wq_shorelinedistance_100-150       0.0483991       0.0372902       1.2979067       0.1943324
+shorelinedistance_150-200      -0.0035433       0.0259960      -0.1363000       0.8915853
+wq_shorelinedistance_150-200       0.0164988       0.0395613       0.4170448       0.6766495
+shorelinedistance_200-300      -0.0269116       0.0217263      -1.2386645       0.2154824
+wq_shorelinedistance_200-300       0.0905927       0.0336975       2.6884086       0.0071845
+shorelinedistance_300-400      -0.0006853       0.0226897      -0.0302052       0.9759037
+wq_shorelinedistance_300-400       0.0450319       0.0347999       1.2940217       0.1956709
+shorelinedistance_400-600      -0.0194335       0.0208618      -0.9315379       0.3515851
+wq_shorelinedistance_400-600       0.0400525       0.0330344       1.2124476       0.2253535
+shorelinedistance_600-800       0.0411379       0.0211647       1.9437043       0.0519432
+wq_shorelinedistance_600-800      -0.0306900       0.0350843      -0.8747518       0.3817181
+shorelinedistance_800-1600      -0.0200859       0.0167870      -1.1965193       0.2315062
+wq_shorelinedistance_800-1600       0.0374488       0.0270921       1.3822779       0.1668998
+shorelinedistance_1600-3200      -0.0208026       0.0151344      -1.3745233       0.1692926
+wq_shorelinedistance_1600-3200       0.0599447       0.0246223       2.4345690       0.0149171
+------------------------------------------------------------------------------------
+
+REGRESSION DIAGNOSTICS
+MULTICOLLINEARITY CONDITION NUMBER           53.308
+
+TEST ON NORMALITY OF ERRORS
+TEST                             DF        VALUE           PROB
+Jarque-Bera                       2      564986.299           0.0000
+
+DIAGNOSTICS FOR HETEROSKEDASTICITY
+RANDOM COEFFICIENTS
+TEST                             DF        VALUE           PROB
+Breusch-Pagan test               47        2080.502           0.0000
+Koenker-Bassett test             47         160.663           0.0000
+
+DIAGNOSTICS FOR SPATIAL DEPENDENCE
+TEST                           MI/DF       VALUE           PROB
+Lagrange Multiplier (lag)         1        3984.133           0.0000
+Robust LM (lag)                   1         743.857           0.0000
+Lagrange Multiplier (error)       1        3274.758           0.0000
+Robust LM (error)                 1          34.482           0.0000
+Lagrange Multiplier (SARMA)       2        4018.616           0.0000
+
+================================ END OF REPORT =====================================
+
+
+{'combine_pre_post': 0, 'period': 0, 'modeltype': 'OLS', 'klist': 8, 'xvars': ['secchi', 'bayfront', 'wateraccess', 'wqbayfront', 'wqwateraccess', 'totalbathroomsedited', 'totallivingarea', 'parcel_area', 'distance_park', 'distance_nyc', 'distance_golf', 'education', 'income_real-2015', 'povertylevel', 'pct_white', 'dv_2002', 'dv_2004', 'dv_2005', 'dv_2006', 'dv_2007', 'dv_2008', 'dv_2009', 'dv_2010', 'dv_2011', 'dv_2012', 'shorelinedistance_0-50', 'wq_shorelinedistance_0-50', 'shorelinedistance_50-75', 'wq_shorelinedistance_50-75', 'shorelinedistance_75-100', 'wq_shorelinedistance_75-100', 'shorelinedistance_100-150', 'wq_shorelinedistance_100-150', 'shorelinedistance_150-200', 'wq_shorelinedistance_150-200', 'shorelinedistance_200-300', 'wq_shorelinedistance_200-300', 'shorelinedistance_300-400', 'wq_shorelinedistance_300-400', 'shorelinedistance_400-600', 'wq_shorelinedistance_400-600', 'shorelinedistance_600-800', 'wq_shorelinedistance_600-800', 'shorelinedistance_800-1600', 'wq_shorelinedistance_800-1600', 'shorelinedistance_1600-3200', 'wq_shorelinedistance_1600-3200'], 'yvar': 'saleprice_real-2015', 'transform': {'ln_wq': 1, 'ln_y': 1}, 'wt_type': 'NN', 'wt_norm': 'rowsum', 'NNscope': 'year', 'distmat': 1, 'cpi-area': 'New York-Newark-Jersey City, NY-NJ-PA', 'cpi-items': 'Housing', 'distance': [50, 75, 100, 150, 200, 300, 400, 600, 800, 1600, 3200]}
+REGRESSION
+----------
+SUMMARY OF OUTPUT: ORDINARY LEAST SQUARES
+-----------------------------------------
+Data set            :     unknown
+Weights matrix      :NN-rowsum-year-8
+Dependent Variable  :saleprice_real-2015                Number of Observations:       23174
+Mean dependent var  :     13.1530                Number of Variables   :          48
+S.D. dependent var  :      0.3759                Degrees of Freedom    :       23126
+R-squared           :      0.5174
+Adjusted R-squared  :      0.5164
+Sum squared residual:    1579.831                F-statistic           :    527.5740
+Sigma-square        :       0.068                Prob(F-statistic)     :           0
+S.E. of regression  :       0.261                Log likelihood        :   -1763.123
+Sigma-square ML     :       0.068                Akaike info criterion :    3622.246
+S.E of regression ML:      0.2611                Schwarz criterion     :    4008.684
+
+------------------------------------------------------------------------------------
+            Variable     Coefficient       Std.Error     t-Statistic     Probability
+------------------------------------------------------------------------------------
+            CONSTANT      12.2691916       0.0168243     729.2562709       0.0000000
+              secchi       0.0156352       0.0235775       0.6631432       0.5072454
+            bayfront       0.4385756       0.0653510       6.7110732       0.0000000
+         wateraccess       0.0209008       0.0303129       0.6895013       0.4905148
+          wqbayfront       0.4197219       0.0894615       4.6916491       0.0000027
+       wqwateraccess       0.1758288       0.0453030       3.8811743       0.0001042
+totalbathroomsedited       0.0158510       0.0032363       4.8978143       0.0000010
+     totallivingarea       0.0000119       0.0000037       3.2117007       0.0013213
+         parcel_area       0.0000283       0.0000005      53.7871799       0.0000000
+       distance_park      -0.0000130       0.0000037      -3.5453975       0.0003928
+        distance_nyc      -0.0000073       0.0000005     -15.6862547       0.0000000
+       distance_golf       0.0000027       0.0000013       2.0423034       0.0411328
+           education       0.0072638       0.0001605      45.2715387       0.0000000
+    income_real-2015       0.0000009       0.0000001      11.7930820       0.0000000
+        povertylevel       0.0033283       0.0003862       8.6177408       0.0000000
+           pct_white       0.0034667       0.0000835      41.5207624       0.0000000
+             dv_2002      -0.0925672       0.0164700      -5.6203379       0.0000000
+             dv_2004       0.0830025       0.0069729      11.9035692       0.0000000
+             dv_2005       0.1495245       0.0074899      19.9634844       0.0000000
+             dv_2006       0.1245380       0.0078117      15.9424301       0.0000000
+             dv_2007       0.0269050       0.0095942       2.8043108       0.0050466
+             dv_2008      -0.0571260       0.0093466      -6.1119572       0.0000000
+             dv_2009      -0.1465824       0.0095911     -15.2832012       0.0000000
+             dv_2010      -0.1671435       0.0096879     -17.2528374       0.0000000
+             dv_2011      -0.2315099       0.0092490     -25.0308600       0.0000000
+             dv_2012      -0.3141084       0.0092337     -34.0176852       0.0000000
+shorelinedistance_0-50      -0.0770078       0.0438994      -1.7541872       0.0794117
+wq_shorelinedistance_0-50       0.1764045       0.0673078       2.6208638       0.0087765
+shorelinedistance_50-75      -0.0663462       0.0312760      -2.1213136       0.0339060
+wq_shorelinedistance_50-75       0.1701187       0.0468883       3.6281662       0.0002861
+shorelinedistance_75-100      -0.0425520       0.0299515      -1.4206942       0.1554191
+wq_shorelinedistance_75-100       0.1214484       0.0442949       2.7418117       0.0061148
+shorelinedistance_100-150      -0.0240747       0.0248193      -0.9700015       0.3320559
+wq_shorelinedistance_100-150       0.0483991       0.0372902       1.2979067       0.1943324
+shorelinedistance_150-200      -0.0035433       0.0259960      -0.1363000       0.8915853
+wq_shorelinedistance_150-200       0.0164988       0.0395613       0.4170448       0.6766495
+shorelinedistance_200-300      -0.0269116       0.0217263      -1.2386645       0.2154824
+wq_shorelinedistance_200-300       0.0905927       0.0336975       2.6884086       0.0071845
+shorelinedistance_300-400      -0.0006853       0.0226897      -0.0302052       0.9759037
+wq_shorelinedistance_300-400       0.0450319       0.0347999       1.2940217       0.1956709
+shorelinedistance_400-600      -0.0194335       0.0208618      -0.9315379       0.3515851
+wq_shorelinedistance_400-600       0.0400525       0.0330344       1.2124476       0.2253535
+shorelinedistance_600-800       0.0411379       0.0211647       1.9437043       0.0519432
+wq_shorelinedistance_600-800      -0.0306900       0.0350843      -0.8747518       0.3817181
+shorelinedistance_800-1600      -0.0200859       0.0167870      -1.1965193       0.2315062
+wq_shorelinedistance_800-1600       0.0374488       0.0270921       1.3822779       0.1668998
+shorelinedistance_1600-3200      -0.0208026       0.0151344      -1.3745233       0.1692926
+wq_shorelinedistance_1600-3200       0.0599447       0.0246223       2.4345690       0.0149171
+------------------------------------------------------------------------------------
+
+REGRESSION DIAGNOSTICS
+MULTICOLLINEARITY CONDITION NUMBER           53.308
+
+TEST ON NORMALITY OF ERRORS
+TEST                             DF        VALUE           PROB
+Jarque-Bera                       2      564986.299           0.0000
+
+DIAGNOSTICS FOR HETEROSKEDASTICITY
+RANDOM COEFFICIENTS
+TEST                             DF        VALUE           PROB
+Breusch-Pagan test               47        2080.502           0.0000
+Koenker-Bassett test             47         160.663           0.0000
+
+DIAGNOSTICS FOR SPATIAL DEPENDENCE
+TEST                           MI/DF       VALUE           PROB
+Lagrange Multiplier (lag)         1        4479.055           0.0000
+Robust LM (lag)                   1         819.061           0.0000
+Lagrange Multiplier (error)       1        3772.098           0.0000
+Robust LM (error)                 1         112.104           0.0000
+Lagrange Multiplier (SARMA)       2        4591.159           0.0000
+
+================================ END OF REPORT =====================================
+
+
+{'combine_pre_post': 0, 'period': 1, 'modeltype': 'OLS', 'klist': 2, 'xvars': ['secchi', 'bayfront', 'wateraccess', 'wqbayfront', 'wqwateraccess', 'totalbathroomsedited', 'totallivingarea', 'parcel_area', 'distance_park', 'distance_nyc', 'distance_golf', 'education', 'income_real-2015', 'povertylevel', 'pct_white', 'dv_2012', 'dv_2013', 'dv_2014', 'shorelinedistance_0-50', 'wq_shorelinedistance_0-50', 'shorelinedistance_50-75', 'wq_shorelinedistance_50-75', 'shorelinedistance_75-100', 'wq_shorelinedistance_75-100', 'shorelinedistance_100-150', 'wq_shorelinedistance_100-150', 'shorelinedistance_150-200', 'wq_shorelinedistance_150-200', 'shorelinedistance_200-300', 'wq_shorelinedistance_200-300', 'shorelinedistance_300-400', 'wq_shorelinedistance_300-400', 'shorelinedistance_400-600', 'wq_shorelinedistance_400-600', 'shorelinedistance_600-800', 'wq_shorelinedistance_600-800', 'shorelinedistance_800-1600', 'wq_shorelinedistance_800-1600', 'shorelinedistance_1600-3200', 'wq_shorelinedistance_1600-3200'], 'yvar': 'saleprice_real-2015', 'transform': {'ln_wq': 1, 'ln_y': 1}, 'wt_type': 'NN', 'wt_norm': 'rowsum', 'NNscope': 'year', 'distmat': 1, 'cpi-area': 'New York-Newark-Jersey City, NY-NJ-PA', 'cpi-items': 'Housing', 'distance': [50, 75, 100, 150, 200, 300, 400, 600, 800, 1600, 3200]}
+REGRESSION
+----------
+SUMMARY OF OUTPUT: ORDINARY LEAST SQUARES
+-----------------------------------------
+Data set            :     unknown
+Weights matrix      :NN-rowsum-year-2
+Dependent Variable  :saleprice_real-2015                Number of Observations:        8799
+Mean dependent var  :     12.9035                Number of Variables   :          41
+S.D. dependent var  :      0.4520                Degrees of Freedom    :        8758
+R-squared           :      0.4492
+Adjusted R-squared  :      0.4467
+Sum squared residual:     989.898                F-statistic           :    178.5613
+Sigma-square        :       0.113                Prob(F-statistic)     :           0
+S.E. of regression  :       0.336                Log likelihood        :   -2873.249
+Sigma-square ML     :       0.113                Akaike info criterion :    5828.499
+S.E of regression ML:      0.3354                Schwarz criterion     :    6118.877
+
+------------------------------------------------------------------------------------
+            Variable     Coefficient       Std.Error     t-Statistic     Probability
+------------------------------------------------------------------------------------
+            CONSTANT      11.9084636       0.0273123     436.0112041       0.0000000
+              secchi      -0.0230591       0.0371984      -0.6198952       0.5353429
+            bayfront       0.3320829       0.0892787       3.7196201       0.0002008
+         wateraccess      -0.1697247       0.0391002      -4.3407579       0.0000144
+          wqbayfront       0.3958969       0.1737113       2.2790516       0.0226880
+       wqwateraccess       0.1928153       0.0711029       2.7117777       0.0067054
+totalbathroomsedited       0.0138969       0.0069044       2.0127692       0.0441695
+     totallivingarea       0.0000164       0.0000077       2.1187874       0.0341365
+         parcel_area       0.0000288       0.0000010      28.7322789       0.0000000
+       distance_park      -0.0000115       0.0000078      -1.4756486       0.1400742
+        distance_nyc      -0.0000142       0.0000009     -15.1644249       0.0000000
+       distance_golf       0.0000107       0.0000026       4.0264599       0.0000571
+           education       0.0079683       0.0003585      22.2291605       0.0000000
+    income_real-2015       0.0000014       0.0000001       9.7979872       0.0000000
+        povertylevel      -0.0012110       0.0006771      -1.7885306       0.0737250
+           pct_white       0.0047496       0.0001940      24.4775689       0.0000000
+             dv_2012      -0.0663930       0.0222443      -2.9847147       0.0028463
+             dv_2013      -0.0951614       0.0099699      -9.5448263       0.0000000
+             dv_2014      -0.0513471       0.0090662      -5.6635989       0.0000000
+shorelinedistance_0-50      -0.3813523       0.0573247      -6.6524891       0.0000000
+wq_shorelinedistance_0-50       0.4293945       0.1234185       3.4791735       0.0005054
+shorelinedistance_50-75      -0.2531777       0.0440791      -5.7437165       0.0000000
+wq_shorelinedistance_50-75       0.2461363       0.0842247       2.9223769       0.0034826
+shorelinedistance_75-100      -0.1204350       0.0473426      -2.5439030       0.0109792
+wq_shorelinedistance_75-100       0.1113949       0.0901510       1.2356475       0.2166228
+shorelinedistance_100-150      -0.0750099       0.0358509      -2.0922704       0.0364431
+wq_shorelinedistance_100-150       0.0418558       0.0734297       0.5700122       0.5686840
+shorelinedistance_150-200      -0.0744731       0.0337169      -2.2087759       0.0272160
+wq_shorelinedistance_150-200      -0.0776259       0.0681067      -1.1397690       0.2544137
+shorelinedistance_200-300      -0.1043351       0.0278569      -3.7453995       0.0001813
+wq_shorelinedistance_200-300       0.0801977       0.0579144       1.3847624       0.1661604
+shorelinedistance_300-400      -0.0994120       0.0293858      -3.3829987       0.0007201
+wq_shorelinedistance_300-400       0.1712654       0.0646956       2.6472490       0.0081295
+shorelinedistance_400-600      -0.0578915       0.0263387      -2.1979657       0.0279776
+wq_shorelinedistance_400-600       0.0448023       0.0571801       0.7835296       0.4333374
+shorelinedistance_600-800       0.0137804       0.0285179       0.4832177       0.6289532
+wq_shorelinedistance_600-800       0.0079800       0.0626038       0.1274683       0.8985727
+shorelinedistance_800-1600      -0.0093197       0.0216656      -0.4301591       0.6670905
+wq_shorelinedistance_800-1600       0.0617969       0.0469691       1.3156910       0.1883122
+shorelinedistance_1600-3200       0.0042940       0.0193913       0.2214414       0.8247539
+wq_shorelinedistance_1600-3200       0.0010319       0.0416988       0.0247458       0.9802583
+------------------------------------------------------------------------------------
+
+REGRESSION DIAGNOSTICS
+MULTICOLLINEARITY CONDITION NUMBER           31.530
+
+TEST ON NORMALITY OF ERRORS
+TEST                             DF        VALUE           PROB
+Jarque-Bera                       2      175521.895           0.0000
+
+DIAGNOSTICS FOR HETEROSKEDASTICITY
+RANDOM COEFFICIENTS
+TEST                             DF        VALUE           PROB
+Breusch-Pagan test               40        1740.813           0.0000
+Koenker-Bassett test             40         147.952           0.0000
+
+DIAGNOSTICS FOR SPATIAL DEPENDENCE
+TEST                           MI/DF       VALUE           PROB
+Lagrange Multiplier (lag)         1         735.330           0.0000
+Robust LM (lag)                   1         150.496           0.0000
+Lagrange Multiplier (error)       1         588.697           0.0000
+Robust LM (error)                 1           3.863           0.0494
+Lagrange Multiplier (SARMA)       2         739.193           0.0000
+
+================================ END OF REPORT =====================================
+
+
+{'combine_pre_post': 0, 'period': 1, 'modeltype': 'OLS', 'klist': 4, 'xvars': ['secchi', 'bayfront', 'wateraccess', 'wqbayfront', 'wqwateraccess', 'totalbathroomsedited', 'totallivingarea', 'parcel_area', 'distance_park', 'distance_nyc', 'distance_golf', 'education', 'income_real-2015', 'povertylevel', 'pct_white', 'dv_2012', 'dv_2013', 'dv_2014', 'shorelinedistance_0-50', 'wq_shorelinedistance_0-50', 'shorelinedistance_50-75', 'wq_shorelinedistance_50-75', 'shorelinedistance_75-100', 'wq_shorelinedistance_75-100', 'shorelinedistance_100-150', 'wq_shorelinedistance_100-150', 'shorelinedistance_150-200', 'wq_shorelinedistance_150-200', 'shorelinedistance_200-300', 'wq_shorelinedistance_200-300', 'shorelinedistance_300-400', 'wq_shorelinedistance_300-400', 'shorelinedistance_400-600', 'wq_shorelinedistance_400-600', 'shorelinedistance_600-800', 'wq_shorelinedistance_600-800', 'shorelinedistance_800-1600', 'wq_shorelinedistance_800-1600', 'shorelinedistance_1600-3200', 'wq_shorelinedistance_1600-3200'], 'yvar': 'saleprice_real-2015', 'transform': {'ln_wq': 1, 'ln_y': 1}, 'wt_type': 'NN', 'wt_norm': 'rowsum', 'NNscope': 'year', 'distmat': 1, 'cpi-area': 'New York-Newark-Jersey City, NY-NJ-PA', 'cpi-items': 'Housing', 'distance': [50, 75, 100, 150, 200, 300, 400, 600, 800, 1600, 3200]}
+REGRESSION
+----------
+SUMMARY OF OUTPUT: ORDINARY LEAST SQUARES
+-----------------------------------------
+Data set            :     unknown
+Weights matrix      :NN-rowsum-year-4
+Dependent Variable  :saleprice_real-2015                Number of Observations:        8799
+Mean dependent var  :     12.9035                Number of Variables   :          41
+S.D. dependent var  :      0.4520                Degrees of Freedom    :        8758
+R-squared           :      0.4492
+Adjusted R-squared  :      0.4467
+Sum squared residual:     989.898                F-statistic           :    178.5613
+Sigma-square        :       0.113                Prob(F-statistic)     :           0
+S.E. of regression  :       0.336                Log likelihood        :   -2873.249
+Sigma-square ML     :       0.113                Akaike info criterion :    5828.499
+S.E of regression ML:      0.3354                Schwarz criterion     :    6118.877
+
+------------------------------------------------------------------------------------
+            Variable     Coefficient       Std.Error     t-Statistic     Probability
+------------------------------------------------------------------------------------
+            CONSTANT      11.9084636       0.0273123     436.0112041       0.0000000
+              secchi      -0.0230591       0.0371984      -0.6198952       0.5353429
+            bayfront       0.3320829       0.0892787       3.7196201       0.0002008
+         wateraccess      -0.1697247       0.0391002      -4.3407579       0.0000144
+          wqbayfront       0.3958969       0.1737113       2.2790516       0.0226880
+       wqwateraccess       0.1928153       0.0711029       2.7117777       0.0067054
+totalbathroomsedited       0.0138969       0.0069044       2.0127692       0.0441695
+     totallivingarea       0.0000164       0.0000077       2.1187874       0.0341365
+         parcel_area       0.0000288       0.0000010      28.7322789       0.0000000
+       distance_park      -0.0000115       0.0000078      -1.4756486       0.1400742
+        distance_nyc      -0.0000142       0.0000009     -15.1644249       0.0000000
+       distance_golf       0.0000107       0.0000026       4.0264599       0.0000571
+           education       0.0079683       0.0003585      22.2291605       0.0000000
+    income_real-2015       0.0000014       0.0000001       9.7979872       0.0000000
+        povertylevel      -0.0012110       0.0006771      -1.7885306       0.0737250
+           pct_white       0.0047496       0.0001940      24.4775689       0.0000000
+             dv_2012      -0.0663930       0.0222443      -2.9847147       0.0028463
+             dv_2013      -0.0951614       0.0099699      -9.5448263       0.0000000
+             dv_2014      -0.0513471       0.0090662      -5.6635989       0.0000000
+shorelinedistance_0-50      -0.3813523       0.0573247      -6.6524891       0.0000000
+wq_shorelinedistance_0-50       0.4293945       0.1234185       3.4791735       0.0005054
+shorelinedistance_50-75      -0.2531777       0.0440791      -5.7437165       0.0000000
+wq_shorelinedistance_50-75       0.2461363       0.0842247       2.9223769       0.0034826
+shorelinedistance_75-100      -0.1204350       0.0473426      -2.5439030       0.0109792
+wq_shorelinedistance_75-100       0.1113949       0.0901510       1.2356475       0.2166228
+shorelinedistance_100-150      -0.0750099       0.0358509      -2.0922704       0.0364431
+wq_shorelinedistance_100-150       0.0418558       0.0734297       0.5700122       0.5686840
+shorelinedistance_150-200      -0.0744731       0.0337169      -2.2087759       0.0272160
+wq_shorelinedistance_150-200      -0.0776259       0.0681067      -1.1397690       0.2544137
+shorelinedistance_200-300      -0.1043351       0.0278569      -3.7453995       0.0001813
+wq_shorelinedistance_200-300       0.0801977       0.0579144       1.3847624       0.1661604
+shorelinedistance_300-400      -0.0994120       0.0293858      -3.3829987       0.0007201
+wq_shorelinedistance_300-400       0.1712654       0.0646956       2.6472490       0.0081295
+shorelinedistance_400-600      -0.0578915       0.0263387      -2.1979657       0.0279776
+wq_shorelinedistance_400-600       0.0448023       0.0571801       0.7835296       0.4333374
+shorelinedistance_600-800       0.0137804       0.0285179       0.4832177       0.6289532
+wq_shorelinedistance_600-800       0.0079800       0.0626038       0.1274683       0.8985727
+shorelinedistance_800-1600      -0.0093197       0.0216656      -0.4301591       0.6670905
+wq_shorelinedistance_800-1600       0.0617969       0.0469691       1.3156910       0.1883122
+shorelinedistance_1600-3200       0.0042940       0.0193913       0.2214414       0.8247539
+wq_shorelinedistance_1600-3200       0.0010319       0.0416988       0.0247458       0.9802583
+------------------------------------------------------------------------------------
+
+REGRESSION DIAGNOSTICS
+MULTICOLLINEARITY CONDITION NUMBER           31.530
+
+TEST ON NORMALITY OF ERRORS
+TEST                             DF        VALUE           PROB
+Jarque-Bera                       2      175521.895           0.0000
+
+DIAGNOSTICS FOR HETEROSKEDASTICITY
+RANDOM COEFFICIENTS
+TEST                             DF        VALUE           PROB
+Breusch-Pagan test               40        1740.813           0.0000
+Koenker-Bassett test             40         147.952           0.0000
+
+DIAGNOSTICS FOR SPATIAL DEPENDENCE
+TEST                           MI/DF       VALUE           PROB
+Lagrange Multiplier (lag)         1        1140.303           0.0000
+Robust LM (lag)                   1         219.657           0.0000
+Lagrange Multiplier (error)       1         920.938           0.0000
+Robust LM (error)                 1           0.291           0.5894
+Lagrange Multiplier (SARMA)       2        1140.595           0.0000
+
+================================ END OF REPORT =====================================
+
+
+{'combine_pre_post': 0, 'period': 1, 'modeltype': 'OLS', 'klist': 6, 'xvars': ['secchi', 'bayfront', 'wateraccess', 'wqbayfront', 'wqwateraccess', 'totalbathroomsedited', 'totallivingarea', 'parcel_area', 'distance_park', 'distance_nyc', 'distance_golf', 'education', 'income_real-2015', 'povertylevel', 'pct_white', 'dv_2012', 'dv_2013', 'dv_2014', 'shorelinedistance_0-50', 'wq_shorelinedistance_0-50', 'shorelinedistance_50-75', 'wq_shorelinedistance_50-75', 'shorelinedistance_75-100', 'wq_shorelinedistance_75-100', 'shorelinedistance_100-150', 'wq_shorelinedistance_100-150', 'shorelinedistance_150-200', 'wq_shorelinedistance_150-200', 'shorelinedistance_200-300', 'wq_shorelinedistance_200-300', 'shorelinedistance_300-400', 'wq_shorelinedistance_300-400', 'shorelinedistance_400-600', 'wq_shorelinedistance_400-600', 'shorelinedistance_600-800', 'wq_shorelinedistance_600-800', 'shorelinedistance_800-1600', 'wq_shorelinedistance_800-1600', 'shorelinedistance_1600-3200', 'wq_shorelinedistance_1600-3200'], 'yvar': 'saleprice_real-2015', 'transform': {'ln_wq': 1, 'ln_y': 1}, 'wt_type': 'NN', 'wt_norm': 'rowsum', 'NNscope': 'year', 'distmat': 1, 'cpi-area': 'New York-Newark-Jersey City, NY-NJ-PA', 'cpi-items': 'Housing', 'distance': [50, 75, 100, 150, 200, 300, 400, 600, 800, 1600, 3200]}
+REGRESSION
+----------
+SUMMARY OF OUTPUT: ORDINARY LEAST SQUARES
+-----------------------------------------
+Data set            :     unknown
+Weights matrix      :NN-rowsum-year-6
+Dependent Variable  :saleprice_real-2015                Number of Observations:        8799
+Mean dependent var  :     12.9035                Number of Variables   :          41
+S.D. dependent var  :      0.4520                Degrees of Freedom    :        8758
+R-squared           :      0.4492
+Adjusted R-squared  :      0.4467
+Sum squared residual:     989.898                F-statistic           :    178.5613
+Sigma-square        :       0.113                Prob(F-statistic)     :           0
+S.E. of regression  :       0.336                Log likelihood        :   -2873.249
+Sigma-square ML     :       0.113                Akaike info criterion :    5828.499
+S.E of regression ML:      0.3354                Schwarz criterion     :    6118.877
+
+------------------------------------------------------------------------------------
+            Variable     Coefficient       Std.Error     t-Statistic     Probability
+------------------------------------------------------------------------------------
+            CONSTANT      11.9084636       0.0273123     436.0112041       0.0000000
+              secchi      -0.0230591       0.0371984      -0.6198952       0.5353429
+            bayfront       0.3320829       0.0892787       3.7196201       0.0002008
+         wateraccess      -0.1697247       0.0391002      -4.3407579       0.0000144
+          wqbayfront       0.3958969       0.1737113       2.2790516       0.0226880
+       wqwateraccess       0.1928153       0.0711029       2.7117777       0.0067054
+totalbathroomsedited       0.0138969       0.0069044       2.0127692       0.0441695
+     totallivingarea       0.0000164       0.0000077       2.1187874       0.0341365
+         parcel_area       0.0000288       0.0000010      28.7322789       0.0000000
+       distance_park      -0.0000115       0.0000078      -1.4756486       0.1400742
+        distance_nyc      -0.0000142       0.0000009     -15.1644249       0.0000000
+       distance_golf       0.0000107       0.0000026       4.0264599       0.0000571
+           education       0.0079683       0.0003585      22.2291605       0.0000000
+    income_real-2015       0.0000014       0.0000001       9.7979872       0.0000000
+        povertylevel      -0.0012110       0.0006771      -1.7885306       0.0737250
+           pct_white       0.0047496       0.0001940      24.4775689       0.0000000
+             dv_2012      -0.0663930       0.0222443      -2.9847147       0.0028463
+             dv_2013      -0.0951614       0.0099699      -9.5448263       0.0000000
+             dv_2014      -0.0513471       0.0090662      -5.6635989       0.0000000
+shorelinedistance_0-50      -0.3813523       0.0573247      -6.6524891       0.0000000
+wq_shorelinedistance_0-50       0.4293945       0.1234185       3.4791735       0.0005054
+shorelinedistance_50-75      -0.2531777       0.0440791      -5.7437165       0.0000000
+wq_shorelinedistance_50-75       0.2461363       0.0842247       2.9223769       0.0034826
+shorelinedistance_75-100      -0.1204350       0.0473426      -2.5439030       0.0109792
+wq_shorelinedistance_75-100       0.1113949       0.0901510       1.2356475       0.2166228
+shorelinedistance_100-150      -0.0750099       0.0358509      -2.0922704       0.0364431
+wq_shorelinedistance_100-150       0.0418558       0.0734297       0.5700122       0.5686840
+shorelinedistance_150-200      -0.0744731       0.0337169      -2.2087759       0.0272160
+wq_shorelinedistance_150-200      -0.0776259       0.0681067      -1.1397690       0.2544137
+shorelinedistance_200-300      -0.1043351       0.0278569      -3.7453995       0.0001813
+wq_shorelinedistance_200-300       0.0801977       0.0579144       1.3847624       0.1661604
+shorelinedistance_300-400      -0.0994120       0.0293858      -3.3829987       0.0007201
+wq_shorelinedistance_300-400       0.1712654       0.0646956       2.6472490       0.0081295
+shorelinedistance_400-600      -0.0578915       0.0263387      -2.1979657       0.0279776
+wq_shorelinedistance_400-600       0.0448023       0.0571801       0.7835296       0.4333374
+shorelinedistance_600-800       0.0137804       0.0285179       0.4832177       0.6289532
+wq_shorelinedistance_600-800       0.0079800       0.0626038       0.1274683       0.8985727
+shorelinedistance_800-1600      -0.0093197       0.0216656      -0.4301591       0.6670905
+wq_shorelinedistance_800-1600       0.0617969       0.0469691       1.3156910       0.1883122
+shorelinedistance_1600-3200       0.0042940       0.0193913       0.2214414       0.8247539
+wq_shorelinedistance_1600-3200       0.0010319       0.0416988       0.0247458       0.9802583
+------------------------------------------------------------------------------------
+
+REGRESSION DIAGNOSTICS
+MULTICOLLINEARITY CONDITION NUMBER           31.530
+
+TEST ON NORMALITY OF ERRORS
+TEST                             DF        VALUE           PROB
+Jarque-Bera                       2      175521.895           0.0000
+
+DIAGNOSTICS FOR HETEROSKEDASTICITY
+RANDOM COEFFICIENTS
+TEST                             DF        VALUE           PROB
+Breusch-Pagan test               40        1740.813           0.0000
+Koenker-Bassett test             40         147.952           0.0000
+
+DIAGNOSTICS FOR SPATIAL DEPENDENCE
+TEST                           MI/DF       VALUE           PROB
+Lagrange Multiplier (lag)         1        1377.311           0.0000
+Robust LM (lag)                   1         275.255           0.0000
+Lagrange Multiplier (error)       1        1110.441           0.0000
+Robust LM (error)                 1           8.385           0.0038
+Lagrange Multiplier (SARMA)       2        1385.696           0.0000
+
+================================ END OF REPORT =====================================
+
+
+{'combine_pre_post': 0, 'period': 1, 'modeltype': 'OLS', 'klist': 8, 'xvars': ['secchi', 'bayfront', 'wateraccess', 'wqbayfront', 'wqwateraccess', 'totalbathroomsedited', 'totallivingarea', 'parcel_area', 'distance_park', 'distance_nyc', 'distance_golf', 'education', 'income_real-2015', 'povertylevel', 'pct_white', 'dv_2012', 'dv_2013', 'dv_2014', 'shorelinedistance_0-50', 'wq_shorelinedistance_0-50', 'shorelinedistance_50-75', 'wq_shorelinedistance_50-75', 'shorelinedistance_75-100', 'wq_shorelinedistance_75-100', 'shorelinedistance_100-150', 'wq_shorelinedistance_100-150', 'shorelinedistance_150-200', 'wq_shorelinedistance_150-200', 'shorelinedistance_200-300', 'wq_shorelinedistance_200-300', 'shorelinedistance_300-400', 'wq_shorelinedistance_300-400', 'shorelinedistance_400-600', 'wq_shorelinedistance_400-600', 'shorelinedistance_600-800', 'wq_shorelinedistance_600-800', 'shorelinedistance_800-1600', 'wq_shorelinedistance_800-1600', 'shorelinedistance_1600-3200', 'wq_shorelinedistance_1600-3200'], 'yvar': 'saleprice_real-2015', 'transform': {'ln_wq': 1, 'ln_y': 1}, 'wt_type': 'NN', 'wt_norm': 'rowsum', 'NNscope': 'year', 'distmat': 1, 'cpi-area': 'New York-Newark-Jersey City, NY-NJ-PA', 'cpi-items': 'Housing', 'distance': [50, 75, 100, 150, 200, 300, 400, 600, 800, 1600, 3200]}
+REGRESSION
+----------
+SUMMARY OF OUTPUT: ORDINARY LEAST SQUARES
+-----------------------------------------
+Data set            :     unknown
+Weights matrix      :NN-rowsum-year-8
+Dependent Variable  :saleprice_real-2015                Number of Observations:        8799
+Mean dependent var  :     12.9035                Number of Variables   :          41
+S.D. dependent var  :      0.4520                Degrees of Freedom    :        8758
+R-squared           :      0.4492
+Adjusted R-squared  :      0.4467
+Sum squared residual:     989.898                F-statistic           :    178.5613
+Sigma-square        :       0.113                Prob(F-statistic)     :           0
+S.E. of regression  :       0.336                Log likelihood        :   -2873.249
+Sigma-square ML     :       0.113                Akaike info criterion :    5828.499
+S.E of regression ML:      0.3354                Schwarz criterion     :    6118.877
+
+------------------------------------------------------------------------------------
+            Variable     Coefficient       Std.Error     t-Statistic     Probability
+------------------------------------------------------------------------------------
+            CONSTANT      11.9084636       0.0273123     436.0112041       0.0000000
+              secchi      -0.0230591       0.0371984      -0.6198952       0.5353429
+            bayfront       0.3320829       0.0892787       3.7196201       0.0002008
+         wateraccess      -0.1697247       0.0391002      -4.3407579       0.0000144
+          wqbayfront       0.3958969       0.1737113       2.2790516       0.0226880
+       wqwateraccess       0.1928153       0.0711029       2.7117777       0.0067054
+totalbathroomsedited       0.0138969       0.0069044       2.0127692       0.0441695
+     totallivingarea       0.0000164       0.0000077       2.1187874       0.0341365
+         parcel_area       0.0000288       0.0000010      28.7322789       0.0000000
+       distance_park      -0.0000115       0.0000078      -1.4756486       0.1400742
+        distance_nyc      -0.0000142       0.0000009     -15.1644249       0.0000000
+       distance_golf       0.0000107       0.0000026       4.0264599       0.0000571
+           education       0.0079683       0.0003585      22.2291605       0.0000000
+    income_real-2015       0.0000014       0.0000001       9.7979872       0.0000000
+        povertylevel      -0.0012110       0.0006771      -1.7885306       0.0737250
+           pct_white       0.0047496       0.0001940      24.4775689       0.0000000
+             dv_2012      -0.0663930       0.0222443      -2.9847147       0.0028463
+             dv_2013      -0.0951614       0.0099699      -9.5448263       0.0000000
+             dv_2014      -0.0513471       0.0090662      -5.6635989       0.0000000
+shorelinedistance_0-50      -0.3813523       0.0573247      -6.6524891       0.0000000
+wq_shorelinedistance_0-50       0.4293945       0.1234185       3.4791735       0.0005054
+shorelinedistance_50-75      -0.2531777       0.0440791      -5.7437165       0.0000000
+wq_shorelinedistance_50-75       0.2461363       0.0842247       2.9223769       0.0034826
+shorelinedistance_75-100      -0.1204350       0.0473426      -2.5439030       0.0109792
+wq_shorelinedistance_75-100       0.1113949       0.0901510       1.2356475       0.2166228
+shorelinedistance_100-150      -0.0750099       0.0358509      -2.0922704       0.0364431
+wq_shorelinedistance_100-150       0.0418558       0.0734297       0.5700122       0.5686840
+shorelinedistance_150-200      -0.0744731       0.0337169      -2.2087759       0.0272160
+wq_shorelinedistance_150-200      -0.0776259       0.0681067      -1.1397690       0.2544137
+shorelinedistance_200-300      -0.1043351       0.0278569      -3.7453995       0.0001813
+wq_shorelinedistance_200-300       0.0801977       0.0579144       1.3847624       0.1661604
+shorelinedistance_300-400      -0.0994120       0.0293858      -3.3829987       0.0007201
+wq_shorelinedistance_300-400       0.1712654       0.0646956       2.6472490       0.0081295
+shorelinedistance_400-600      -0.0578915       0.0263387      -2.1979657       0.0279776
+wq_shorelinedistance_400-600       0.0448023       0.0571801       0.7835296       0.4333374
+shorelinedistance_600-800       0.0137804       0.0285179       0.4832177       0.6289532
+wq_shorelinedistance_600-800       0.0079800       0.0626038       0.1274683       0.8985727
+shorelinedistance_800-1600      -0.0093197       0.0216656      -0.4301591       0.6670905
+wq_shorelinedistance_800-1600       0.0617969       0.0469691       1.3156910       0.1883122
+shorelinedistance_1600-3200       0.0042940       0.0193913       0.2214414       0.8247539
+wq_shorelinedistance_1600-3200       0.0010319       0.0416988       0.0247458       0.9802583
+------------------------------------------------------------------------------------
+
+REGRESSION DIAGNOSTICS
+MULTICOLLINEARITY CONDITION NUMBER           31.530
+
+TEST ON NORMALITY OF ERRORS
+TEST                             DF        VALUE           PROB
+Jarque-Bera                       2      175521.895           0.0000
+
+DIAGNOSTICS FOR HETEROSKEDASTICITY
+RANDOM COEFFICIENTS
+TEST                             DF        VALUE           PROB
+Breusch-Pagan test               40        1740.813           0.0000
+Koenker-Bassett test             40         147.952           0.0000
+
+DIAGNOSTICS FOR SPATIAL DEPENDENCE
+TEST                           MI/DF       VALUE           PROB
+Lagrange Multiplier (lag)         1        1551.237           0.0000
+Robust LM (lag)                   1         297.930           0.0000
+Lagrange Multiplier (error)       1        1289.195           0.0000
+Robust LM (error)                 1          35.888           0.0000
+Lagrange Multiplier (SARMA)       2        1587.124           0.0000
+
+================================ END OF REPORT =====================================
+
+
+{'combine_pre_post': 0, 'period': 0, 'modeltype': 'GM_Error_Het', 'klist': 2, 'xvars': ['secchi', 'bayfront', 'wateraccess', 'wqbayfront', 'wqwateraccess', 'totalbathroomsedited', 'totallivingarea', 'parcel_area', 'distance_park', 'distance_nyc', 'distance_golf', 'education', 'income_real-2015', 'povertylevel', 'pct_white', 'dv_2002', 'dv_2004', 'dv_2005', 'dv_2006', 'dv_2007', 'dv_2008', 'dv_2009', 'dv_2010', 'dv_2011', 'dv_2012', 'shorelinedistance_0-50', 'wq_shorelinedistance_0-50', 'shorelinedistance_50-75', 'wq_shorelinedistance_50-75', 'shorelinedistance_75-100', 'wq_shorelinedistance_75-100', 'shorelinedistance_100-150', 'wq_shorelinedistance_100-150', 'shorelinedistance_150-200', 'wq_shorelinedistance_150-200', 'shorelinedistance_200-300', 'wq_shorelinedistance_200-300', 'shorelinedistance_300-400', 'wq_shorelinedistance_300-400', 'shorelinedistance_400-600', 'wq_shorelinedistance_400-600', 'shorelinedistance_600-800', 'wq_shorelinedistance_600-800', 'shorelinedistance_800-1600', 'wq_shorelinedistance_800-1600', 'shorelinedistance_1600-3200', 'wq_shorelinedistance_1600-3200'], 'yvar': 'saleprice_real-2015', 'transform': {'ln_wq': 1, 'ln_y': 1}, 'wt_type': 'NN', 'wt_norm': 'rowsum', 'NNscope': 'year', 'distmat': 1, 'cpi-area': 'New York-Newark-Jersey City, NY-NJ-PA', 'cpi-items': 'Housing', 'distance': [50, 75, 100, 150, 200, 300, 400, 600, 800, 1600, 3200]}
+REGRESSION
+----------
+SUMMARY OF OUTPUT: SPATIALLY WEIGHTED LEAST SQUARES (HET)
+---------------------------------------------------------
+Data set            :     unknown
+Weights matrix      :NN-rowsum-year-2
+Dependent Variable  :saleprice_real-2015                Number of Observations:       23174
+Mean dependent var  :     13.1530                Number of Variables   :          48
+S.D. dependent var  :      0.3759                Degrees of Freedom    :       23126
+Pseudo R-squared    :      0.5165
+N. of iterations    :           1                Step1c computed       :          No
+
+------------------------------------------------------------------------------------
+            Variable     Coefficient       Std.Error     z-Statistic     Probability
+------------------------------------------------------------------------------------
+            CONSTANT      12.3136647       0.0195559     629.6643079       0.0000000
+              secchi       0.0159429       0.0263670       0.6046563       0.5454074
+            bayfront       0.4275219       0.1493083       2.8633507       0.0041919
+         wateraccess       0.0350444       0.0368984       0.9497544       0.3422371
+          wqbayfront       0.3810823       0.1937683       1.9666910       0.0492188
+       wqwateraccess       0.1895655       0.0557626       3.3995119       0.0006751
+totalbathroomsedited       0.0116765       0.0030734       3.7992292       0.0001451
+     totallivingarea       0.0000065       0.0000037       1.7477900       0.0805004
+         parcel_area       0.0000271       0.0000009      30.6501622       0.0000000
+       distance_park      -0.0000093       0.0000047      -1.9559950       0.0504657
+        distance_nyc      -0.0000074       0.0000006     -12.4593533       0.0000000
+       distance_golf       0.0000002       0.0000015       0.1227392       0.9023136
+           education       0.0067728       0.0001970      34.3864813       0.0000000
+    income_real-2015       0.0000009       0.0000001       9.7777349       0.0000000
+        povertylevel       0.0028458       0.0004889       5.8205723       0.0000000
+           pct_white       0.0034987       0.0001211      28.8861327       0.0000000
+             dv_2002      -0.0948702       0.0289692      -3.2748634       0.0010571
+             dv_2004       0.0825508       0.0090557       9.1159199       0.0000000
+             dv_2005       0.1516924       0.0099139      15.3009070       0.0000000
+             dv_2006       0.1275232       0.0102663      12.4215939       0.0000000
+             dv_2007       0.0330080       0.0124237       2.6568550       0.0078873
+             dv_2008      -0.0520867       0.0116534      -4.4696424       0.0000078
+             dv_2009      -0.1389777       0.0118176     -11.7602021       0.0000000
+             dv_2010      -0.1597717       0.0124292     -12.8545862       0.0000000
+             dv_2011      -0.2214385       0.0117291     -18.8794516       0.0000000
+             dv_2012      -0.3044146       0.0126981     -23.9731989       0.0000000
+shorelinedistance_0-50      -0.0712188       0.0433328      -1.6435328       0.1002728
+wq_shorelinedistance_0-50       0.1765216       0.0686393       2.5717273       0.0101193
+shorelinedistance_50-75      -0.0704574       0.0303929      -2.3182151       0.0204376
+wq_shorelinedistance_50-75       0.1741882       0.0447544       3.8920893       0.0000994
+shorelinedistance_75-100      -0.0401416       0.0291670      -1.3762676       0.1687388
+wq_shorelinedistance_75-100       0.1086316       0.0449772       2.4152610       0.0157239
+shorelinedistance_100-150      -0.0231904       0.0261309      -0.8874700       0.3748259
+wq_shorelinedistance_100-150       0.0547597       0.0404885       1.3524760       0.1762231
+shorelinedistance_150-200       0.0145216       0.0241659       0.6009133       0.5478978
+wq_shorelinedistance_150-200       0.0036716       0.0376792       0.0974426       0.9223749
+shorelinedistance_200-300      -0.0208797       0.0231744      -0.9009820       0.3675979
+wq_shorelinedistance_200-300       0.0798328       0.0356328       2.2404313       0.0250629
+shorelinedistance_300-400       0.0120002       0.0252119       0.4759739       0.6340930
+wq_shorelinedistance_300-400       0.0224071       0.0410246       0.5461883       0.5849365
+shorelinedistance_400-600      -0.0018034       0.0222551      -0.0810340       0.9354149
+wq_shorelinedistance_400-600       0.0302607       0.0355583       0.8510173       0.3947597
+shorelinedistance_600-800       0.0400916       0.0241283       1.6615990       0.0965932
+wq_shorelinedistance_600-800      -0.0296267       0.0383862      -0.7718050       0.4402299
+shorelinedistance_800-1600      -0.0178170       0.0188657      -0.9444139       0.3449582
+wq_shorelinedistance_800-1600       0.0340656       0.0303417       1.1227336       0.2615506
+shorelinedistance_1600-3200      -0.0222965       0.0162008      -1.3762542       0.1687429
+wq_shorelinedistance_1600-3200       0.0624959       0.0269273       2.3209105       0.0202917
+              lambda       0.2616273       0.0092320      28.3390478       0.0000000
+------------------------------------------------------------------------------------
+================================ END OF REPORT =====================================
+
+
+{'combine_pre_post': 0, 'period': 0, 'modeltype': 'GM_Error_Het', 'klist': 4, 'xvars': ['secchi', 'bayfront', 'wateraccess', 'wqbayfront', 'wqwateraccess', 'totalbathroomsedited', 'totallivingarea', 'parcel_area', 'distance_park', 'distance_nyc', 'distance_golf', 'education', 'income_real-2015', 'povertylevel', 'pct_white', 'dv_2002', 'dv_2004', 'dv_2005', 'dv_2006', 'dv_2007', 'dv_2008', 'dv_2009', 'dv_2010', 'dv_2011', 'dv_2012', 'shorelinedistance_0-50', 'wq_shorelinedistance_0-50', 'shorelinedistance_50-75', 'wq_shorelinedistance_50-75', 'shorelinedistance_75-100', 'wq_shorelinedistance_75-100', 'shorelinedistance_100-150', 'wq_shorelinedistance_100-150', 'shorelinedistance_150-200', 'wq_shorelinedistance_150-200', 'shorelinedistance_200-300', 'wq_shorelinedistance_200-300', 'shorelinedistance_300-400', 'wq_shorelinedistance_300-400', 'shorelinedistance_400-600', 'wq_shorelinedistance_400-600', 'shorelinedistance_600-800', 'wq_shorelinedistance_600-800', 'shorelinedistance_800-1600', 'wq_shorelinedistance_800-1600', 'shorelinedistance_1600-3200', 'wq_shorelinedistance_1600-3200'], 'yvar': 'saleprice_real-2015', 'transform': {'ln_wq': 1, 'ln_y': 1}, 'wt_type': 'NN', 'wt_norm': 'rowsum', 'NNscope': 'year', 'distmat': 1, 'cpi-area': 'New York-Newark-Jersey City, NY-NJ-PA', 'cpi-items': 'Housing', 'distance': [50, 75, 100, 150, 200, 300, 400, 600, 800, 1600, 3200]}
+REGRESSION
+----------
+SUMMARY OF OUTPUT: SPATIALLY WEIGHTED LEAST SQUARES (HET)
+---------------------------------------------------------
+Data set            :     unknown
+Weights matrix      :NN-rowsum-year-4
+Dependent Variable  :saleprice_real-2015                Number of Observations:       23174
+Mean dependent var  :     13.1530                Number of Variables   :          48
+S.D. dependent var  :      0.3759                Degrees of Freedom    :       23126
+Pseudo R-squared    :      0.5149
+N. of iterations    :           1                Step1c computed       :          No
+
+------------------------------------------------------------------------------------
+            Variable     Coefficient       Std.Error     z-Statistic     Probability
+------------------------------------------------------------------------------------
+            CONSTANT      12.3501898       0.0218677     564.7680768       0.0000000
+              secchi       0.0159955       0.0298144       0.5365021       0.5916116
+            bayfront       0.4334886       0.1492561       2.9043275       0.0036804
+         wateraccess       0.0690093       0.0368922       1.8705671       0.0614051
+          wqbayfront       0.3640572       0.1942450       1.8742165       0.0609006
+       wqwateraccess       0.1593682       0.0565221       2.8195764       0.0048087
+totalbathroomsedited       0.0107181       0.0030359       3.5305147       0.0004148
+     totallivingarea       0.0000043       0.0000036       1.1760594       0.2395711
+         parcel_area       0.0000268       0.0000009      29.8841953       0.0000000
+       distance_park      -0.0000089       0.0000054      -1.6586158       0.0971932
+        distance_nyc      -0.0000073       0.0000007     -10.8830955       0.0000000
+       distance_golf      -0.0000021       0.0000018      -1.1953860       0.2319363
+           education       0.0062918       0.0002070      30.3938535       0.0000000
+    income_real-2015       0.0000008       0.0000001       8.4632155       0.0000000
+        povertylevel       0.0023913       0.0004932       4.8480147       0.0000012
+           pct_white       0.0035230       0.0001380      25.5376246       0.0000000
+             dv_2002      -0.0877230       0.0337850      -2.5965087       0.0094177
+             dv_2004       0.0838175       0.0104808       7.9972048       0.0000000
+             dv_2005       0.1533081       0.0114641      13.3728824       0.0000000
+             dv_2006       0.1352399       0.0118482      11.4144170       0.0000000
+             dv_2007       0.0430785       0.0143109       3.0101859       0.0026109
+             dv_2008      -0.0431242       0.0134761      -3.2000488       0.0013740
+             dv_2009      -0.1288295       0.0136010      -9.4720545       0.0000000
+             dv_2010      -0.1499471       0.0142932     -10.4907820       0.0000000
+             dv_2011      -0.2119146       0.0135447     -15.6456002       0.0000000
+             dv_2012      -0.2931966       0.0146695     -19.9868354       0.0000000
+shorelinedistance_0-50      -0.0628317       0.0455906      -1.3781737       0.1681497
+wq_shorelinedistance_0-50       0.1772219       0.0722468       2.4530062       0.0141668
+shorelinedistance_50-75      -0.0568788       0.0313827      -1.8124282       0.0699201
+wq_shorelinedistance_50-75       0.1508853       0.0463554       3.2549678       0.0011341
+shorelinedistance_75-100      -0.0222195       0.0300063      -0.7404935       0.4590006
+wq_shorelinedistance_75-100       0.0828563       0.0461818       1.7941316       0.0727922
+shorelinedistance_100-150      -0.0125985       0.0271077      -0.4647551       0.6421069
+wq_shorelinedistance_100-150       0.0416071       0.0420285       0.9899736       0.3221870
+shorelinedistance_150-200       0.0207468       0.0255689       0.8114077       0.4171316
+wq_shorelinedistance_150-200      -0.0054044       0.0397486      -0.1359657       0.8918484
+shorelinedistance_200-300      -0.0172241       0.0248572      -0.6929220       0.4883585
+wq_shorelinedistance_200-300       0.0698339       0.0381100       1.8324313       0.0668872
+shorelinedistance_300-400       0.0197644       0.0261909       0.7546264       0.4504732
+wq_shorelinedistance_300-400       0.0074110       0.0423406       0.1750341       0.8610529
+shorelinedistance_400-600       0.0082592       0.0241837       0.3415180       0.7327137
+wq_shorelinedistance_400-600       0.0187384       0.0385149       0.4865239       0.6265958
+shorelinedistance_600-800       0.0410488       0.0257158       1.5962483       0.1104334
+wq_shorelinedistance_600-800      -0.0260630       0.0409823      -0.6359564       0.5248048
+shorelinedistance_800-1600      -0.0162350       0.0210077      -0.7728124       0.4396334
+wq_shorelinedistance_800-1600       0.0333104       0.0337179       0.9879137       0.3231949
+shorelinedistance_1600-3200      -0.0233735       0.0179027      -1.3055873       0.1916929
+wq_shorelinedistance_1600-3200       0.0611465       0.0296099       2.0650735       0.0389160
+              lambda       0.3721919       0.0090820      40.9813233       0.0000000
+------------------------------------------------------------------------------------
+================================ END OF REPORT =====================================
+
+
+{'combine_pre_post': 0, 'period': 0, 'modeltype': 'GM_Error_Het', 'klist': 6, 'xvars': ['secchi', 'bayfront', 'wateraccess', 'wqbayfront', 'wqwateraccess', 'totalbathroomsedited', 'totallivingarea', 'parcel_area', 'distance_park', 'distance_nyc', 'distance_golf', 'education', 'income_real-2015', 'povertylevel', 'pct_white', 'dv_2002', 'dv_2004', 'dv_2005', 'dv_2006', 'dv_2007', 'dv_2008', 'dv_2009', 'dv_2010', 'dv_2011', 'dv_2012', 'shorelinedistance_0-50', 'wq_shorelinedistance_0-50', 'shorelinedistance_50-75', 'wq_shorelinedistance_50-75', 'shorelinedistance_75-100', 'wq_shorelinedistance_75-100', 'shorelinedistance_100-150', 'wq_shorelinedistance_100-150', 'shorelinedistance_150-200', 'wq_shorelinedistance_150-200', 'shorelinedistance_200-300', 'wq_shorelinedistance_200-300', 'shorelinedistance_300-400', 'wq_shorelinedistance_300-400', 'shorelinedistance_400-600', 'wq_shorelinedistance_400-600', 'shorelinedistance_600-800', 'wq_shorelinedistance_600-800', 'shorelinedistance_800-1600', 'wq_shorelinedistance_800-1600', 'shorelinedistance_1600-3200', 'wq_shorelinedistance_1600-3200'], 'yvar': 'saleprice_real-2015', 'transform': {'ln_wq': 1, 'ln_y': 1}, 'wt_type': 'NN', 'wt_norm': 'rowsum', 'NNscope': 'year', 'distmat': 1, 'cpi-area': 'New York-Newark-Jersey City, NY-NJ-PA', 'cpi-items': 'Housing', 'distance': [50, 75, 100, 150, 200, 300, 400, 600, 800, 1600, 3200]}
+REGRESSION
+----------
+SUMMARY OF OUTPUT: SPATIALLY WEIGHTED LEAST SQUARES (HET)
+---------------------------------------------------------
+Data set            :     unknown
+Weights matrix      :NN-rowsum-year-6
+Dependent Variable  :saleprice_real-2015                Number of Observations:       23174
+Mean dependent var  :     13.1530                Number of Variables   :          48
+S.D. dependent var  :      0.3759                Degrees of Freedom    :       23126
+Pseudo R-squared    :      0.5134
+N. of iterations    :           1                Step1c computed       :          No
+
+------------------------------------------------------------------------------------
+            Variable     Coefficient       Std.Error     z-Statistic     Probability
+------------------------------------------------------------------------------------
+            CONSTANT      12.3784960       0.0241090     513.4390897       0.0000000
+              secchi       0.0080691       0.0330616       0.2440625       0.8071824
+            bayfront       0.4345353       0.1486488       2.9232335       0.0034642
+         wateraccess       0.0774537       0.0381882       2.0282114       0.0425387
+          wqbayfront       0.3573153       0.1932091       1.8493706       0.0644043
+       wqwateraccess       0.1460066       0.0585687       2.4929126       0.0126700
+totalbathroomsedited       0.0090593       0.0030344       2.9855232       0.0028309
+     totallivingarea       0.0000048       0.0000036       1.3312779       0.1830976
+         parcel_area       0.0000268       0.0000009      29.6141096       0.0000000
+       distance_park      -0.0000086       0.0000059      -1.4547979       0.1457252
+        distance_nyc      -0.0000073       0.0000008      -9.6350271       0.0000000
+       distance_golf      -0.0000038       0.0000020      -1.9395551       0.0524338
+           education       0.0058941       0.0002118      27.8262547       0.0000000
+    income_real-2015       0.0000008       0.0000001       7.9613960       0.0000000
+        povertylevel       0.0021466       0.0005003       4.2906704       0.0000178
+           pct_white       0.0035354       0.0001533      23.0619079       0.0000000
+             dv_2002      -0.0819129       0.0390966      -2.0951408       0.0361585
+             dv_2004       0.0828225       0.0119609       6.9244348       0.0000000
+             dv_2005       0.1544478       0.0130033      11.8776168       0.0000000
+             dv_2006       0.1389717       0.0134431      10.3378078       0.0000000
+             dv_2007       0.0492363       0.0161878       3.0415616       0.0023535
+             dv_2008      -0.0367107       0.0152809      -2.4023906       0.0162883
+             dv_2009      -0.1231977       0.0154188      -7.9901107       0.0000000
+             dv_2010      -0.1433601       0.0161607      -8.8709006       0.0000000
+             dv_2011      -0.2035218       0.0154260     -13.1934366       0.0000000
+             dv_2012      -0.2873311       0.0166600     -17.2467966       0.0000000
+shorelinedistance_0-50      -0.0444820       0.0470476      -0.9454689       0.3444195
+wq_shorelinedistance_0-50       0.1525335       0.0747995       2.0392328       0.0414268
+shorelinedistance_50-75      -0.0556199       0.0330526      -1.6827723       0.0924192
+wq_shorelinedistance_50-75       0.1506878       0.0488812       3.0827385       0.0020511
+shorelinedistance_75-100      -0.0177725       0.0317308      -0.5601027       0.5754094
+wq_shorelinedistance_75-100       0.0791926       0.0488430       1.6213724       0.1049378
+shorelinedistance_100-150      -0.0079956       0.0286885      -0.2787031       0.7804727
+wq_shorelinedistance_100-150       0.0331467       0.0443644       0.7471450       0.4549760
+shorelinedistance_150-200       0.0198827       0.0270455       0.7351585       0.4622430
+wq_shorelinedistance_150-200      -0.0073067       0.0420021      -0.1739614       0.8618958
+shorelinedistance_200-300      -0.0174834       0.0263998      -0.6622563       0.5078070
+wq_shorelinedistance_200-300       0.0680706       0.0402940       1.6893472       0.0911529
+shorelinedistance_300-400       0.0132273       0.0273804       0.4830915       0.6290308
+wq_shorelinedistance_300-400       0.0179763       0.0439471       0.4090434       0.6825078
+shorelinedistance_400-600       0.0093337       0.0256540       0.3638302       0.7159848
+wq_shorelinedistance_400-600       0.0247255       0.0406303       0.6085470       0.5428247
+shorelinedistance_600-800       0.0400456       0.0267528       1.4968788       0.1344248
+wq_shorelinedistance_600-800      -0.0188171       0.0425607      -0.4421233       0.6584000
+shorelinedistance_800-1600      -0.0214274       0.0230189      -0.9308588       0.3519266
+wq_shorelinedistance_800-1600       0.0443014       0.0366519       1.2087063       0.2267757
+shorelinedistance_1600-3200      -0.0275299       0.0194205      -1.4175682       0.1563169
+wq_shorelinedistance_1600-3200       0.0701616       0.0318052       2.2059821       0.0273853
+              lambda       0.4539369       0.0092898      48.8639034       0.0000000
+------------------------------------------------------------------------------------
+================================ END OF REPORT =====================================
+
+
+{'combine_pre_post': 0, 'period': 0, 'modeltype': 'GM_Error_Het', 'klist': 8, 'xvars': ['secchi', 'bayfront', 'wateraccess', 'wqbayfront', 'wqwateraccess', 'totalbathroomsedited', 'totallivingarea', 'parcel_area', 'distance_park', 'distance_nyc', 'distance_golf', 'education', 'income_real-2015', 'povertylevel', 'pct_white', 'dv_2002', 'dv_2004', 'dv_2005', 'dv_2006', 'dv_2007', 'dv_2008', 'dv_2009', 'dv_2010', 'dv_2011', 'dv_2012', 'shorelinedistance_0-50', 'wq_shorelinedistance_0-50', 'shorelinedistance_50-75', 'wq_shorelinedistance_50-75', 'shorelinedistance_75-100', 'wq_shorelinedistance_75-100', 'shorelinedistance_100-150', 'wq_shorelinedistance_100-150', 'shorelinedistance_150-200', 'wq_shorelinedistance_150-200', 'shorelinedistance_200-300', 'wq_shorelinedistance_200-300', 'shorelinedistance_300-400', 'wq_shorelinedistance_300-400', 'shorelinedistance_400-600', 'wq_shorelinedistance_400-600', 'shorelinedistance_600-800', 'wq_shorelinedistance_600-800', 'shorelinedistance_800-1600', 'wq_shorelinedistance_800-1600', 'shorelinedistance_1600-3200', 'wq_shorelinedistance_1600-3200'], 'yvar': 'saleprice_real-2015', 'transform': {'ln_wq': 1, 'ln_y': 1}, 'wt_type': 'NN', 'wt_norm': 'rowsum', 'NNscope': 'year', 'distmat': 1, 'cpi-area': 'New York-Newark-Jersey City, NY-NJ-PA', 'cpi-items': 'Housing', 'distance': [50, 75, 100, 150, 200, 300, 400, 600, 800, 1600, 3200]}
+REGRESSION
+----------
+SUMMARY OF OUTPUT: SPATIALLY WEIGHTED LEAST SQUARES (HET)
+---------------------------------------------------------
+Data set            :     unknown
+Weights matrix      :NN-rowsum-year-8
+Dependent Variable  :saleprice_real-2015                Number of Observations:       23174
+Mean dependent var  :     13.1530                Number of Variables   :          48
+S.D. dependent var  :      0.3759                Degrees of Freedom    :       23126
+Pseudo R-squared    :      0.5118
+N. of iterations    :           1                Step1c computed       :          No
+
+------------------------------------------------------------------------------------
+            Variable     Coefficient       Std.Error     z-Statistic     Probability
+------------------------------------------------------------------------------------
+            CONSTANT      12.3996284       0.0258575     479.5367370       0.0000000
+              secchi      -0.0010740       0.0354371      -0.0303082       0.9758212
+            bayfront       0.4262682       0.1476280       2.8874493       0.0038838
+         wateraccess       0.0749473       0.0391104       1.9162986       0.0553271
+          wqbayfront       0.3669723       0.1925580       1.9057749       0.0566794
+       wqwateraccess       0.1485225       0.0600358       2.4738994       0.0133647
+totalbathroomsedited       0.0086237       0.0030275       2.8484836       0.0043928
+     totallivingarea       0.0000037       0.0000036       1.0431704       0.2968694
+         parcel_area       0.0000269       0.0000009      29.4492408       0.0000000
+       distance_park      -0.0000074       0.0000063      -1.1694386       0.2422270
+        distance_nyc      -0.0000071       0.0000008      -8.5800288       0.0000000
+       distance_golf      -0.0000053       0.0000022      -2.4243257       0.0153368
+           education       0.0056010       0.0002145      26.1164870       0.0000000
+    income_real-2015       0.0000007       0.0000001       7.7328083       0.0000000
+        povertylevel       0.0019293       0.0004962       3.8884330       0.0001009
+           pct_white       0.0035457       0.0001639      21.6276009       0.0000000
+             dv_2002      -0.0784154       0.0437413      -1.7927105       0.0730192
+             dv_2004       0.0818237       0.0132795       6.1616557       0.0000000
+             dv_2005       0.1555059       0.0143826      10.8121028       0.0000000
+             dv_2006       0.1417401       0.0148366       9.5533830       0.0000000
+             dv_2007       0.0548700       0.0177812       3.0858391       0.0020298
+             dv_2008      -0.0317765       0.0168843      -1.8820193       0.0598334
+             dv_2009      -0.1170249       0.0170293      -6.8719958       0.0000000
+             dv_2010      -0.1383605       0.0177982      -7.7738691       0.0000000
+             dv_2011      -0.1988166       0.0171151     -11.6164170       0.0000000
+             dv_2012      -0.2849547       0.0184373     -15.4553160       0.0000000
+shorelinedistance_0-50      -0.0500961       0.0485798      -1.0312126       0.3024411
+wq_shorelinedistance_0-50       0.1592220       0.0774421       2.0560119       0.0397814
+shorelinedistance_50-75      -0.0553476       0.0345552      -1.6017182       0.1092179
+wq_shorelinedistance_50-75       0.1528029       0.0509527       2.9989171       0.0027094
+shorelinedistance_75-100      -0.0174405       0.0329843      -0.5287499       0.5969790
+wq_shorelinedistance_75-100       0.0792053       0.0505705       1.5662360       0.1172934
+shorelinedistance_100-150      -0.0088944       0.0301541      -0.2949642       0.7680213
+wq_shorelinedistance_100-150       0.0328748       0.0463984       0.7085320       0.4786149
+shorelinedistance_150-200       0.0169617       0.0283927       0.5973950       0.5502437
+wq_shorelinedistance_150-200       0.0006326       0.0438570       0.0144232       0.9884923
+shorelinedistance_200-300      -0.0179194       0.0276875      -0.6472037       0.5175001
+wq_shorelinedistance_200-300       0.0662485       0.0421144       1.5730627       0.1157043
+shorelinedistance_300-400       0.0065633       0.0282956       0.2319545       0.8165734
+wq_shorelinedistance_300-400       0.0321309       0.0450154       0.7137750       0.4753664
+shorelinedistance_400-600       0.0096342       0.0266973       0.3608668       0.7181990
+wq_shorelinedistance_400-600       0.0290445       0.0420520       0.6906788       0.4897674
+shorelinedistance_600-800       0.0375379       0.0279023       1.3453364       0.1785166
+wq_shorelinedistance_600-800      -0.0070827       0.0442683      -0.1599949       0.8728851
+shorelinedistance_800-1600      -0.0196833       0.0244494      -0.8050662       0.4207815
+wq_shorelinedistance_800-1600       0.0463542       0.0386703       1.1987025       0.2306437
+shorelinedistance_1600-3200      -0.0292200       0.0204062      -1.4319200       0.1521667
+wq_shorelinedistance_1600-3200       0.0717456       0.0330417       2.1713677       0.0299034
+              lambda       0.5104968       0.0090919      56.1482244       0.0000000
+------------------------------------------------------------------------------------
+================================ END OF REPORT =====================================
+
+
+{'combine_pre_post': 0, 'period': 1, 'modeltype': 'GM_Error_Het', 'klist': 2, 'xvars': ['secchi', 'bayfront', 'wateraccess', 'wqbayfront', 'wqwateraccess', 'totalbathroomsedited', 'totallivingarea', 'parcel_area', 'distance_park', 'distance_nyc', 'distance_golf', 'education', 'income_real-2015', 'povertylevel', 'pct_white', 'dv_2012', 'dv_2013', 'dv_2014', 'shorelinedistance_0-50', 'wq_shorelinedistance_0-50', 'shorelinedistance_50-75', 'wq_shorelinedistance_50-75', 'shorelinedistance_75-100', 'wq_shorelinedistance_75-100', 'shorelinedistance_100-150', 'wq_shorelinedistance_100-150', 'shorelinedistance_150-200', 'wq_shorelinedistance_150-200', 'shorelinedistance_200-300', 'wq_shorelinedistance_200-300', 'shorelinedistance_300-400', 'wq_shorelinedistance_300-400', 'shorelinedistance_400-600', 'wq_shorelinedistance_400-600', 'shorelinedistance_600-800', 'wq_shorelinedistance_600-800', 'shorelinedistance_800-1600', 'wq_shorelinedistance_800-1600', 'shorelinedistance_1600-3200', 'wq_shorelinedistance_1600-3200'], 'yvar': 'saleprice_real-2015', 'transform': {'ln_wq': 1, 'ln_y': 1}, 'wt_type': 'NN', 'wt_norm': 'rowsum', 'NNscope': 'year', 'distmat': 1, 'cpi-area': 'New York-Newark-Jersey City, NY-NJ-PA', 'cpi-items': 'Housing', 'distance': [50, 75, 100, 150, 200, 300, 400, 600, 800, 1600, 3200]}
+REGRESSION
+----------
+SUMMARY OF OUTPUT: SPATIALLY WEIGHTED LEAST SQUARES (HET)
+---------------------------------------------------------
+Data set            :     unknown
+Weights matrix      :NN-rowsum-year-2
+Dependent Variable  :saleprice_real-2015                Number of Observations:        8799
+Mean dependent var  :     12.9035                Number of Variables   :          41
+S.D. dependent var  :      0.4520                Degrees of Freedom    :        8758
+Pseudo R-squared    :      0.4479
+N. of iterations    :           1                Step1c computed       :          No
+
+------------------------------------------------------------------------------------
+            Variable     Coefficient       Std.Error     z-Statistic     Probability
+------------------------------------------------------------------------------------
+            CONSTANT      11.9677170       0.0314998     379.9295394       0.0000000
+              secchi      -0.0227162       0.0400503      -0.5671911       0.5705843
+            bayfront       0.2840489       0.1046621       2.7139620       0.0066484
+         wateraccess      -0.1701946       0.0484720      -3.5111981       0.0004461
+          wqbayfront       0.4182740       0.1604764       2.6064522       0.0091486
+       wqwateraccess       0.2128491       0.0866518       2.4563727       0.0140348
+totalbathroomsedited       0.0076020       0.0063429       1.1985051       0.2307204
+     totallivingarea       0.0000135       0.0000080       1.6813149       0.0927018
+         parcel_area       0.0000284       0.0000017      16.4305900       0.0000000
+       distance_park      -0.0000079       0.0000105      -0.7531211       0.4513771
+        distance_nyc      -0.0000140       0.0000013     -11.0241523       0.0000000
+       distance_golf       0.0000081       0.0000029       2.8305284       0.0046471
+           education       0.0078710       0.0004119      19.1097225       0.0000000
+    income_real-2015       0.0000012       0.0000002       7.2977648       0.0000000
+        povertylevel      -0.0011405       0.0010212      -1.1168597       0.2640543
+           pct_white       0.0047161       0.0002395      19.6899378       0.0000000
+             dv_2012      -0.0650246       0.0287271      -2.2635292       0.0236031
+             dv_2013      -0.0987341       0.0126714      -7.7918771       0.0000000
+             dv_2014      -0.0523093       0.0109994      -4.7556560       0.0000020
+shorelinedistance_0-50      -0.2793388       0.0807541      -3.4591299       0.0005419
+wq_shorelinedistance_0-50       0.2535506       0.1383943       1.8320887       0.0669382
+shorelinedistance_50-75      -0.2494779       0.0656357      -3.8009449       0.0001441
+wq_shorelinedistance_50-75       0.2227583       0.1126035       1.9782543       0.0479000
+shorelinedistance_75-100      -0.1257302       0.0541428      -2.3221980       0.0202223
+wq_shorelinedistance_75-100       0.1343586       0.0995463       1.3497095       0.1771092
+shorelinedistance_100-150      -0.0693460       0.0337439      -2.0550650       0.0398727
+wq_shorelinedistance_100-150      -0.0137331       0.0641722      -0.2140044       0.8305436
+shorelinedistance_150-200      -0.0883409       0.0333647      -2.6477334       0.0081033
+wq_shorelinedistance_150-200       0.0105910       0.0736953       0.1437130       0.8857271
+shorelinedistance_200-300      -0.1081375       0.0298959      -3.6171333       0.0002979
+wq_shorelinedistance_200-300       0.0838024       0.0673431       1.2444108       0.2133484
+shorelinedistance_300-400      -0.1001809       0.0323599      -3.0958369       0.0019626
+wq_shorelinedistance_300-400       0.1456635       0.0900325       1.6178988       0.1056844
+shorelinedistance_400-600      -0.0435910       0.0281979      -1.5458975       0.1221293
+wq_shorelinedistance_400-600       0.0306537       0.0591017       0.5186603       0.6039976
+shorelinedistance_600-800       0.0128033       0.0286276       0.4472341       0.6547060
+wq_shorelinedistance_600-800      -0.0244651       0.0637502      -0.3837645       0.7011530
+shorelinedistance_800-1600      -0.0092531       0.0235997      -0.3920873       0.6949937
+wq_shorelinedistance_800-1600       0.0562950       0.0479848       1.1731841       0.2407220
+shorelinedistance_1600-3200      -0.0014604       0.0205601      -0.0710330       0.9433715
+wq_shorelinedistance_1600-3200       0.0004741       0.0428609       0.0110608       0.9911750
+              lambda       0.2172413       0.0099307      21.8757926       0.0000000
+------------------------------------------------------------------------------------
+================================ END OF REPORT =====================================
+
+
+{'combine_pre_post': 0, 'period': 1, 'modeltype': 'GM_Error_Het', 'klist': 4, 'xvars': ['secchi', 'bayfront', 'wateraccess', 'wqbayfront', 'wqwateraccess', 'totalbathroomsedited', 'totallivingarea', 'parcel_area', 'distance_park', 'distance_nyc', 'distance_golf', 'education', 'income_real-2015', 'povertylevel', 'pct_white', 'dv_2012', 'dv_2013', 'dv_2014', 'shorelinedistance_0-50', 'wq_shorelinedistance_0-50', 'shorelinedistance_50-75', 'wq_shorelinedistance_50-75', 'shorelinedistance_75-100', 'wq_shorelinedistance_75-100', 'shorelinedistance_100-150', 'wq_shorelinedistance_100-150', 'shorelinedistance_150-200', 'wq_shorelinedistance_150-200', 'shorelinedistance_200-300', 'wq_shorelinedistance_200-300', 'shorelinedistance_300-400', 'wq_shorelinedistance_300-400', 'shorelinedistance_400-600', 'wq_shorelinedistance_400-600', 'shorelinedistance_600-800', 'wq_shorelinedistance_600-800', 'shorelinedistance_800-1600', 'wq_shorelinedistance_800-1600', 'shorelinedistance_1600-3200', 'wq_shorelinedistance_1600-3200'], 'yvar': 'saleprice_real-2015', 'transform': {'ln_wq': 1, 'ln_y': 1}, 'wt_type': 'NN', 'wt_norm': 'rowsum', 'NNscope': 'year', 'distmat': 1, 'cpi-area': 'New York-Newark-Jersey City, NY-NJ-PA', 'cpi-items': 'Housing', 'distance': [50, 75, 100, 150, 200, 300, 400, 600, 800, 1600, 3200]}
+REGRESSION
+----------
+SUMMARY OF OUTPUT: SPATIALLY WEIGHTED LEAST SQUARES (HET)
+---------------------------------------------------------
+Data set            :     unknown
+Weights matrix      :NN-rowsum-year-4
+Dependent Variable  :saleprice_real-2015                Number of Observations:        8799
+Mean dependent var  :     12.9035                Number of Variables   :          41
+S.D. dependent var  :      0.4520                Degrees of Freedom    :        8758
+Pseudo R-squared    :      0.4471
+N. of iterations    :           1                Step1c computed       :          No
+
+------------------------------------------------------------------------------------
+            Variable     Coefficient       Std.Error     z-Statistic     Probability
+------------------------------------------------------------------------------------
+            CONSTANT      12.0199862       0.0348827     344.5834708       0.0000000
+              secchi      -0.0335467       0.0444787      -0.7542188       0.4507179
+            bayfront       0.2677389       0.1045832       2.5600552       0.0104656
+         wateraccess      -0.1659607       0.0510170      -3.2530448       0.0011418
+          wqbayfront       0.4187840       0.1598203       2.6203422       0.0087842
+       wqwateraccess       0.2185611       0.0932183       2.3446171       0.0190466
+totalbathroomsedited       0.0045587       0.0062457       0.7299015       0.4654504
+     totallivingarea       0.0000133       0.0000080       1.6744465       0.0940429
+         parcel_area       0.0000283       0.0000017      16.6804504       0.0000000
+       distance_park      -0.0000059       0.0000119      -0.4925134       0.6223565
+        distance_nyc      -0.0000135       0.0000015      -9.2500910       0.0000000
+       distance_golf       0.0000056       0.0000033       1.7187788       0.0856547
+           education       0.0072605       0.0004345      16.7085418       0.0000000
+    income_real-2015       0.0000011       0.0000002       6.5185347       0.0000000
+        povertylevel      -0.0011442       0.0010957      -1.0442667       0.2963620
+           pct_white       0.0046670       0.0002669      17.4828024       0.0000000
+             dv_2012      -0.0588077       0.0331220      -1.7754882       0.0758173
+             dv_2013      -0.0987981       0.0143408      -6.8893192       0.0000000
+             dv_2014      -0.0544090       0.0125707      -4.3282505       0.0000150
+shorelinedistance_0-50      -0.2878910       0.0802961      -3.5853664       0.0003366
+wq_shorelinedistance_0-50       0.3127462       0.1373927       2.2762943       0.0228284
+shorelinedistance_50-75      -0.2424325       0.0668017      -3.6291364       0.0002844
+wq_shorelinedistance_50-75       0.2100136       0.1156785       1.8154947       0.0694479
+shorelinedistance_75-100      -0.1241827       0.0541623      -2.2927905       0.0218601
+wq_shorelinedistance_75-100       0.1424845       0.1004555       1.4183843       0.1560786
+shorelinedistance_100-150      -0.0476971       0.0348946      -1.3668903       0.1716597
+wq_shorelinedistance_100-150      -0.0235668       0.0666524      -0.3535781       0.7236551
+shorelinedistance_150-200      -0.0781625       0.0346236      -2.2574901       0.0239775
+wq_shorelinedistance_150-200      -0.0251679       0.0759332      -0.3314481       0.7403061
+shorelinedistance_200-300      -0.1026662       0.0315839      -3.2505844       0.0011517
+wq_shorelinedistance_200-300       0.0802912       0.0669928       1.1985057       0.2307202
+shorelinedistance_300-400      -0.1067410       0.0340567      -3.1342187       0.0017231
+wq_shorelinedistance_300-400       0.1504231       0.0904074       1.6638372       0.0961450
+shorelinedistance_400-600      -0.0464630       0.0302835      -1.5342649       0.1249645
+wq_shorelinedistance_400-600       0.0343968       0.0629135       0.5467319       0.5845629
+shorelinedistance_600-800       0.0132272       0.0307379       0.4303222       0.6669613
+wq_shorelinedistance_600-800      -0.0358673       0.0659700      -0.5436919       0.5866535
+shorelinedistance_800-1600      -0.0129471       0.0265035      -0.4885046       0.6251924
+wq_shorelinedistance_800-1600       0.0713560       0.0533763       1.3368489       0.1812720
+shorelinedistance_1600-3200      -0.0065891       0.0239904      -0.2746572       0.7835796
+wq_shorelinedistance_1600-3200       0.0109102       0.0481854       0.2264213       0.8208737
+              lambda       0.3236926       0.0111371      29.0643554       0.0000000
+------------------------------------------------------------------------------------
+================================ END OF REPORT =====================================
+
+
+{'combine_pre_post': 0, 'period': 1, 'modeltype': 'GM_Error_Het', 'klist': 6, 'xvars': ['secchi', 'bayfront', 'wateraccess', 'wqbayfront', 'wqwateraccess', 'totalbathroomsedited', 'totallivingarea', 'parcel_area', 'distance_park', 'distance_nyc', 'distance_golf', 'education', 'income_real-2015', 'povertylevel', 'pct_white', 'dv_2012', 'dv_2013', 'dv_2014', 'shorelinedistance_0-50', 'wq_shorelinedistance_0-50', 'shorelinedistance_50-75', 'wq_shorelinedistance_50-75', 'shorelinedistance_75-100', 'wq_shorelinedistance_75-100', 'shorelinedistance_100-150', 'wq_shorelinedistance_100-150', 'shorelinedistance_150-200', 'wq_shorelinedistance_150-200', 'shorelinedistance_200-300', 'wq_shorelinedistance_200-300', 'shorelinedistance_300-400', 'wq_shorelinedistance_300-400', 'shorelinedistance_400-600', 'wq_shorelinedistance_400-600', 'shorelinedistance_600-800', 'wq_shorelinedistance_600-800', 'shorelinedistance_800-1600', 'wq_shorelinedistance_800-1600', 'shorelinedistance_1600-3200', 'wq_shorelinedistance_1600-3200'], 'yvar': 'saleprice_real-2015', 'transform': {'ln_wq': 1, 'ln_y': 1}, 'wt_type': 'NN', 'wt_norm': 'rowsum', 'NNscope': 'year', 'distmat': 1, 'cpi-area': 'New York-Newark-Jersey City, NY-NJ-PA', 'cpi-items': 'Housing', 'distance': [50, 75, 100, 150, 200, 300, 400, 600, 800, 1600, 3200]}
+REGRESSION
+----------
+SUMMARY OF OUTPUT: SPATIALLY WEIGHTED LEAST SQUARES (HET)
+---------------------------------------------------------
+Data set            :     unknown
+Weights matrix      :NN-rowsum-year-6
+Dependent Variable  :saleprice_real-2015                Number of Observations:        8799
+Mean dependent var  :     12.9035                Number of Variables   :          41
+S.D. dependent var  :      0.4520                Degrees of Freedom    :        8758
+Pseudo R-squared    :      0.4462
+N. of iterations    :           1                Step1c computed       :          No
+
+------------------------------------------------------------------------------------
+            Variable     Coefficient       Std.Error     z-Statistic     Probability
+------------------------------------------------------------------------------------
+            CONSTANT      12.0586475       0.0363681     331.5717843       0.0000000
+              secchi      -0.0424281       0.0470505      -0.9017563       0.3671863
+            bayfront       0.2587924       0.1086229       2.3824848       0.0171962
+         wateraccess      -0.1564047       0.0513011      -3.0487591       0.0022979
+          wqbayfront       0.4352211       0.1652599       2.6335557       0.0084496
+       wqwateraccess       0.2076269       0.0955345       2.1733186       0.0297563
+totalbathroomsedited       0.0017920       0.0062653       0.2860258       0.7748584
+     totallivingarea       0.0000114       0.0000080       1.4389831       0.1501553
+         parcel_area       0.0000285       0.0000017      16.6358547       0.0000000
+       distance_park      -0.0000054       0.0000126      -0.4335331       0.6646275
+        distance_nyc      -0.0000135       0.0000016      -8.6017800       0.0000000
+       distance_golf       0.0000049       0.0000035       1.4089150       0.1588603
+           education       0.0067534       0.0004386      15.3980676       0.0000000
+    income_real-2015       0.0000011       0.0000002       6.3278447       0.0000000
+        povertylevel      -0.0013154       0.0011364      -1.1575368       0.2470531
+           pct_white       0.0046685       0.0002774      16.8304822       0.0000000
+             dv_2012      -0.0504212       0.0363868      -1.3857014       0.1658381
+             dv_2013      -0.0962159       0.0153981      -6.2485447       0.0000000
+             dv_2014      -0.0538884       0.0135268      -3.9838352       0.0000678
+shorelinedistance_0-50      -0.2920451       0.0829319      -3.5215035       0.0004291
+wq_shorelinedistance_0-50       0.3069427       0.1422312       2.1580540       0.0309236
+shorelinedistance_50-75      -0.2358476       0.0673597      -3.5013172       0.0004630
+wq_shorelinedistance_50-75       0.2084653       0.1173933       1.7757848       0.0757684
+shorelinedistance_75-100      -0.1247992       0.0542902      -2.2987437       0.0215195
+wq_shorelinedistance_75-100       0.1531351       0.1009376       1.5171264       0.1292348
+shorelinedistance_100-150      -0.0482153       0.0355289      -1.3570700       0.1747590
+wq_shorelinedistance_100-150       0.0002459       0.0686339       0.0035821       0.9971419
+shorelinedistance_150-200      -0.0837359       0.0354604      -2.3613901       0.0182066
+wq_shorelinedistance_150-200      -0.0223682       0.0776053      -0.2882300       0.7731707
+shorelinedistance_200-300      -0.1053781       0.0322417      -3.2683765       0.0010817
+wq_shorelinedistance_200-300       0.1063506       0.0675339       1.5747734       0.1153088
+shorelinedistance_300-400      -0.0945035       0.0347762      -2.7174787       0.0065781
+wq_shorelinedistance_300-400       0.1341457       0.0919795       1.4584308       0.1447218
+shorelinedistance_400-600      -0.0461110       0.0313134      -1.4725667       0.1408679
+wq_shorelinedistance_400-600       0.0327771       0.0646740       0.5068051       0.6122916
+shorelinedistance_600-800       0.0026301       0.0317028       0.0829609       0.9338826
+wq_shorelinedistance_600-800      -0.0064690       0.0680470      -0.0950660       0.9242624
+shorelinedistance_800-1600      -0.0146911       0.0279633      -0.5253714       0.5993251
+wq_shorelinedistance_800-1600       0.0781983       0.0556269       1.4057653       0.1597938
+shorelinedistance_1600-3200      -0.0147000       0.0255321      -0.5757453       0.5647873
+wq_shorelinedistance_1600-3200       0.0289563       0.0507567       0.5704923       0.5683438
+              lambda       0.3744140       0.0120970      30.9510172       0.0000000
+------------------------------------------------------------------------------------
+================================ END OF REPORT =====================================
+
+
+{'combine_pre_post': 0, 'period': 1, 'modeltype': 'GM_Error_Het', 'klist': 8, 'xvars': ['secchi', 'bayfront', 'wateraccess', 'wqbayfront', 'wqwateraccess', 'totalbathroomsedited', 'totallivingarea', 'parcel_area', 'distance_park', 'distance_nyc', 'distance_golf', 'education', 'income_real-2015', 'povertylevel', 'pct_white', 'dv_2012', 'dv_2013', 'dv_2014', 'shorelinedistance_0-50', 'wq_shorelinedistance_0-50', 'shorelinedistance_50-75', 'wq_shorelinedistance_50-75', 'shorelinedistance_75-100', 'wq_shorelinedistance_75-100', 'shorelinedistance_100-150', 'wq_shorelinedistance_100-150', 'shorelinedistance_150-200', 'wq_shorelinedistance_150-200', 'shorelinedistance_200-300', 'wq_shorelinedistance_200-300', 'shorelinedistance_300-400', 'wq_shorelinedistance_300-400', 'shorelinedistance_400-600', 'wq_shorelinedistance_400-600', 'shorelinedistance_600-800', 'wq_shorelinedistance_600-800', 'shorelinedistance_800-1600', 'wq_shorelinedistance_800-1600', 'shorelinedistance_1600-3200', 'wq_shorelinedistance_1600-3200'], 'yvar': 'saleprice_real-2015', 'transform': {'ln_wq': 1, 'ln_y': 1}, 'wt_type': 'NN', 'wt_norm': 'rowsum', 'NNscope': 'year', 'distmat': 1, 'cpi-area': 'New York-Newark-Jersey City, NY-NJ-PA', 'cpi-items': 'Housing', 'distance': [50, 75, 100, 150, 200, 300, 400, 600, 800, 1600, 3200]}
+REGRESSION
+----------
+SUMMARY OF OUTPUT: SPATIALLY WEIGHTED LEAST SQUARES (HET)
+---------------------------------------------------------
+Data set            :     unknown
+Weights matrix      :NN-rowsum-year-8
+Dependent Variable  :saleprice_real-2015                Number of Observations:        8799
+Mean dependent var  :     12.9035                Number of Variables   :          41
+S.D. dependent var  :      0.4520                Degrees of Freedom    :        8758
+Pseudo R-squared    :      0.4453
+N. of iterations    :           1                Step1c computed       :          No
+
+------------------------------------------------------------------------------------
+            Variable     Coefficient       Std.Error     z-Statistic     Probability
+------------------------------------------------------------------------------------
+            CONSTANT      12.0890234       0.0388010     311.5644715       0.0000000
+              secchi      -0.0451289       0.0514132      -0.8777682       0.3800695
+            bayfront       0.2631160       0.1086948       2.4206864       0.0154912
+         wateraccess      -0.1604059       0.0525715      -3.0511968       0.0022793
+          wqbayfront       0.4288573       0.1669188       2.5692568       0.0101917
+       wqwateraccess       0.2119650       0.0994106       2.1322170       0.0329890
+totalbathroomsedited       0.0024383       0.0062573       0.3896759       0.6967762
+     totallivingarea       0.0000102       0.0000079       1.2818837       0.1998834
+         parcel_area       0.0000284       0.0000017      16.5238049       0.0000000
+       distance_park      -0.0000069       0.0000137      -0.5039161       0.6143204
+        distance_nyc      -0.0000134       0.0000017      -7.7457591       0.0000000
+       distance_golf       0.0000040       0.0000038       1.0520286       0.2927864
+           education       0.0064930       0.0004420      14.6907154       0.0000000
+    income_real-2015       0.0000010       0.0000002       5.9182376       0.0000000
+        povertylevel      -0.0011635       0.0011467      -1.0146899       0.3102537
+           pct_white       0.0045842       0.0002987      15.3487829       0.0000000
+             dv_2012      -0.0434357       0.0407221      -1.0666381       0.2861353
+             dv_2013      -0.0909539       0.0171202      -5.3126713       0.0000001
+             dv_2014      -0.0505920       0.0151012      -3.3502037       0.0008075
+shorelinedistance_0-50      -0.2941767       0.0822756      -3.5755036       0.0003496
+wq_shorelinedistance_0-50       0.3177988       0.1415552       2.2450517       0.0247648
+shorelinedistance_50-75      -0.2424965       0.0692807      -3.5002017       0.0004649
+wq_shorelinedistance_50-75       0.2179984       0.1208216       1.8043008       0.0711842
+shorelinedistance_75-100      -0.1276940       0.0555953      -2.2968497       0.0216273
+wq_shorelinedistance_75-100       0.1447223       0.1025231       1.4116071       0.1580657
+shorelinedistance_100-150      -0.0546089       0.0373803      -1.4608988       0.1440432
+wq_shorelinedistance_100-150       0.0163903       0.0733960       0.2233139       0.8232912
+shorelinedistance_150-200      -0.0843880       0.0369373      -2.2846277       0.0223347
+wq_shorelinedistance_150-200      -0.0325825       0.0809462      -0.4025200       0.6873014
+shorelinedistance_200-300      -0.1030462       0.0338479      -3.0443905       0.0023315
+wq_shorelinedistance_200-300       0.0999754       0.0699867       1.4284916       0.1531504
+shorelinedistance_300-400      -0.1002360       0.0359725      -2.7864614       0.0053287
+wq_shorelinedistance_300-400       0.1389967       0.0933605       1.4888171       0.1365355
+shorelinedistance_400-600      -0.0525462       0.0329261      -1.5958849       0.1105145
+wq_shorelinedistance_400-600       0.0431529       0.0684758       0.6301927       0.5285685
+shorelinedistance_600-800      -0.0026059       0.0334149      -0.0779848       0.9378401
+wq_shorelinedistance_600-800       0.0180538       0.0716013       0.2521431       0.8009304
+shorelinedistance_800-1600      -0.0161201       0.0300179      -0.5370141       0.5912579
+wq_shorelinedistance_800-1600       0.0742544       0.0600404       1.2367420       0.2161829
+shorelinedistance_1600-3200      -0.0245873       0.0275299      -0.8931131       0.3717966
+wq_shorelinedistance_1600-3200       0.0402422       0.0544274       0.7393742       0.4596798
+              lambda       0.4429657       0.0124344      35.6241048       0.0000000
+------------------------------------------------------------------------------------
+================================ END OF REPORT =====================================
+
+

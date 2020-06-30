@@ -18,6 +18,7 @@ import re
 from copy import deepcopy
 #from mlflow import log_metric, log_param, log_artifact, start_run
 import mlflow
+from datetime import datetime
 #from scipy.sparse import dok_matrix
 
 class SpatialModel():
@@ -44,7 +45,8 @@ class SpatialModel():
         
     def run(self,df=None):
         # https://pysal.org/libpysal/generated/libpysal.weights.W.html#libpysal.weights.W
-        
+        mlflow.set_tracking_uri("http://127.0.0.1:5000")
+        mlflow.set_experiment(f'{datetime.now()}')
         modeldict=self.modeldict
         
         nn=self.modeldict['klist']
@@ -70,25 +72,16 @@ class SpatialModel():
         modeldict_i=deepcopy(modeldict) 
         for idx0 in df_idx_0_list:
             dfi=df.loc[idx0]
-            
             modeldict_i['period']=idx0
-            #print('selecting first 200 obs only')
-            #dfi=dfi.iloc[:200,:]
-            #gdfi=self.buildGeoDF(df=dfi)
-            
             wtlist=self.makeInverseDistanceWeights(dfi,modeldict=modeldict_i)
             wtlistlist.append(wtlist)
             for w,k in zip(wtlist,klist):
                 modeldict_i_k=deepcopy(modeldict_i) 
                 modeldict_i_k['klist']=k
-                with mlflow.start_run(): # mlflow context manager
-                    resultsdict=self.runPysalModel(dfi,w,nn=k,t=idx0,modeldict=modeldict_i_k)
+                mlflow.start_run()#: # mlflow context manager
+                resultsdict=self.runPysalModel(dfi,w,nn=k,t=idx0,modeldict=modeldict_i_k)
+                mlflow.end_run()
                 resultsdictlist.append(resultsdict)
-                '''print('===========================================') # printing via .summary instead
-                print(f'model results for pre0/post1:{idx0} for k:{k}')
-                model=resultsdict['results']
-                for i in range(len(model.name_x)):
-                    print(f'{model.name_x[i]}, beta:{model.betas[i]}, pval:{model.z_stat[i][1]} stderr:{model.std_err[i]}')'''
         return resultsdictlist
     
     def doDistanceVars(self,df,xvarlist,modeldict):
@@ -102,7 +95,7 @@ class SpatialModel():
             return df,xvarlist
         if type(distance_param) is list:
             newxvarlist=[]
-            for xvar in xvarlist)
+            for xvar in xvarlist:
                 if not re.search('shorelinedistance',xvar):
                     newxvarlist.append(xvar) 
             df,xvarlist=self.buildDistanceVarsFromList(df,distance_param,newxvarlist)
@@ -110,24 +103,30 @@ class SpatialModel():
         else: assert False, 'not developed'
         
     def buildDistanceVarsFromList(self,df,cutlist,xvarlist):
-        raw_dist=df.loc[(slice(None),),'distance_shoreline']
-        raw_wq=df.loc[(slice(None),),'secchi']
+        raw_dist=df.loc[(slice(None),),'distance_shoreline'].astype(float)
+        raw_wq=df.loc[(slice(None),),'secchi'].astype(float)
         max_d=raw_dist.max()
         cutlist.sort()
         if cutlist[-1]<max_d:
             cutlist=cutlist+[max_d+1]
         if cutlist[0]!=0:
             cutlist=[0]+cutlist
-        for idx in range(len(cutlist)-1):
-            newvar=f'shorelinedistance_{cutlist[idx]}-{cutlist[idx]}'
+        wateraccess=df.loc[(slice(None),),'wateraccess']
+        bayfront=df.loc[(slice(None),),'bayfront']
+        for idx in range(len(cutlist)-2): # -1 b/c left and right, -2 to omit 1 dv
+            newvar=f'shorelinedistance_{cutlist[idx]}-{cutlist[idx+1]}'
             left=cutlist[idx];right=cutlist[idx+1]
-            df[newvar]=0
-            df[newvar][raw_dist>=left and raw_dist<right]=1
+            df.loc[(slice(None),),newvar]=0
+            df.loc[raw_dist>=left,newvar]=1
+            df.loc[raw_dist>=right,newvar]=0
+            df.loc[wateraccess==1,newvar]=0
+            df.loc[bayfront==1,newvar]=0
+            
             xvarlist.append(newvar)
             newvar_wq='wq_'+newvar
-            df[newvar_wq]=df[newvar]*raw_wq
+            df.loc[(slice(None),),newvar_wq]=df.loc[(slice(None),),newvar]*raw_wq
             xvarlist.append(newvar_wq)
-            
+            #print(df,xvarlist)
         
         return df,xvarlist
     
@@ -157,10 +156,11 @@ class SpatialModel():
         dropyear_dvs=[f'dv_{i}' for i in dropyears]
         [xvarlist.pop(xvarlist.index(var)) for var in dropyear_dvs]
         df,xvarlist=self.doDistanceVars(df,xvarlist,modeldict)
+        modeldict['xvars']=xvarlist
         wqvar_idx_list=[idx for idx,var in enumerate(xvarlist) if re.search('wq',var) or var=='secchi']
         
         
-        x=df.loc[:][xvarlist].to_numpy(dtype=np.float32)
+        x=df.loc[:][xvarlist].to_numpy(dtype=np.float64)
         if do_log_wq:
             for idx in wqvar_idx_list:
                 self.logger.info(f'LogPos transform of variable: {xvarlist[idx]}')
@@ -171,6 +171,7 @@ class SpatialModel():
         self.logger.info(f'x:{x}')
 
         args=[y,x,w]
+        
         kwargs={'name_y':yvar,'name_x':xvarlist,'name_w':f'{wt_type}-{wt_norm}-{NNscope}-{nn}'}
         hashable_key=[args[:2],kwargs] # w probably not hashable, so exclude
         model_filestring=f'_model_{modeltype}'

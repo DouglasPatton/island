@@ -10,7 +10,7 @@ from helpers import Helper
 import matplotlib.pyplot as plt
 #import cpi # imported conditionally, later on #https://github.com/datadesk/cpi
 from data_viz import DataView
-#from datetime import date
+from datetime import datetime
 from models import SpatialModel
 
 class IslandData(DataView):
@@ -27,7 +27,7 @@ class IslandData(DataView):
             format="[%(asctime)s] %(levelname)s [%(name)s.%(funcName)s:%(lineno)d] %(message)s",
             datefmt='%Y-%m-%dT%H:%M:%S')
         self.logger = logging.getLogger(handlername)
-        self.klist=[2,3,4,5,6,7,8]#[25,50,100]
+        self.klist=[2,4,6,8]#[25,50,100]
         self.resultsdictlist=[]
         self.figdict={}
         self.sumstatsdict={}
@@ -92,19 +92,20 @@ class IslandData(DataView):
         modeldict={
                 'combine_pre_post':0,
                 'period':None, # used later to record which time period is included in data for a model
-                'modeltype':'GM_Error_Het',#'OLS',#'GM_Lag',#'SLM',#'SEM',#'SLM',
+                'modeltype':'OLS',#,'GM_Error_Het',#'GM_Lag',#'SLM',#'SEM',#'SLM',
                 'klist':self.klist,
                 #'crs':'epsg:4326',
                 'xvars':xvarlist,
                 'yvar':'saleprice_real-2015',
-                'transform':{'ln_wq':0,'ln_y':1},
-                'wt_type':'NN',#'NN',#'inverse_distance_nn_exp2',#'inverse_distance_NN_exp1',#'inverse_distance',#
+                'transform':{'ln_wq':1,'ln_y':1},
+                'wt_type':'NN',#'inverse_distance_NN',
+                #'inverse_distance_nn_exp2',#'inverse_distance_NN_exp1',#'inverse_distance',#
                 'wt_norm':'rowsum',#'rowmax',#'doublesum',#
                 'NNscope':'year',#'period',#     # 'period' groups obs by pre or post, 'year' groups by year
                 'distmat':1, # 0 if not enough ram to do all NN at once
                 'cpi-area':"New York-Newark-Jersey City, NY-NJ-PA",#"Northeast - Size Class B/C",#
                 'cpi-items':"Housing",
-                'distance':[100*2**x for x in range(6)], #'default'
+                'distance':[50,75,100,150,200,300,400,600,800,1600,3200], #'default'
             }
         return vardict,modeldict,std_transform
     
@@ -119,7 +120,7 @@ class IslandData(DataView):
         self.resultsdictlist.extend(resultdictlist)
         self.saveSpatialModelResults(resultdictlist)
         
-        return self.resultsdictlist
+        #return self.resultsdictlist
     
     def saveSpatialModelResults(self,resultsdict,load=0):
         if load:
@@ -213,7 +214,8 @@ class IslandData(DataView):
         except: 
             resultsdictlist=self.saveSpatialModelResults([],load=1)
         I=len(resultsdictlist)
-        summary_text='Model Summaries\n'+f'for {I}  models\n'
+        summary_text='Model Summaries\n'+f'for {I}  models\nPrinted on {datetime.now()}\n'
+        
         
         resultsdictflatlist=self.flattenListList(resultsdictlist)
         for resultsdict in resultsdictflatlist:
