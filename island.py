@@ -103,7 +103,8 @@ class IslandData(DataView):
                 'NNscope':'year',#'period',#     # 'period' groups obs by pre or post, 'year' groups by year
                 'distmat':1, # 0 if not enough ram to do all NN at once
                 'cpi-area':"New York-Newark-Jersey City, NY-NJ-PA",#"Northeast - Size Class B/C",#
-                'cpi-items':"Housing"
+                'cpi-items':"Housing",
+                'distance':[100*2**x for x in range(6)], #'default'
             }
         return vardict,modeldict,std_transform
     
