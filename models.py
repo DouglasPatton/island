@@ -91,6 +91,22 @@ class SpatialModel():
                     print(f'{model.name_x[i]}, beta:{model.betas[i]}, pval:{model.z_stat[i][1]} stderr:{model.std_err[i]}')'''
         return resultsdictlist
     
+    def doDistanceVars(self,df,xvarlist,modeldict):
+        try:
+            distance_param=modeldict['distance']
+        except KeyError:
+            distance_param='default'
+        except:
+            assert False, 'unexpected'
+        if distance_param=='default':
+            return df,xvarlist
+        if type(distance_param) is list:
+            newxvarlist=[]
+            for xvar in xvarlist)
+                if not re.search('shorelinedistance',xvar):
+                    newxvarlist.append(xvar) 
+        distance_arr=df.[]
+    
     def runPysalModel(self,df,w,nn=None,t=None,modeldict=None):
         if modeldict is None: modeldict=self.modeldict
         wt_type=modeldict['wt_type']
@@ -110,12 +126,13 @@ class SpatialModel():
         if t in [0,1]:
             dropyears=dropyearslist[t]     
             if t:
-                dropyears.append('2015') #drop the excluded dummy
+                dropyears.append('2015') #drop the excluded dummy too
             else:
                 dropyears.append('2003')
         else: assert False, 'halt, not developed'
         dropyear_dvs=[f'dv_{i}' for i in dropyears]
         [xvarlist.pop(xvarlist.index(var)) for var in dropyear_dvs]
+        df,xvarlist=self.doDistanceVars(df,xvarlist,modeldict)
         wqvar_idx_list=[idx for idx,var in enumerate(xvarlist) if re.search('wq',var) or var=='secchi']
         
         
