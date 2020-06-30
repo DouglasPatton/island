@@ -105,7 +105,31 @@ class SpatialModel():
             for xvar in xvarlist)
                 if not re.search('shorelinedistance',xvar):
                     newxvarlist.append(xvar) 
-        distance_arr=df.[]
+            df,xvarlist=self.buildDistanceVarsFromList(df,distance_param,newxvarlist)
+            return df,xvarlist
+        else: assert False, 'not developed'
+        
+    def buildDistanceVarsFromList(self,df,cutlist,xvarlist):
+        raw_dist=df.loc[(slice(None),),'distance_shoreline']
+        raw_wq=df.loc[(slice(None),),'secchi']
+        max_d=raw_dist.max()
+        cutlist.sort()
+        if cutlist[-1]<max_d:
+            cutlist=cutlist+[max_d+1]
+        if cutlist[0]!=0:
+            cutlist=[0]+cutlist
+        for idx in range(len(cutlist)-1):
+            newvar=f'shorelinedistance_{cutlist[idx]}-{cutlist[idx]}'
+            left=cutlist[idx];right=cutlist[idx+1]
+            df[newvar]=0
+            df[newvar][raw_dist>=left and raw_dist<right]=1
+            xvarlist.append(newvar)
+            newvar_wq='wq_'+newvar
+            df[newvar_wq]=df[newvar]*raw_wq
+            xvarlist.append(newvar_wq)
+            
+        
+        return df,xvarlist
     
     def runPysalModel(self,df,w,nn=None,t=None,modeldict=None):
         if modeldict is None: modeldict=self.modeldict
