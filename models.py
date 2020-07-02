@@ -78,7 +78,8 @@ class SpatialModel():
             for w,k in zip(wtlist,klist):
                 modeldict_i_k=deepcopy(modeldict_i) 
                 modeldict_i_k['klist']=k
-                mlflow.start_run()#: # mlflow context manager
+                try:mlflow.start_run()#: # mlflow context manager
+                except:mlflow.end_run();mlflow.start_run()
                 resultsdict=self.runPysalModel(dfi,w,nn=k,t=idx0,modeldict=modeldict_i_k)
                 mlflow.end_run()
                 resultsdictlist.append(resultsdict)

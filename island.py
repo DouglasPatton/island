@@ -86,7 +86,7 @@ class IslandData(DataView):
             'shorelinedistancedv2000_3000',
             'wqshorelinedistancedv3_1000','wqshorelinedistancedv1000_2000',
             'wqshorelinedistancedv2000_3000',
-            'education','income_real-2015','povertylevel','pct_white']
+            'education','income','povertylevel','pct_white']
         xvarlist.extend(self.yeardummylist)
         
         modeldict={
@@ -97,7 +97,7 @@ class IslandData(DataView):
                 #'crs':'epsg:4326',
                 'xvars':xvarlist,
                 'yvar':'saleprice_real-2015',
-                'transform':{'ln_wq':1,'ln_y':1},
+                'transform':{'ln_wq':0,'ln_y':1},
                 'wt_type':'NN',#'inverse_distance_NN',
                 #'inverse_distance_nn_exp2',#'inverse_distance_NN_exp1',#'inverse_distance',#
                 'wt_norm':'rowsum',#'rowmax',#'doublesum',#
@@ -105,7 +105,7 @@ class IslandData(DataView):
                 'distmat':1, # 0 if not enough ram to do all NN at once
                 'cpi-area':"New York-Newark-Jersey City, NY-NJ-PA",#"Northeast - Size Class B/C",#
                 'cpi-items':"Housing",
-                'distance':[50,75,100,150,200,300,400,600,800,1600,3200], #'default'
+                'distance':[50,75,100,150,200,300,400,600,800,1200,1600,3200], #'default'
                 'cpi_dollar_vars':['saleprice','assessedvalue']
             }
         return vardict,modeldict,std_transform
