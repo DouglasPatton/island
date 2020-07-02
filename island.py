@@ -49,7 +49,7 @@ class IslandData(DataView):
         self.vardict,self.modeldict,self.std_transform=self.setmodel()
         self.varlist=[var for var in self.vardict]
         self.geogvars=['latitude','longitude']
-        self.dollarvars=['saleprice','assessedvalue','income']
+        
         
         self.fig=None;self.ax=None
         self.figheight=10;self.figwidth=10
@@ -106,6 +106,7 @@ class IslandData(DataView):
                 'cpi-area':"New York-Newark-Jersey City, NY-NJ-PA",#"Northeast - Size Class B/C",#
                 'cpi-items':"Housing",
                 'distance':[50,75,100,150,200,300,400,600,800,1600,3200], #'default'
+                'cpi_dollar_vars':['saleprice','assessedvalue']
             }
         return vardict,modeldict,std_transform
     
@@ -485,24 +486,21 @@ class IslandData(DataView):
     def addRealByCPI(self,to_year=2015):
         try:self.time_arraytup
         except: self.makeTimeListArrayList()
-            
+        cpi_dollar_vars=self.modeldict['cpi_dollar_vars']    
         try:
-            dollarvarcount=self.dollarvars
             deflated_array_list=[]
             timelist_arraylist,varlist=self.time_arraytup
             cpi_factor_list=self.getCPI(to_year=2015)
             for t in range(len(timelist_arraylist)):
                 nparraylist=timelist_arraylist[t]
-                
-                #deflated_var_array=np.empty(nparray.shape[0],dollarvarcount,dtype=np.float64)
-                for dollarvar in self.dollarvars:
+                for dollarvar in cpi_dollar_vars:
                     var_idx=varlist.index(dollarvar)
                     cpi_factor=cpi_factor_list[t]
                     real_dollar_array=nparraylist[var_idx]*cpi_factor
                     nparraylist.append(real_dollar_array)
                     #nparray=np.concatenate([nparray,np.float64(nparray[:,var_idx][:,None])*cpi_factor],axis=1) 
                 timelist_arraylist[t]=nparraylist
-            for var in self.dollarvars:#separate loop since just happens once per t
+            for var in cpi_dollar_vars:#separate loop since just happens once per t
                 newname=var+'_real-'+str(to_year)
                 varlist.append(newname)
                 #if newname[:4]!='sale':
