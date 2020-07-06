@@ -8,7 +8,7 @@ import logging
 from logging import handlers
 from helpers import Helper
 import matplotlib.pyplot as plt
-#import cpi # imported conditionally, later on #https://github.com/datadesk/cpi
+import cpi # imported conditionally, later on #https://github.com/datadesk/cpi
 from data_viz import DataView
 from datetime import datetime
 from models import SpatialModel
@@ -86,7 +86,7 @@ class IslandData(DataView):
             'shorelinedistancedv2000_3000',
             'wqshorelinedistancedv3_1000','wqshorelinedistancedv1000_2000',
             'wqshorelinedistancedv2000_3000',
-            'education','income','povertylevel','pct_white']
+            'education','income_real-2015','povertylevel','pct_white']
         xvarlist.extend(self.yeardummylist)
         
         modeldict={
@@ -105,8 +105,8 @@ class IslandData(DataView):
                 'distmat':1, # 0 if not enough ram to do all NN at once
                 'distance':[50,75,100,150,200,300,400,600,800,1200,1600,3200], #'default'
                 'cpi_dollar_vars':{
-                    'saleprice':{'cpi-area':"New York-Newark-Jersey City, NY-NJ-PA",'cpi-items':"Housing"},
-                    'income':{'cpi-area':"New York-Newark-Jersey City, NY-NJ-PA"}
+                    'saleprice':{'area':"New York-Newark-Jersey City, NY-NJ-PA",'items':"Housing"},
+                    'income':{'area':"New York-Newark-Jersey City, NY-NJ-PA"}
                 }
             }
         return vardict,modeldict,std_transform
@@ -456,15 +456,15 @@ class IslandData(DataView):
         return timelist_arraylist,varlist
     
     
-    def getCPI(self,to_year=2015,cpi_options={}):
+    def getCPI(self,to_year=2015,cpi_kwargs={}):
         #modeldict=self.modeldict
-        kwargs={}
-        if 'cpi-area' in cpi_options:
-            kwargs['area']=cpi_options['cpi-area']
-        if 'cpi-items' in cpi_options:
-            kwargs['items']=cpi_options['cpi-items']
-        kwargs['to']=to_year
-        kwargstring=''.join([key+"-"+str(val)+'_' for key,val in kwargs.items()])
+        '''kwargs={}
+        if 'cpi-area' in cpi_kwargs:
+            kwargs['area']=cpi_kwargs['cpi-area']
+        if 'cpi-items' in cpi_kwargs:
+            kwargs['items']=cpi_kwargs['cpi-items']'''
+        cpi_kwargs['to']=to_year
+        kwargstring=''.join([key+"-"+str(val)+'_' for key,val in cpi_kwargs.items()])
         stem=f'cpi_factors-{kwargstring}.json'
         excludechars=['\\', '/', ',',' ']
         stem=''.join([char for char in stem if char not in excludechars])
@@ -475,10 +475,11 @@ class IslandData(DataView):
             return cpi_factors
         except:
             self.logger.info('building cpi_factors')
-        import cpi
+        #import cpi
         cpi_factor_list=[]
         for t in self.timelist:#
-            cpi_factor=np.float64(cpi.inflate(1,int(t),**kwargs))
+            
+            cpi_factor=np.float64(cpi.inflate(1,int(t),**cpi_kwargs))
             cpi_factor_list.append(cpi_factor)
         with open(cpi_factors_path,'w') as f:
             json.dump(cpi_factor_list,f)
@@ -491,8 +492,8 @@ class IslandData(DataView):
         try:
             deflated_array_list=[]
             timelist_arraylist,varlist=self.time_arraytup
-            for dollarvar,kwargs in cpi_dollar_vars.items():
-                cpi_factor_list=self.getCPI(to_year=2015,**kwargs)
+            for dollarvar,cpi_kwargs in cpi_dollar_vars.items():
+                cpi_factor_list=self.getCPI(to_year=2015,cpi_kwargs=cpi_kwargs)
                 for t in range(len(timelist_arraylist)):
                     nparraylist=timelist_arraylist[t]
                     var_idx=varlist.index(dollarvar)
