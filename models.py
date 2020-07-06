@@ -174,32 +174,32 @@ class SpatialModel():
         args=[y,x,w]
         
         kwargs={'name_y':yvar,'name_x':xvarlist,'name_w':f'{wt_type}-{wt_norm}-{NNscope}-{nn}'}
-        hashable_key=[args[:2],kwargs] # w probably not hashable, so exclude
+        
+        if modeltype.lower()=='sem':
+            estimator=pysal_model.spreg.ML_Error
+        elif modeltype.lower()=='slm':
+            estimator=pysal_model.spreg.ML_Lag
+        elif modeltype.lower()=='ols':
+            kwargs['spat_diag']=True
+            estimator=pysal_model.spreg.OLS
+        elif modeltype.lower()=='gm_error_het':
+            estimator=pysal_model.spreg.GM_Error_Het
+            kwargs['w']=args.pop(-1) #  move arg to kwarg for these estimators
+        elif modeltype.lower()=='gm_combo_het':
+            estimator=pysal_model.spreg.GM_Combo_Het
+            kwargs['w']=args.pop(-1)
+        elif modeltype.lower()=='gm_lag':
+            estimator=pysal_model.spreg.GM_Lag
+            kwargs['w']=args.pop(-1)
+                
+        hashable_key=[args[:2],{key:val for key,val in kwargs.items() if key!='w'}] # w probably not hashable, so exclude
         model_filestring=f'_model_{modeltype}'
         trysavedmodel=self.checkForSaveHash(hashable_key,filestring=model_filestring)
         self.logparams(modeldict)
         if trysavedmodel:
             self.logger.warning(f'hashkeysaved model model already exists for modeldict:{modeldict}, skipping')
-            model=trysavedmodel
+            model=trysavedmodel         
         else:
-            if modeltype.lower()=='sem':
-                estimator=pysal_model.spreg.ML_Error
-            elif modeltype.lower()=='slm':
-                estimator=pysal_model.spreg.ML_Lag
-            elif modeltype.lower()=='ols':
-                kwargs['spat_diag']=True
-                estimator=pysal_model.spreg.OLS
-            elif modeltype.lower()=='gm_error_het':
-                estimator=pysal_model.spreg.GM_Error_Het
-                kwargs['w']=args.pop(-1) #  move arg to kwarg for these estimators
-            elif modeltype.lower()=='gm_combo_het':
-                estimator=pysal_model.spreg.GM_Combo_Het
-                kwargs['w']=args.pop(-1)
-            elif modeltype.lower()=='gm_lag':
-                estimator=pysal_model.spreg.GM_Lag
-                kwargs['w']=args.pop(-1)
-                
-                
             model=estimator(*args,**kwargs) # this is it!
             try:
                 mlflow.log_metric('Pseudo_R2',model.pr2)

@@ -12,6 +12,7 @@ import cpi # imported conditionally, later on #https://github.com/datadesk/cpi
 from data_viz import DataView
 from datetime import datetime
 from models import SpatialModel
+from math import floor,log10
 
 class IslandData(DataView):
     def __init__(self,dpi=100):
@@ -108,6 +109,7 @@ class IslandData(DataView):
                     'saleprice':{'area':"New York-Newark-Jersey City, NY-NJ-PA",'items':"Housing"},
                     'income':{'area':"New York-Newark-Jersey City, NY-NJ-PA"}
                 }
+
             }
         return vardict,modeldict,std_transform
     
@@ -209,7 +211,7 @@ class IslandData(DataView):
             sdict[key]=sval
         return sdict
         
-    def printModelSummary(self,):
+    def printModelSummary(self,stars=None):
         try: 
             assert self.resultsdictlist,"results not loaded, loading results"
             resultsdictlist=self.resultsdictlist
@@ -220,19 +222,52 @@ class IslandData(DataView):
         
         
         resultsdictflatlist=self.flattenListList(resultsdictlist)
+        
         for resultsdict in resultsdictflatlist:
             modeldict=resultsdict['modeldict']
             modelresult=resultsdict['results']
             summary_text+=str(modeldict)+'\n'
-            summary_text+=modelresult.summary+'\n\n\n'
-        try: 
-            with open('modelresults.txt','r') as f:
-                old=f.read()
-            summary_text=old+'\n------------------\n\n'+summary_text
-        except:
-            self.logger.exception('error reading modelresults.txt')
-        with open('modelresults.txt','w') as f:
+            if stars:
+                try:
+                    pvals=[i[1] for i in modelresult.z_stat]
+                except AttributeError:
+                    pvals=[i[1] for i in modelresult.t_stat]
+                except:
+                    assert False, 'unexpected'
+                betas=[i[0] for i in modelresult.betas] # b/c each beta is stored as a list with 1 item
+                summary_text+=self.doStars(modelresult.name_x,betas,pvals)+'\n\n\n'
+            else:    
+                summary_text+=modelresult.summary+'\n\n\n'
+
+        
+        if stars:
+            savepath='modelresults_stars.txt'
+        else:
+            savepath='modelresults.txt'
+        savepath=self.helper.getname(savepath)
+        with open(savepath,'w') as f:
             f.write(summary_text)
+    def doStars(self,names,betas,pvals,round_digits=5):        
+        text=''
+        if round_digits:
+            betas=[self.round_sig(beta,round_digits) for beta in betas]
+        for i in range(len(names)):
+            text+=f'{names[i]},{betas[i]}{self.starFromPval(pvals[i])}\n'
+        return text
+    
+    def round_sig(self,x, dig=2):
+        return round(x, dig-int(floor(log10(abs(x))))-1)
+    
+    def starFromPval(self,pval):
+        rounded_pval=round(pval,2)
+        if rounded_pval>0.1:
+            return ''
+        elif rounded_pval>0.5:
+            return '*'
+        elif rounded_pval>0.01:
+            return '**'
+        else:
+            return '***'
             
             
     
