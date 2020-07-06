@@ -103,10 +103,11 @@ class IslandData(DataView):
                 'wt_norm':'rowsum',#'rowmax',#'doublesum',#
                 'NNscope':'year',#'period',#     # 'period' groups obs by pre or post, 'year' groups by year
                 'distmat':1, # 0 if not enough ram to do all NN at once
-                'cpi-area':"New York-Newark-Jersey City, NY-NJ-PA",#"Northeast - Size Class B/C",#
-                'cpi-items':"Housing",
                 'distance':[50,75,100,150,200,300,400,600,800,1200,1600,3200], #'default'
-                'cpi_dollar_vars':['saleprice','assessedvalue']
+                'cpi_dollar_vars':{
+                    'saleprice':{'cpi-area':"New York-Newark-Jersey City, NY-NJ-PA",'cpi-items':"Housing"},
+                    'income':{'cpi-area':"New York-Newark-Jersey City, NY-NJ-PA"}
+                }
             }
         return vardict,modeldict,std_transform
     
@@ -173,7 +174,7 @@ class IslandData(DataView):
             resultsdata['stderrlist']=np.array(modelresult.std_err)
             zstatlist,pvallist=zip(*modelresult.z_stat)
             resultsdata['zstatlist']=np.array(zstatlist)
-            resultsdata['pvallist']=np.array(pvallist)
+            resultsdata['pvallist']=npmodeldict.array(pvallist)
             self.logger.info(f'resultsdata:{resultsdata}')
             resultsdf=pd.DataFrame(resultsdata)
             resultDFdict={'modeldict':modeldict,'resultsdf':resultsdf}
@@ -455,13 +456,13 @@ class IslandData(DataView):
         return timelist_arraylist,varlist
     
     
-    def getCPI(self,to_year=2015):
-        modeldict=self.modeldict
+    def getCPI(self,to_year=2015,cpi_options={}):
+        #modeldict=self.modeldict
         kwargs={}
-        if 'cpi-area' in modeldict:
-            kwargs['area']=modeldict['cpi-area']
-        if 'cpi-items' in modeldict:
-            kwargs['items']=modeldict['cpi-items']
+        if 'cpi-area' in cpi_options:
+            kwargs['area']=cpi_options['cpi-area']
+        if 'cpi-items' in cpi_options:
+            kwargs['items']=cpi_options['cpi-items']
         kwargs['to']=to_year
         kwargstring=''.join([key+"-"+str(val)+'_' for key,val in kwargs.items()])
         stem=f'cpi_factors-{kwargstring}.json'
@@ -490,18 +491,17 @@ class IslandData(DataView):
         try:
             deflated_array_list=[]
             timelist_arraylist,varlist=self.time_arraytup
-            cpi_factor_list=self.getCPI(to_year=2015)
-            for t in range(len(timelist_arraylist)):
-                nparraylist=timelist_arraylist[t]
-                for dollarvar in cpi_dollar_vars:
+            for dollarvar,kwargs in cpi_dollar_vars.items():
+                cpi_factor_list=self.getCPI(to_year=2015,**kwargs)
+                for t in range(len(timelist_arraylist)):
+                    nparraylist=timelist_arraylist[t]
                     var_idx=varlist.index(dollarvar)
                     cpi_factor=cpi_factor_list[t]
                     real_dollar_array=nparraylist[var_idx]*cpi_factor
                     nparraylist.append(real_dollar_array)
                     #nparray=np.concatenate([nparray,np.float64(nparray[:,var_idx][:,None])*cpi_factor],axis=1) 
                 timelist_arraylist[t]=nparraylist
-            for var in cpi_dollar_vars:#separate loop since just happens once per t
-                newname=var+'_real-'+str(to_year)
+                newname=dollarvar+'_real-'+str(to_year)
                 varlist.append(newname)
                 #if newname[:4]!='sale':
                 #    self.std_transform.append(newname) #these will be standardized
