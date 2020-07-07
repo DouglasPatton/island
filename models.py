@@ -113,7 +113,8 @@ class SpatialModel():
         [xvarlist.pop(xvarlist.index(var)) for var in dropyear_dvs]
         #df,xvarlist=self.doDistanceVars(df,xvarlist,modeldict)
         modeldict['xvars']=xvarlist
-        wqvar_idx_list=[idx for idx,var in enumerate(xvarlist) if re.search('wq',var) or var=='secchi']
+        self.logger.info(f'xvarlist:{xvarlist}')
+        wqvar_idx_list=[idx for idx,var in enumerate(xvarlist) if re.search('wq',var) or re.search('secchi',var)]
         
         
         x=df.loc[:][xvarlist].to_numpy(dtype=np.float64)

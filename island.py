@@ -149,7 +149,7 @@ class IslandData(DataView):
         wateraccess=df.loc[(slice(None),),'wateraccess']
         bayfront=df.loc[(slice(None),),'bayfront']
         for idx in range(len(cutlist)-2): # -1 b/c left and right, -2 to omit 1 dv
-            newvar=f'shorelinedistance_{cutlist[idx]}-{cutlist[idx+1]}'
+            newvar=f'Distance to Shoreline {cutlist[idx]}m-{cutlist[idx+1]}m'
             left=cutlist[idx];right=cutlist[idx+1]
             df.loc[(slice(None),),newvar]=0
             df.loc[raw_dist>=left,newvar]=1
@@ -158,7 +158,7 @@ class IslandData(DataView):
             df.loc[bayfront==1,newvar]=0
             
             xvarlist.append(newvar)
-            newvar_wq='wq_'+newvar
+            newvar_wq='secchi*'+newvar
             df.loc[(slice(None),),newvar_wq]=df.loc[(slice(None),),newvar]*raw_wq
             xvarlist.append(newvar_wq)
             #print(df,xvarlist)
@@ -300,6 +300,7 @@ class IslandData(DataView):
         savepath=self.helper.getname(savepath)
         with open(savepath,'w') as f:
             f.write(summary_text)
+            
     def doStars(self,names,betas,pvals,round_digits=5):        
         text=''
         if round_digits:
@@ -309,6 +310,7 @@ class IslandData(DataView):
         return text
     
     def round_sig(self,x, dig=2):
+        if x==0: return x
         return round(x, dig-int(floor(log10(abs(x))))-1)
     
     def starFromPval(self,pval):
@@ -349,14 +351,22 @@ class IslandData(DataView):
             f.write(modeltablehtml)
             
     
-            
-            
+    def changeVarlistWQtoSecchi(self,varlist):
+        newlist=[]
+        for var in varlist:
+            if var[0:2]=='wq':
+                newlist.append('secchi*'+var[2:])
+            else:newlist.append(var)
+        
+        return newlist
     
             
     def arrayListToPandasDF(self,):
         try:self.time_arraytup
         except: self.makeTimeListArrayList()
         timelist_arraylist,varlist=self.time_arraytup
+        varlist=self.changeVarlistWQtoSecchi(varlist)
+        self.modeldict['xvars']=self.changeVarlistWQtoSecchi(self.modeldict['xvars'])
         [nparraylist.append(np.arange(nparraylist[0].shape[0])) for nparraylist in timelist_arraylist] #appending a column to serve as idx
         varlist.append('idx') # name the new column 'idx'                                           
         columnlist=[np.concatenate([nparraylist[varidx] for nparraylist in timelist_arraylist],axis=0) for varidx in range(len(varlist))]
@@ -405,13 +415,27 @@ class IslandData(DataView):
         table2path=self.helper.getname(os.path.join('print','table2.txt'))
         table2=f'created on{datetime.now()}\n\n'
         metric=['mean','std','min','max']
+        descrip_list=[]
+        binaries='\n\n\nBinaries\n\n'
         for xvar in xvarlist:
+            if xvar[0:2]=='wq':
+                xvar='secchi*'+xvar[2:]
             table2+=xvar+','
             for level in [0,1]: # pre and post-sandy
                 descrip=df.loc[level][xvar].describe()
+                descrip_list.append(descrip)
                 for m in metric:
-                    table2+=str(descrip[m])+','
+                    table2+=f'{round(descrip[m],1)},'
+                if descrip['min']==0 and descrip['max']==1:
+                    binaries+=f'level_{level}-{xvar},{descrip["mean"]*descrip["count"]}\n'
+                    
+                    
             table2+='\n'
+            
+        table2+=binaries
+            
+        
+        
         with open(table2path,'w') as f:
             f.write(table2)
             
@@ -421,7 +445,7 @@ class IslandData(DataView):
         
     def printDFtoSumStats(self,df=None,varlist=None):
         pd.set_option('display.max_colwidth', None)
-        printpath=os.path.join(self.printdir,'sumstats.html')
+        
         if df is None:
             df=self.df
         if varlist is None:
@@ -433,6 +457,8 @@ class IslandData(DataView):
             html_list.append(levels[level]+'<br>'+df.loc[level].describe().to_html())
         
         self.sumstats_html='<br>'.join(html_list)
+        printpath=self.helper.getname(os.path.join(self.printdir,'sumstats.html'))
+        
         with open(printpath,'w') as f:
             f.write(self.sumstats_html) 
         
