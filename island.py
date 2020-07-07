@@ -8,7 +8,7 @@ import logging
 from logging import handlers
 from helpers import Helper
 import matplotlib.pyplot as plt
-import cpi # imported conditionally, later on #https://github.com/datadesk/cpi
+#import cpi # imported conditionally, later on #https://github.com/datadesk/cpi
 from data_viz import DataView
 from datetime import datetime
 from models import SpatialModel
@@ -29,7 +29,7 @@ class IslandData(DataView):
             format="[%(asctime)s] %(levelname)s [%(name)s.%(funcName)s:%(lineno)d] %(message)s",
             datefmt='%Y-%m-%dT%H:%M:%S')
         self.logger = logging.getLogger(handlername)
-        self.klist=[2,4,6,8]#[25,50,100]
+        self.klist=[16,32,64]#[25,50,100]
         self.resultsdictlist=[]
         self.figdict={}
         self.sumstatsdict={}
@@ -100,7 +100,7 @@ class IslandData(DataView):
                 'xvars':xvarlist,
                 'yvar':'saleprice_real-2015',
                 'transform':{'ln_wq':0,'ln_y':1},
-                'wt_type':'NN',#'inverse_distance_NN',
+                'wt_type':'inverse_distance_NN_exp2',#'inverse_distance_NN',
                 #'inverse_distance_nn_exp2',#'inverse_distance_NN_exp1',#'inverse_distance',#
                 'wt_norm':'rowsum',#'rowmax',#'doublesum',#
                 'NNscope':'year',#'period',#     # 'period' groups obs by pre or post, 'year' groups by year
