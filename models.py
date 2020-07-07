@@ -85,51 +85,6 @@ class SpatialModel():
                 resultsdictlist.append(resultsdict)
         return resultsdictlist
     
-    def doDistanceVars(self,df,xvarlist,modeldict):
-        try:
-            distance_param=modeldict['distance']
-        except KeyError:
-            distance_param='default'
-        except:
-            assert False, 'unexpected'
-        if distance_param=='default':
-            return df,xvarlist
-        if type(distance_param) is list:
-            newxvarlist=[]
-            for xvar in xvarlist:
-                if not re.search('shorelinedistance',xvar):
-                    newxvarlist.append(xvar) 
-            df,xvarlist=self.buildDistanceVarsFromList(df,distance_param,newxvarlist)
-            return df,xvarlist
-        else: assert False, 'not developed'
-        
-    def buildDistanceVarsFromList(self,df,cutlist,xvarlist):
-        raw_dist=df.loc[(slice(None),),'distance_shoreline'].astype(float)
-        raw_wq=df.loc[(slice(None),),'secchi'].astype(float)
-        max_d=raw_dist.max()
-        cutlist.sort()
-        if cutlist[-1]<max_d:
-            cutlist=cutlist+[max_d+1]
-        if cutlist[0]!=0:
-            cutlist=[0]+cutlist
-        wateraccess=df.loc[(slice(None),),'wateraccess']
-        bayfront=df.loc[(slice(None),),'bayfront']
-        for idx in range(len(cutlist)-2): # -1 b/c left and right, -2 to omit 1 dv
-            newvar=f'shorelinedistance_{cutlist[idx]}-{cutlist[idx+1]}'
-            left=cutlist[idx];right=cutlist[idx+1]
-            df.loc[(slice(None),),newvar]=0
-            df.loc[raw_dist>=left,newvar]=1
-            df.loc[raw_dist>=right,newvar]=0
-            df.loc[wateraccess==1,newvar]=0
-            df.loc[bayfront==1,newvar]=0
-            
-            xvarlist.append(newvar)
-            newvar_wq='wq_'+newvar
-            df.loc[(slice(None),),newvar_wq]=df.loc[(slice(None),),newvar]*raw_wq
-            xvarlist.append(newvar_wq)
-            #print(df,xvarlist)
-        
-        return df,xvarlist
     
     def runPysalModel(self,df,w,nn=None,t=None,modeldict=None):
         if modeldict is None: modeldict=self.modeldict
@@ -143,7 +98,7 @@ class SpatialModel():
         do_log_wq=transform_dict['ln_wq']
         y=df.loc[:][yvar].to_numpy(dtype=np.float32)[:,None]#make 2 dimensionsl for spreg
         if do_log_y: y=np.log(y)
-        xvarlist=modeldict['xvars'].copy()
+        xvarlist=modeldict['xvars']
         preSdropyears=[i for i in range(2013,2016)]# 2015+1 b/c python
         postSdropyears=[i for i in range(2002,2012)]# 2011+1 b/c python
         dropyearslist=[preSdropyears,postSdropyears]
@@ -156,7 +111,7 @@ class SpatialModel():
         else: assert False, 'halt, not developed'
         dropyear_dvs=[f'dv_{i}' for i in dropyears]
         [xvarlist.pop(xvarlist.index(var)) for var in dropyear_dvs]
-        df,xvarlist=self.doDistanceVars(df,xvarlist,modeldict)
+        #df,xvarlist=self.doDistanceVars(df,xvarlist,modeldict)
         modeldict['xvars']=xvarlist
         wqvar_idx_list=[idx for idx,var in enumerate(xvarlist) if re.search('wq',var) or var=='secchi']
         

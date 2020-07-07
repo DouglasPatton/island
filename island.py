@@ -13,6 +13,7 @@ from data_viz import DataView
 from datetime import datetime
 from models import SpatialModel
 from math import floor,log10
+import re
 
 class IslandData(DataView):
     def __init__(self,dpi=100):
@@ -112,6 +113,58 @@ class IslandData(DataView):
 
             }
         return vardict,modeldict,std_transform
+    
+    
+    def doDistanceVars(self):
+        modeldict=self.modeldict
+        df=self.df
+        xvarlist=modeldict['xvars']
+        
+        try:
+            distance_param=modeldict['distance']
+        except KeyError:
+            distance_param='default'
+        except:
+            assert False, 'unexpected'
+        if distance_param=='default':
+            return 
+        if type(distance_param) is list:
+            newxvarlist=[]
+            for xvar in xvarlist:
+                if not re.search('shorelinedistance',xvar):
+                    newxvarlist.append(xvar) 
+            self.df,self.modeldict['xvars']=self.buildDistanceVarsFromList(df,distance_param,newxvarlist)
+            
+        else: assert False, 'not developed'
+        
+    def buildDistanceVarsFromList(self,df,cutlist,xvarlist):
+        raw_dist=df.loc[(slice(None),),'distance_shoreline'].astype(float)
+        raw_wq=df.loc[(slice(None),),'secchi'].astype(float)
+        max_d=raw_dist.max()
+        cutlist.sort()
+        if cutlist[-1]<max_d:
+            cutlist=cutlist+[max_d+1]
+        if cutlist[0]!=0:
+            cutlist=[0]+cutlist
+        wateraccess=df.loc[(slice(None),),'wateraccess']
+        bayfront=df.loc[(slice(None),),'bayfront']
+        for idx in range(len(cutlist)-2): # -1 b/c left and right, -2 to omit 1 dv
+            newvar=f'shorelinedistance_{cutlist[idx]}-{cutlist[idx+1]}'
+            left=cutlist[idx];right=cutlist[idx+1]
+            df.loc[(slice(None),),newvar]=0
+            df.loc[raw_dist>=left,newvar]=1
+            df.loc[raw_dist>=right,newvar]=0
+            df.loc[wateraccess==1,newvar]=0
+            df.loc[bayfront==1,newvar]=0
+            
+            xvarlist.append(newvar)
+            newvar_wq='wq_'+newvar
+            df.loc[(slice(None),),newvar_wq]=df.loc[(slice(None),),newvar]*raw_wq
+            xvarlist.append(newvar_wq)
+            #print(df,xvarlist)
+        
+        return df,xvarlist
+    
     
     def runSpatialModel(self,modeldict=None,justW=0):
         if modeldict is None:
@@ -295,7 +348,7 @@ class IslandData(DataView):
         with open('semresults.html','w') as f:
             f.write(modeltablehtml)
             
-
+    
             
             
     
@@ -341,6 +394,28 @@ class IslandData(DataView):
         else:
             self.logger.info(f'varname:{varname} already standardized')
             return aseries
+        
+        
+    def makeTable2(self,df=None,modeldict=None):
+        if df is None:
+            df=self.df
+        if modeldict is None:
+            modeldict=self.modeldict
+        xvarlist=modeldict['xvars']
+        table2path=self.helper.getname(os.path.join('print','table2.txt'))
+        table2=f'created on{datetime.now()}\n\n'
+        metric=['mean','std','min','max']
+        for xvar in xvarlist:
+            table2+=xvar+','
+            for level in [0,1]: # pre and post-sandy
+                descrip=df.loc[level][xvar].describe()
+                for m in metric:
+                    table2+=str(descrip[m])+','
+            table2+='\n'
+        with open(table2path,'w') as f:
+            f.write(table2)
+            
+        
         
     
         
