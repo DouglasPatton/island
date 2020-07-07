@@ -12,7 +12,7 @@ import matplotlib.pyplot as plt
 from data_viz import DataView
 from datetime import datetime
 from models import SpatialModel
-from math import floor,log10
+from math import floor,log10,ceil
 import re
 
 class IslandData(DataView):
@@ -143,7 +143,7 @@ class IslandData(DataView):
         max_d=raw_dist.max()
         cutlist.sort()
         if cutlist[-1]<max_d:
-            cutlist=cutlist+[max_d+1]
+            cutlist=cutlist+[ceil(max_d)]
         if cutlist[0]!=0:
             cutlist=[0]+cutlist
         wateraccess=df.loc[(slice(None),),'wateraccess']
@@ -153,7 +153,7 @@ class IslandData(DataView):
             left=cutlist[idx];right=cutlist[idx+1]
             df.loc[(slice(None),),newvar]=0
             df.loc[raw_dist>=left,newvar]=1
-            df.loc[raw_dist>=right,newvar]=0
+            df.loc[raw_dist>right,newvar]=0
             df.loc[wateraccess==1,newvar]=0
             df.loc[bayfront==1,newvar]=0
             
@@ -426,8 +426,10 @@ class IslandData(DataView):
                 descrip_list.append(descrip)
                 for m in metric:
                     table2+=f'{round(descrip[m],1)},'
-                if descrip['min']==0 and descrip['max']==1:
-                    binaries+=f'level_{level}-{xvar},{descrip["mean"]*descrip["count"]}\n'
+                if descrip['min'] in [0,1] and descrip['max'] in [0,1]:
+                    if level==0:
+                        binaries+=f'level{level},{xvar},{descrip["mean"]*descrip["count"]},'
+                    else:binaries+=f'level{level},{xvar},{descrip["mean"]*descrip["count"]}\n'
                     
                     
             table2+='\n'
