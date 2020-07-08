@@ -29,7 +29,7 @@ class IslandData(DataView):
             format="[%(asctime)s] %(levelname)s [%(name)s.%(funcName)s:%(lineno)d] %(message)s",
             datefmt='%Y-%m-%dT%H:%M:%S')
         self.logger = logging.getLogger(handlername)
-        self.klist=[16,32,64]#[25,50,100]
+        self.klist=[2]#[2,4,6]#[25,50,100]
         self.resultsdictlist=[]
         self.figdict={}
         self.sumstatsdict={}
@@ -100,7 +100,7 @@ class IslandData(DataView):
                 'xvars':xvarlist,
                 'yvar':'saleprice_real-2015',
                 'transform':{'ln_wq':0,'ln_y':1},
-                'wt_type':'inverse_distance_NN_exp2',#'inverse_distance_NN',
+                'wt_type':'NN',#'inverse_distance_NN_exp2',#'inverse_distance_NN',
                 #'inverse_distance_nn_exp2',#'inverse_distance_NN_exp1',#'inverse_distance',#
                 'wt_norm':'rowsum',#'rowmax',#'doublesum',#
                 'NNscope':'year',#'period',#     # 'period' groups obs by pre or post, 'year' groups by year
@@ -207,7 +207,10 @@ class IslandData(DataView):
                 flatlist=[l]
             outlist.extend(flatlist)
         return outlist
-            
+     
+    
+    
+        
 
     def doModelResultsToDF(self,):
         try: 
@@ -263,6 +266,73 @@ class IslandData(DataView):
                 sval=val
             sdict[key]=sval
         return sdict
+    
+    def createWQGraph(self):
+        
+        try: 
+            assert self.resultsdictlist,"results not loaded, loading results"
+            resultsdictlist=self.resultsdictlist
+        except: 
+            resultsdictlist=self.saveSpatialModelResults([],load=1)
+        I=len(resultsdictlist)
+        summary_text='Model Summaries\n'+f'for {I}  models\nPrinted on {datetime.now()}\n'
+        
+        
+        resultsdictflatlist=self.flattenListList(resultsdictlist)
+        p0=0;p1=0
+        i=-1
+        while not (p0 and p1):
+            i+=1
+            resultsdict=resultsdictflatlist[i]
+            modeldict=resultsdict['modeldict']
+            p=modeldict['period']
+            m=modeldict['modeltype']
+            if m.lower()=='ols':
+                if p==0 and p0==0:
+                    p0=resultsdict
+                if p==1 and p1==0:
+                    p1=resultsdict
+        fig=plt.figure(dpi=600,figsize=[8,6])
+        plt.xticks(rotation=17)
+        ax=fig.add_subplot()
+        ax.set_title('Fixed Effects Estimates of % Increase in Sale Price from 1m Increase in Water Clarity')#Fixed Effects Estimates for Water Clarity by Distance from Shore Band')
+        ax.set_xlabel('Distance from Shore Band (not to scale)')
+        ax.set_ylabel('OLS Coefficient for Water Clarity by Distance from Shore Band')
+        
+        self.extractAndPlotWQ(p0,ax,'Pre-Sandy',color='r',hatch='.'*5,ls='--')
+        self.extractAndPlotWQ(p1,ax,'Post-Sandy',color='g',hatch=None,ls='-')
+        ax.legend(loc=1)
+        ax.margins(0)
+        figpath=self.helper.getname(os.path.join(self.printdir,'wq_graph.png'))
+        fig.savefig(figpath)
+        
+    
+    def extractAndPlotWQ(self,resultsdict,ax,plottitle,color='b',hatch='x',ls='-'):
+        results=resultsdict['results']
+        #modeldict=resultsdict['modeldict']
+        #xvarlist=modeldict['xvars']
+        wqvars_idx,wqvars=zip(*[(idx,var) for idx,var in enumerate(results.name_x) if re.search('secchi\*distance',var.lower()) or re.search('secchi\*bayfront',var.lower())])
+        #print(wqvars_idx,wqvars)
+        #print('betas',results.betas)
+        #print('std_err',results.std_err)
+        
+        wqcoefs=[results.betas[idx][0]*100 for idx in wqvars_idx] # b/c pysal returns each beta inside its own list. *100 b/c pct. 
+        wqcoef_stderrs=[results.std_err[idx]*100 for idx in wqvars_idx] # 100 b/c pct.
+        wqcoef_names=[]
+        for var in wqvars:
+            if re.search('secchi\*distance',var.lower()):
+                wqcoef_names.append(var[29:])
+            else:
+                wqcoef_names.append(var[7:])
+            
+            
+        
+        self.logger.info(f'{[wqcoef_names,wqcoefs,wqcoef_stderrs ]}')
+        self.makePlotWithCI(wqcoef_names,wqcoefs,wqcoef_stderrs,ax,plottitle=plottitle,color=color,hatch=hatch,ls=ls)
+        
+                    
+            
+        
         
     def printModelSummary(self,stars=None):
         try: 

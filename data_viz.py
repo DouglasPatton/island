@@ -20,9 +20,18 @@ class DataView:
         self.logger=logging.getLogger(__name__)
         self.logger.debug('DataView object started')
         plt.rc_context({'axes.edgecolor':'orange', 
-                        'xtick.color':'red', 'ytick.color':'red', 
+                        'xtick.color':'k', 'ytick.color':'k', 
                         'figure.facecolor':'white'})
         #self.fig=plt.figure(figsize=[14,80])
+        
+    def makePlotWithCI(self,x,y,std_err,ax,plottitle='',color='b',hatch='x',ls='-'):
+        
+        k=len(x)
+        ax.plot(x,y,ls,label=plottitle,color=color)
+        lower,upper=zip(*[(y[i]-std_err[i]*1.96,y[i]+std_err[i]*1.96) for i in range(k)])
+        ax.fill_between(x,lower,upper,alpha=0.2,color=color,hatch=hatch,label=f'95% CI for {plottitle}')
+        ax.plot(x,[0]*len(x),':',label='_0',color='k',alpha=0.3)
+        [ax.axvline(x=x[i],ls=':',alpha=0.3,label='_band',color='k') for i in range(k)]
         
         
           
