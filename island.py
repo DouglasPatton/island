@@ -296,8 +296,8 @@ class IslandData(DataView):
         plt.xticks(rotation=17)
         ax=fig.add_subplot()
         ax.set_title('Fixed Effects Estimates of % Increase in Sale Price from 1m Increase in Water Clarity')#Fixed Effects Estimates for Water Clarity by Distance from Shore Band')
-        ax.set_xlabel('Distance from Shore Band (not to scale)')
-        ax.set_ylabel('OLS Coefficient for Water Clarity by Distance from Shore Band')
+        ax.set_xlabel('Distance from Shore Bands (not to scale)')
+        ax.set_ylabel('Partial Derivatives of Sale Price by Water Clarity by Distance from Shore Band')
         
         self.extractAndPlotWQ(p0,ax,'Pre-Sandy',color='r',hatch='.'*5,ls='--')
         self.extractAndPlotWQ(p1,ax,'Post-Sandy',color='g',hatch=None,ls='-')
@@ -311,7 +311,14 @@ class IslandData(DataView):
         results=resultsdict['results']
         #modeldict=resultsdict['modeldict']
         #xvarlist=modeldict['xvars']
-        wqvars_idx,wqvars=zip(*[(idx,var) for idx,var in enumerate(results.name_x) if re.search('secchi\*distance',var.lower()) or re.search('secchi\*bayfront',var.lower())])
+        wqvars_idx,wqvars=zip(*[[idx,var] for idx,var in enumerate(results.name_x) if re.search('secchi\*distance',var.lower()) or re.search('secchi\*bayfront',var.lower())])
+        wqvars_idx=list(wqvars_idx)
+        wqvars=list(wqvars)
+        for idx,var in enumerate(results.name_x):
+            if var.lower()=='secchi':
+                wqvars_idx.append(idx)
+                wqvars.append('3200m-4000m')
+                secchi=results.betas[wqvars_idx][0]*100
         #print(wqvars_idx,wqvars)
         #print('betas',results.betas)
         #print('std_err',results.std_err)
@@ -319,12 +326,21 @@ class IslandData(DataView):
         wqcoefs=[results.betas[idx][0]*100 for idx in wqvars_idx] # b/c pysal returns each beta inside its own list. *100 b/c pct. 
         wqcoef_stderrs=[results.std_err[idx]*100 for idx in wqvars_idx] # 100 b/c pct.
         wqcoef_names=[]
-        for var in wqvars:
+        for var in wqvars: # a loop for shortening names
             if re.search('secchi\*distance',var.lower()):
                 wqcoef_names.append(var[29:])
-            else:
+            elif re.search('secchi\*bayfront',var.lower()):
                 wqcoef_names.append(var[7:])
+            else:
+                wqcoef_names.append(var)
+        bcount=len(wqcoefs)
+        for b in range(bcount-1):# add global constant to all terms except last one, which was the omitted variable
+            wqcoefs[b]=wqcoefs[b]+wqcoefs[-1]
+            wqcoef_stderrs[b]=wqcoef_stderrs[b]+wqcoef_stderrs[-1]
             
+            
+        
+                
             
         
         self.logger.info(f'{[wqcoef_names,wqcoefs,wqcoef_stderrs ]}')
