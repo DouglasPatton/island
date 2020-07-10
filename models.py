@@ -63,6 +63,7 @@ class SpatialModel():
             try:self.df
             except: self.arrayListToPandasDF()
             df=self.df
+            assert False, 'broken, no distancevars'
         
         if self.modeldict['combine_pre_post']==1:
             df_idx_0_list=[slice(None)]

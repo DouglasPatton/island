@@ -208,10 +208,6 @@ class IslandData(DataView):
             outlist.extend(flatlist)
         return outlist
      
-    
-    
-        
-
     def doModelResultsToDF(self,):
         try: 
             assert self.resultsdictlist,"results not loaded, loading results"
@@ -267,17 +263,95 @@ class IslandData(DataView):
             sdict[key]=sval
         return sdict
  
-    def makeBigX(self,df,self.):
-        
-    
+    def makeBigX(self,df):
+        len0,len1=df.shape
+        latlonstring_iloc_dict={}
+        latlon_string_list=(df.loc['latitude'].astype(str)+df.loc['longitude'].astype(str)).to_list()
+        last_unique_dict={}
+        for i,latlon in latlon_string_list:
+            last_unique_dict[latlon]=i # keeps only last since earlier are overwritten.
+        last_unique_rows=[val for key,val in last_unique_dict.items()]
+        unique_df=df.iloc[last_unique_rows]
+        return unique_df
+            
+    '''def makeCensusDict(self,df):
+        censusvars=['education','income_real-2015','povertyleve','pct_white','pct_asian','pct_black']
+        columnlist=[col for col in df.columns]
+        censusdf=pd.DataFrame({'census_str':['']*len(df.index),index=df.index})
+        for var in censusvars:
+            censusdf.loc[slice(None),'census_str']+=df.loc[slice(None),var].astype(str)
+        blockcount=0
+        census_str_list=censusdf.loc[slice(None),'census_str'].to_list()
+        yrlist=list(df.index.levels[1])
+        censusdict={yr:}
+        '''
 
-    def estimateWQEffects(self,):
-        assert self.df,'create data and run the model first'
-        bigx=self.makeBigX(self.df,self.modeldict)
-        modeltype='ols';periodlist=[0,1]
-        resultsdict=retrieveLastResults(modeltype=modeltype,periodlist=periodlist)
-        
+    def addOmittedDistance(df,distancevars):
+        label='omitted distance'
+        df_idx=pd.Series([False]*len(df.index),index=df.index)
+        for var in distancevars:
+             df_idx+=df.loc[slice(None),var]==1
+        df[slice(None),label]=1-df_idx
+        distancevars.append(label)
+        return df,distancevars
     
+    def averageByDistance(self,df,distancevars):
+        df,distancevars=self.addOmittedDistance(df,distancevars)
+        #avg_df=pd.DataFrame({col:[None]*len(distancevars)for col in df.columns},index=distancevars)
+        avg_df=pd.DataFrame()
+        avg_data_list=[]
+        for var in distancevars:
+            df_idx=df.loc[slice(None),var]==1
+            mean_df=df[df_idx].mean()
+            keys=mean_df.keys()
+            df_i=pd.DataFrame({key:mean_df.loc[key] for key in keys},index=[var])
+            df_i.loc[:,'d_count']=df_idx.sum()
+            avg_data_list.append(df_i)
+        avg_df=pd.concat(avg_data_list)
+        return avg_df
+            #for key,val in meanvals.items()
+   
+    def incrementWQ(df,incr):
+        names=list(df.columns)
+        wqnames=[var for idx,var in enumerate(names) if re.search('wq',var) or re.search('secchi',var)]
+        df_plus=df.copy()
+        for name in wqnames:
+            df_idx=df_plus.loc[:,name]!=0 # so dummy vars are not incremented
+            df_plus.loc[df_idx,name]+=incr
+        return df_plus
+        
+        
+    def estimateWQEffects(self,effect=0.01):
+        assert self.df,'create data and run the model first'
+        modeltype='ols';periodlist=[0,1]
+        resultsdict=self.retrieveLastResults(modeltype=modeltype,periodlist=periodlist)
+        model=resultsdict[0]['results']
+        names=model.name_x
+        distancevars=['bayfront','wateraccess']
+        for name in names:
+            if name[:21]=='Distance to Shoreline':
+                distancevars.append(name)
+                
+        bigx=self.makeBigX(self.df,self.modeldict) # condenses data across all times to latest observation at each lat/lon
+        avg_df=self.averageByDistance(bigx,distancevars)
+        avg_df.loc[slice(None),'CONSTANT']=1
+        #bigx.index = pd.RangeIndex(len(bigx.index))
+        x0=avg_df.loc[slice(None),[name_x]]
+        x1=self.incrementWQ(avg_df,effect)
+        effect_dict={}
+        for result in resultsdict:
+            model=result['results']
+            modeldict=result['modeldict']
+            p=modeldict['period']
+            betas=np.array(model.betas)
+            effect_dict['modeldict']=modeldict
+            avg_df.loc[:,f'yhat0_p{p}']=x0.dot(betas)
+            avg_df.loc[:,f'yhat1_p{p}']=x1.dot(betas)
+        return avg_df
+            
+            
+        
+        
     
     def retrieveLastResults(self,modeltype='ols',periodlist=[0,1]):
         try: 
@@ -306,8 +380,7 @@ class IslandData(DataView):
     def createWQGraph(self,modeltype='ols'):
         if self.modeldict['combine_pre_post']==0:
             periodnamedict={0:'Pre-Sandy',1:'Post-Sandy'}
-        lastresults=self.retrieveLastResults(modeltype=modetype,periodlist=[0,1])
-        summary_text='Model Summaries\n'+f'for {I}  models\nPrinted on {datetime.now()}\n'
+        lastresults=self.retrieveLastResults(modeltype=modeltype,periodlist=[0,1])
         
         fig=plt.figure(dpi=600,figsize=[8,6])
         plt.xticks(rotation=17)
@@ -350,10 +423,10 @@ class IslandData(DataView):
                 wqcoef_names.append(var[7:])
             else:
                 wqcoef_names.append(var)
-        bcount=len(wqcoefs)
+        '''bcount=len(wqcoefs)
         for b in range(bcount-1):# add global constant to all terms except last one, which was the omitted variable
             wqcoefs[b]=wqcoefs[b]+wqcoefs[-1]
-            wqcoef_stderrs[b]=wqcoef_stderrs[b]+wqcoef_stderrs[-1]
+            wqcoef_stderrs[b]=wqcoef_stderrs[b]+wqcoef_stderrs[-1]'''
         self.logger.info(f'{[wqcoef_names,wqcoefs,wqcoef_stderrs ]}')
         self.makePlotWithCI(wqcoef_names,wqcoefs,wqcoef_stderrs,ax,plottitle=plottitle,color=color,hatch=hatch,ls=ls)
         
