@@ -29,7 +29,7 @@ class IslandData(DataView):
             format="[%(asctime)s] %(levelname)s [%(name)s.%(funcName)s:%(lineno)d] %(message)s",
             datefmt='%Y-%m-%dT%H:%M:%S')
         self.logger = logging.getLogger(handlername)
-        self.klist=[2]#[2,4,6]#[25,50,100]
+        self.klist=[2,4,6]#[2,4,6]#[25,50,100]
         self.resultsdictlist=[]
         self.figdict={}
         self.sumstatsdict={}
@@ -181,7 +181,7 @@ class IslandData(DataView):
     
     def saveSpatialModelResults(self,resultsdict,load=0):
         if load:
-            with open('resultsdictlist.pickle','rb') as f:
+            with open(os.path.join(self.resultsdir,'resultsdictlist.pickle'),'rb') as f:
                 resultsdictlist=pickle.load(f)
             self.resultsdictlist.extend(resultsdictlist)
             return resultsdictlist
@@ -314,11 +314,11 @@ class IslandData(DataView):
         wqvars_idx,wqvars=zip(*[[idx,var] for idx,var in enumerate(results.name_x) if re.search('secchi\*distance',var.lower()) or re.search('secchi\*bayfront',var.lower())])
         wqvars_idx=list(wqvars_idx)
         wqvars=list(wqvars)
-        for idx,var in enumerate(results.name_x):
+        '''for idx,var in enumerate(results.name_x):
             if var.lower()=='secchi':
                 wqvars_idx.append(idx)
                 wqvars.append('3200m-4000m')
-                secchi=results.betas[wqvars_idx][0]*100
+                secchi=results.betas[wqvars_idx][0]*100'''
         #print(wqvars_idx,wqvars)
         #print('betas',results.betas)
         #print('std_err',results.std_err)
@@ -380,9 +380,9 @@ class IslandData(DataView):
 
         
         if stars:
-            savepath='modelresults_stars.txt'
+            savepath=os.path.join(self.resultsdir,'modelresults_stars.txt')
         else:
-            savepath='modelresults.txt'
+            savepath=os.path.join(self.resultsdir,'modelresults.txt')
         savepath=self.helper.getname(savepath)
         with open(savepath,'w') as f:
             f.write(summary_text)
