@@ -266,41 +266,58 @@ class IslandData(DataView):
                 sval=val
             sdict[key]=sval
         return sdict
-    
-    def createWQGraph(self):
+ 
+    def makeBigX(self,df,self.):
         
+    
+
+    def estimateWQEffects(self,):
+        assert self.df,'create data and run the model first'
+        bigx=self.makeBigX(self.df,self.modeldict)
+        modeltype='ols';periodlist=[0,1]
+        resultsdict=retrieveLastResults(modeltype=modeltype,periodlist=periodlist)
+        
+    
+    
+    def retrieveLastResults(self,modeltype='ols',periodlist=[0,1]):
         try: 
             assert self.resultsdictlist,"results not loaded, loading results"
             resultsdictlist=self.resultsdictlist
         except: 
             resultsdictlist=self.saveSpatialModelResults([],load=1)
-        I=len(resultsdictlist)
-        summary_text='Model Summaries\n'+f'for {I}  models\nPrinted on {datetime.now()}\n'
         
         
         resultsdictflatlist=self.flattenListList(resultsdictlist)
-        p0=0;p1=0
+        outdict={key:None for key in periodlist}
         i=-1
-        while not (p0 and p1):
+        while not all([outdict[key] for key in outdict]):
             i+=1
             resultsdict=resultsdictflatlist[i]
             modeldict=resultsdict['modeldict']
             p=modeldict['period']
             m=modeldict['modeltype']
-            if m.lower()=='ols':
-                if p==0 and p0==0:
-                    p0=resultsdict
-                if p==1 and p1==0:
-                    p1=resultsdict
+            if m.lower()==modeltype:
+                for key,val in outdict.items():
+                    if not val:
+                        if p==key:
+                            outdict[key]=resultsdict
+        return outdict
+                    
+    def createWQGraph(self,modeltype='ols'):
+        if self.modeldict['combine_pre_post']==0:
+            periodnamedict={0:'Pre-Sandy',1:'Post-Sandy'}
+        lastresults=self.retrieveLastResults(modeltype=modetype,periodlist=[0,1])
+        summary_text='Model Summaries\n'+f'for {I}  models\nPrinted on {datetime.now()}\n'
+        
         fig=plt.figure(dpi=600,figsize=[8,6])
         plt.xticks(rotation=17)
         ax=fig.add_subplot()
         ax.set_title('Fixed Effects Estimates of % Increase in Sale Price from 1m Increase in Water Clarity')#Fixed Effects Estimates for Water Clarity by Distance from Shore Band')
         ax.set_xlabel('Distance from Shore Bands (not to scale)')
         ax.set_ylabel('Partial Derivatives of Sale Price by Water Clarity by Distance from Shore Band')
-        
-        self.extractAndPlotWQ(p0,ax,'Pre-Sandy',color='r',hatch='.'*5,ls='--')
-        self.extractAndPlotWQ(p1,ax,'Post-Sandy',color='g',hatch=None,ls='-')
+        #next part is not yet flexible due to color/hatch/linestyle(ls)
+        self.extractAndPlotWQ(lastresults[0],ax,periodnamedict[0],color='r',hatch='.'*5,ls='--')
+        self.extractAndPlotWQ(lastresults[1],ax,periodnamedict[1],color='g',hatch=None,ls='-')
         ax.legend(loc=1)
         ax.margins(0)
         figpath=self.helper.getname(os.path.join(self.printdir,'wq_graph.png'))
@@ -337,17 +354,8 @@ class IslandData(DataView):
         for b in range(bcount-1):# add global constant to all terms except last one, which was the omitted variable
             wqcoefs[b]=wqcoefs[b]+wqcoefs[-1]
             wqcoef_stderrs[b]=wqcoef_stderrs[b]+wqcoef_stderrs[-1]
-            
-            
-        
-                
-            
-        
         self.logger.info(f'{[wqcoef_names,wqcoefs,wqcoef_stderrs ]}')
         self.makePlotWithCI(wqcoef_names,wqcoefs,wqcoef_stderrs,ax,plottitle=plottitle,color=color,hatch=hatch,ls=ls)
-        
-                    
-            
         
         
     def printModelSummary(self,stars=None):

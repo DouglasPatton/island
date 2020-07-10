@@ -96,7 +96,7 @@ class SpatialModel():
         transform_dict=modeldict['transform']
         do_log_y=transform_dict['ln_y']
         do_log_wq=transform_dict['ln_wq']
-        y=df.loc[:][yvar].to_numpy(dtype=np.float32)[:,None]#make 2 dimensionsl for spreg
+        y=df.loc[:][yvar].to_numpy(dtype=np.float32)[:,None]#make y 2 dimensions for spreg
         if do_log_y: y=np.log(y)
         xvarlist=modeldict['xvars']
         preSdropyears=[i for i in range(2013,2016)]# 2015+1 b/c python
