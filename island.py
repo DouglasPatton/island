@@ -266,11 +266,12 @@ class IslandData(DataView):
     def makeBigX(self,df):
         len0,len1=df.shape
         latlonstring_iloc_dict={}
-        latlon_string_list=(df.loc['latitude'].astype(str)+df.loc['longitude'].astype(str)).to_list()
+        latlon_string_list=(df.loc[:,'latitude'].astype(str)+df.loc[:,'longitude'].astype(str)).to_list()
         last_unique_dict={}
-        for i,latlon in latlon_string_list:
+        for i,latlon in enumerate(latlon_string_list):
             last_unique_dict[latlon]=i # keeps only last since earlier are overwritten.
         last_unique_rows=[val for key,val in last_unique_dict.items()]
+        #print(f'BigX len(last_unique_rows):{len(last_unique_rows)}')
         unique_df=df.iloc[last_unique_rows]
         return unique_df
             
@@ -286,12 +287,12 @@ class IslandData(DataView):
         censusdict={yr:}
         '''
 
-    def addOmittedDistance(df,distancevars):
+    def addOmittedDistance(self,df,distancevars):
         label='omitted distance'
         df_idx=pd.Series([False]*len(df.index),index=df.index)
         for var in distancevars:
              df_idx+=df.loc[slice(None),var]==1
-        df[slice(None),label]=1-df_idx
+        df.loc[slice(None),label]=1-df_idx
         distancevars.append(label)
         return df,distancevars
     
@@ -311,7 +312,7 @@ class IslandData(DataView):
         return avg_df
             #for key,val in meanvals.items()
    
-    def incrementWQ(df,incr):
+    def incrementWQ(self,df,incr):
         names=list(df.columns)
         wqnames=[var for idx,var in enumerate(names) if re.search('wq',var) or re.search('secchi',var)]
         df_plus=df.copy()
@@ -322,31 +323,66 @@ class IslandData(DataView):
         
         
     def estimateWQEffects(self,effect=0.01):
-        assert self.df,'create data and run the model first'
+        df=self.df.copy()
         modeltype='ols';periodlist=[0,1]
         resultsdict=self.retrieveLastResults(modeltype=modeltype,periodlist=periodlist)
         model=resultsdict[0]['results']
-        names=model.name_x
+        names=list(model.name_x)
         distancevars=['bayfront','wateraccess']
         for name in names:
             if name[:21]=='Distance to Shoreline':
                 distancevars.append(name)
-                
-        bigx=self.makeBigX(self.df,self.modeldict) # condenses data across all times to latest observation at each lat/lon
+        wq_dist_vars=[]
+        for name in names:
+            if name[:7]=='secchi*':
+                wq_dist_vars.append(name)
+        wq_dist_vars.append('secchi')# to go with the omitted var at the end
+        
+        
+        bigx=self.makeBigX(df) # condenses data across all times to latest observation at each lat/lon
         avg_df=self.averageByDistance(bigx,distancevars)
         avg_df.loc[slice(None),'CONSTANT']=1
         #bigx.index = pd.RangeIndex(len(bigx.index))
-        x0=avg_df.loc[slice(None),[name_x]]
-        x1=self.incrementWQ(avg_df,effect)
-        effect_dict={}
-        for result in resultsdict:
+        #print(avg_df)
+        #self.avg_df=avg_df
+        
+        #effect_dict={}
+        for period,result in resultsdict.items():
             model=result['results']
             modeldict=result['modeldict']
             p=modeldict['period']
-            betas=np.array(model.betas)
-            effect_dict['modeldict']=modeldict
-            avg_df.loc[:,f'yhat0_p{p}']=x0.dot(betas)
-            avg_df.loc[:,f'yhat1_p{p}']=x1.dot(betas)
+            names=list(model.name_x)
+            wq_var_idx=[names.index(var) for var in wq_dist_vars]
+            x0=avg_df.loc[:,names]
+            x1=self.incrementWQ(x0,effect)
+            betas=np.array(model.betas).flatten()
+            wqbetas=betas[wq_var_idx]
+            std_errs=np.array(model.std_err)
+            wq_std_errs=std_errs[wq_var_idx]
+            #effect_dict['modeldict']=modeldict
+            wt=avg_df.loc[:,'d_count'].to_numpy()
+            wt=wt/wt.sum()
+            
+            
+            before=np.exp((x0@betas).to_numpy())
+            avg_df.loc[:,f'marginal_p{p}']=before*wqbetas
+            l=(wqbetas-1.96*wq_std_errs)
+            #print(f'l.shape:{l.shape},before.shape:{before.shape}')
+            avg_df.loc[:,f'lower95_marginal_p{p}']=before*l
+            u=(wqbetas+1.96*wq_std_errs)
+            avg_df.loc[:,f'upper95_marginal_p{p}']=before*u
+            
+            avg_df.loc[:,f'wt_marginal_p{p}']=avg_df.loc[:,f'marginal_p{p}']*wt
+            avg_df.loc[:,f'wt_lower95_marginal_p{p}']=avg_df.loc[:,f'lower95_marginal_p{p}']*wt
+            avg_df.loc[:,f'wt_upper95_marginal_p{p}']=avg_df.loc[:,f'upper95_marginal_p{p}']*wt
+            
+            
+            after=np.exp((x1@betas).to_numpy())
+            avg_df.loc[:,f'yhat_p{p}']=before
+            avg_df.loc[:,f'yhat_p{p}_wq+{effect}']=after
+            avg_df.loc[:,f'effect_p{p}']=(after-before)/effect
+            
+            avg_df.loc[:,f'wt_effect_p{p}']=avg_df.loc[:,f'effect_p{p}']*wt
         return avg_df
             
             

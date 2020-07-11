@@ -169,7 +169,7 @@ class SpatialModel():
             
             self.saveByHashID(hashable_key,model,filestring=model_filestring,log_artifact=1,log_artifact_key=1)
         try:
-            print(model.summary)
+            #print(model.summary)
             self.logger.info(model.summary)
         except:
             self.logger.exception('could not print summary')
