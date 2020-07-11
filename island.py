@@ -8,6 +8,7 @@ import logging
 from logging import handlers
 from helpers import Helper
 import matplotlib.pyplot as plt
+import matplotlib.ticker as ticker
 #import cpi # imported conditionally, later on #https://github.com/datadesk/cpi
 from data_viz import DataView
 from datetime import datetime
@@ -288,7 +289,8 @@ class IslandData(DataView):
         '''
 
     def addOmittedDistance(self,df,distancevars):
-        label='omitted distance'
+        last_dist=self.modeldict['distance'][-1]
+        label=f'Distance to Shoreline {last_dist}m-4000m'
         df_idx=pd.Series([False]*len(df.index),index=df.index)
         for var in distancevars:
              df_idx+=df.loc[slice(None),var]==1
@@ -328,13 +330,13 @@ class IslandData(DataView):
         resultsdict=self.retrieveLastResults(modeltype=modeltype,periodlist=periodlist)
         model=resultsdict[0]['results']
         names=list(model.name_x)
-        distancevars=['bayfront','wateraccess']
+        distancevars=['bayfront']
         for name in names:
             if name[:21]=='Distance to Shoreline':
                 distancevars.append(name)
         wq_dist_vars=[]
         for name in names:
-            if name[:7]=='secchi*':
+            if name[:7]=='secchi*' and not name[-11:]=='wateraccess':
                 wq_dist_vars.append(name)
         wq_dist_vars.append('secchi')# to go with the omitted var at the end
         
@@ -384,16 +386,40 @@ class IslandData(DataView):
             
             avg_df.loc[:,f'wt_effect_p{p}']=avg_df.loc[:,f'effect_p{p}']*wt
         return avg_df
+    
             
+    
     def createEffectsGraph(self,):
         avg_df=self.estimateWQEffects(effect=0.01) # a dataframe averaged within distance bands and with partial derivative and delta based marginal effects
-        x=avg_df.columns
+        self.dist_avg_df=avg_df
+        x=list(avg_df.index)
+        effect_name=[]
+        for var in x: # a loop for shortening names
+            if var[:8].lower()=='distance':
+                effect_name.append(var[22:])
+            else:
+                effect_name.append(var)
+        
+        fig=plt.figure(dpi=600,figsize=[8,6])
+        plt.xticks(rotation=17)
+        ax=fig.add_subplot()
+        ax.set_title('Marginal Effects for Water Clarity by Distance Band')#Fixed Effects Estimates for Water Clarity by Distance from Shore Band')
+        ax.set_xlabel('Distance from Shore Bands (not to scale)')
+        ax.set_ylabel('Partial Derivatives of Sale Price by Water Clarity')
+        
         for p in [0,1]:
-            effect=avg_df[f'marginal_p{p}']
-            lower=avg_df[f'lower95_marginal_p{p}']
-            upper=avg_df[f'upper95_marginal_p{p}']
+            effect=avg_df[f'marginal_p{p}'].to_numpy()
+            lower=avg_df[f'lower95_marginal_p{p}'].to_numpy()
+            upper=avg_df[f'upper95_marginal_p{p}'].to_numpy()
             
-            self.makePlotWithCI(x,y,None,ax,plottitle='',**plot_dict_list[p],lower=lower,upper=upper)
+            #print('lower',lower)
+            #print('upper',upper)
+            self.makePlotWithCI(effect_name,effect,None,ax,**self.plot_dict_list[p],lower=lower,upper=upper)
+        ax.legend(loc=1)
+        ax.margins(0)
+        ax.yaxis.set_major_formatter(ticker.FormatStrFormatter('$%.f'))
+        figpath=self.helper.getname(os.path.join(self.printdir,'wq_effects_graph.png'))
+        fig.savefig(figpath)
     
     def retrieveLastResults(self,modeltype='ols',periodlist=[0,1]):
         try: 
@@ -420,8 +446,6 @@ class IslandData(DataView):
         return outdict
                     
     def createWQGraph(self,modeltype='ols'):
-        if self.modeldict['combine_pre_post']==0:
-            periodnamedict={0:'Pre-Sandy',1:'Post-Sandy'}
         lastresults=self.retrieveLastResults(modeltype=modeltype,periodlist=[0,1])
         
         fig=plt.figure(dpi=600,figsize=[8,6])
@@ -429,18 +453,18 @@ class IslandData(DataView):
         ax=fig.add_subplot()
         ax.set_title('Fixed Effects Estimates of % Increase in Sale Price from 1m Increase in Water Clarity')#Fixed Effects Estimates for Water Clarity by Distance from Shore Band')
         ax.set_xlabel('Distance from Shore Bands (not to scale)')
-        ax.set_ylabel('Partial Derivatives of Sale Price by Water Clarity by Distance from Shore Band')
+        ax.set_ylabel('OLS coefficients for Water Clarity')
         #next part is not yet flexible due to color/hatch/linestyle(ls)
         
         for p in [0,1]:
-            self.extractAndPlotWQ(lastresults[p],ax,periodnamedict[p],**self.plot_dict_list[p])
+            self.extractAndPlotWQ(lastresults[p],ax,**self.plot_dict_list[p])
         ax.legend(loc=1)
         ax.margins(0)
         figpath=self.helper.getname(os.path.join(self.printdir,'wq_graph.png'))
         fig.savefig(figpath)
         
     
-    def extractAndPlotWQ(self,resultsdict,ax,plottitle,color='b',hatch='x',ls='-'):
+    def extractAndPlotWQ(self,resultsdict,ax,plottitle='',color='b',hatch='x',ls='-'):
         results=resultsdict['results']
         #modeldict=resultsdict['modeldict']
         #xvarlist=modeldict['xvars']
