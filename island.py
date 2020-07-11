@@ -385,9 +385,15 @@ class IslandData(DataView):
             avg_df.loc[:,f'wt_effect_p{p}']=avg_df.loc[:,f'effect_p{p}']*wt
         return avg_df
             
+    def createEffectsGraph(self,):
+        avg_df=self.estimateWQEffects(effect=0.01) # a dataframe averaged within distance bands and with partial derivative and delta based marginal effects
+        x=avg_df.columns
+        for p in [0,1]:
+            effect=avg_df[f'marginal_p{p}']
+            lower=avg_df[f'lower95_marginal_p{p}']
+            upper=avg_df[f'upper95_marginal_p{p}']
             
-        
-        
+            self.makePlotWithCI(x,y,None,ax,plottitle='',**plot_dict_list[p],lower=lower,upper=upper)
     
     def retrieveLastResults(self,modeltype='ols',periodlist=[0,1]):
         try: 
@@ -425,8 +431,9 @@ class IslandData(DataView):
         ax.set_xlabel('Distance from Shore Bands (not to scale)')
         ax.set_ylabel('Partial Derivatives of Sale Price by Water Clarity by Distance from Shore Band')
         #next part is not yet flexible due to color/hatch/linestyle(ls)
-        self.extractAndPlotWQ(lastresults[0],ax,periodnamedict[0],color='r',hatch='.'*5,ls='--')
-        self.extractAndPlotWQ(lastresults[1],ax,periodnamedict[1],color='g',hatch=None,ls='-')
+        
+        for p in [0,1]:
+            self.extractAndPlotWQ(lastresults[p],ax,periodnamedict[p],**self.plot_dict_list[p])
         ax.legend(loc=1)
         ax.margins(0)
         figpath=self.helper.getname(os.path.join(self.printdir,'wq_graph.png'))
