@@ -293,7 +293,8 @@ class IslandData(DataView):
         label=f'Distance to Shoreline {last_dist}m-4000m'
         df_idx=pd.Series([False]*len(df.index),index=df.index)
         for var in distancevars:
-             df_idx+=df.loc[slice(None),var]==1
+             #df_idx+=df.loc[slice(None),var]==1
+            df_idx=df_idx|df.loc[slice(None),var]==1
         df.loc[slice(None),label]=1-df_idx
         distancevars.append(label)
         return df,distancevars
@@ -314,6 +315,19 @@ class IslandData(DataView):
         return avg_df
             #for key,val in meanvals.items()
    
+    def setTimeDummies(self,df):
+        regex_dv_y2k=re.compile('dv_20[0-9][0-9]')
+        cols=list(df.columns)
+        avg_df_list=[df.copy(),df.copy()]
+        for var in cols:
+            if re.search(regex_dv_y2k,var):
+                avg_df_list[0].loc[:,var]=1/11
+                avg_df_list[1].loc[:,var]=1/4
+        return avg_df_list
+        
+            
+
+
     def incrementWQ(self,df,incr):
         names=list(df.columns)
         wqnames=[var for idx,var in enumerate(names) if re.search('wq',var) or re.search('secchi',var)]
@@ -344,54 +358,71 @@ class IslandData(DataView):
         bigx=self.makeBigX(df) # condenses data across all times to latest observation at each lat/lon
         avg_df=self.averageByDistance(bigx,distancevars)
         avg_df.loc[slice(None),'CONSTANT']=1
+        avg_df_list=self.setTimeDummies(avg_df)
         #bigx.index = pd.RangeIndex(len(bigx.index))
         #print(avg_df)
         #self.avg_df=avg_df
         
         #effect_dict={}
         for period,result in resultsdict.items():
+            
             model=result['results']
             modeldict=result['modeldict']
             p=modeldict['period']
+            avg_df_p=avg_df_list[p]
             names=list(model.name_x)
             wq_var_idx=[names.index(var) for var in wq_dist_vars]
-            x0=avg_df.loc[:,names]
+            x0=avg_df_p.loc[:,names]
             x1=self.incrementWQ(x0,effect)
             betas=np.array(model.betas).flatten()
             wqbetas=betas[wq_var_idx]
             std_errs=np.array(model.std_err)
             wq_std_errs=std_errs[wq_var_idx]
             #effect_dict['modeldict']=modeldict
-            wt=avg_df.loc[:,'d_count'].to_numpy()
+            wt=avg_df_p.loc[:,'d_count'].to_numpy()
             wt=wt/wt.sum()
             
             
             before=np.exp((x0@betas).to_numpy())
-            avg_df.loc[:,f'marginal_p{p}']=before*wqbetas
+            avg_df_p.loc[:,f'marginal_p{p}']=before*wqbetas
             l=(wqbetas-1.96*wq_std_errs)
             #print(f'l.shape:{l.shape},before.shape:{before.shape}')
-            avg_df.loc[:,f'lower95_marginal_p{p}']=before*l
+            avg_df_p.loc[:,f'lower95_marginal_p{p}']=before*l
             u=(wqbetas+1.96*wq_std_errs)
-            avg_df.loc[:,f'upper95_marginal_p{p}']=before*u
+            avg_df_p.loc[:,f'upper95_marginal_p{p}']=before*u
             
-            avg_df.loc[:,f'wt_marginal_p{p}']=avg_df.loc[:,f'marginal_p{p}']*wt
-            avg_df.loc[:,f'wt_lower95_marginal_p{p}']=avg_df.loc[:,f'lower95_marginal_p{p}']*wt
-            avg_df.loc[:,f'wt_upper95_marginal_p{p}']=avg_df.loc[:,f'upper95_marginal_p{p}']*wt
+            avg_df_p.loc[:,f'wt_marginal_p{p}']=avg_df_p.loc[:,f'marginal_p{p}']*wt
+            avg_df_p.loc[:,f'wt_lower95_marginal_p{p}']=avg_df_p.loc[:,f'lower95_marginal_p{p}']*wt
+            avg_df_p.loc[:,f'wt_upper95_marginal_p{p}']=avg_df_p.loc[:,f'upper95_marginal_p{p}']*wt
             
             
             after=np.exp((x1@betas).to_numpy())
-            avg_df.loc[:,f'yhat_p{p}']=before
-            avg_df.loc[:,f'yhat_p{p}_wq+{effect}']=after
-            avg_df.loc[:,f'effect_p{p}']=(after-before)/effect
+            avg_df_p.loc[:,f'yhat_p{p}']=before
+            avg_df_p.loc[:,f'yhat_p{p}_wq+{effect}']=after
+            avg_df_p.loc[:,f'effect_p{p}']=(after-before)/effect
             
-            avg_df.loc[:,f'wt_effect_p{p}']=avg_df.loc[:,f'effect_p{p}']*wt
-        return avg_df
+            avg_df_p.loc[:,f'wt_effect_p{p}']=avg_df_p.loc[:,f'effect_p{p}']*wt
+            
+        return avg_df,avg_df_list
     
+    
+    def estimateAnnualWQAvgTreatmentEffect(self,):
+        dflist=self.dist_avg_df_list
+        for p in [0,1]:
+            df=dflist[p]
+            sum_df=df.sum()
+            ate=sum_df[f'wt_marginal_p{p}']
+            print(f'avg treatment effect wt sum for period{p} = {ate}')
+            rate=0.03
+            print(f'at r={rate}, annual benefits for period{p} = {ate*rate}')
+            
+        
             
     
     def createEffectsGraph(self,):
-        avg_df=self.estimateWQEffects(effect=0.01) # a dataframe averaged within distance bands and with partial derivative and delta based marginal effects
+        avg_df,avg_df_list=self.estimateWQEffects(effect=0.01) # a dataframe averaged within distance bands and with partial derivative and delta based marginal effects
         self.dist_avg_df=avg_df
+        self.dist_avg_df_list=avg_df_list
         x=list(avg_df.index)
         effect_name=[]
         for var in x: # a loop for shortening names
@@ -408,9 +439,10 @@ class IslandData(DataView):
         ax.set_ylabel('Partial Derivatives of Sale Price by Water Clarity')
         
         for p in [0,1]:
-            effect=avg_df[f'marginal_p{p}'].to_numpy()
-            lower=avg_df[f'lower95_marginal_p{p}'].to_numpy()
-            upper=avg_df[f'upper95_marginal_p{p}'].to_numpy()
+            avg_df_p=avg_df_list[p]
+            effect=avg_df_p[f'marginal_p{p}'].to_numpy()
+            lower=avg_df_p[f'lower95_marginal_p{p}'].to_numpy()
+            upper=avg_df_p[f'upper95_marginal_p{p}'].to_numpy()
             
             #print('lower',lower)
             #print('upper',upper)
@@ -451,9 +483,9 @@ class IslandData(DataView):
         fig=plt.figure(dpi=600,figsize=[8,6])
         plt.xticks(rotation=17)
         ax=fig.add_subplot()
-        ax.set_title('Fixed Effects Estimates of % Increase in Sale Price from 1m Increase in Water Clarity')#Fixed Effects Estimates for Water Clarity by Distance from Shore Band')
+        ax.set_title('Fixed Effects Estimates of Water Quality Coefficients')#Fixed Effects Estimates for Water Clarity by Distance from Shore Band')
         ax.set_xlabel('Distance from Shore Bands (not to scale)')
-        ax.set_ylabel('OLS coefficients for Water Clarity')
+        ax.set_ylabel('OLS Coefficients for Water Clarity')
         #next part is not yet flexible due to color/hatch/linestyle(ls)
         
         for p in [0,1]:

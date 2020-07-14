@@ -193,10 +193,16 @@ class SpatialModel():
         x[:,col][x[:,col]>0]=np.log(x[:,col][x[:,col]>0])
         return x
     
+    
     def checkForWList(self,df,modeldict):
         hashable_key=[df.to_csv().encode('utf-8'),modeldict]
         Wlist=self.checkForSaveHash(hashable_key,filestring='_Wlist')
         return Wlist
+    
+    
+    def saveWList(self,Wlist,df,modeldict,log_artifact=0,log_artifact_key=0):
+        hashable_key=[df.to_csv().encode('utf-8'),modeldict]
+        self.saveByHashID(hashable_key,Wlist,filestring="_Wlist",log_artifact=log_artifact,log_artifact_key=log_artifact_key)
         
     def checkForSaveHash(self,hashable_key,filestring=""):
         thehash=joblib.hash(hashable_key)
@@ -208,15 +214,12 @@ class SpatialModel():
                 self.logger.info(f'thing retrieved from path:{path}')
                 return thing
             except:
-                self.logger.exception('path exists, but could not open thing at path:{path}')
+                self.logger.exception(f'path exists, but could not open thing at path:{path}')
                 return None
         else:
             self.logger.info(f'no file found for hash:{thehash} at path:{path}')
             return None
-    
-    def saveWList(self,Wlist,df,modeldict,log_artifact=0,log_artifact_key=0):
-        hashable_key=[df.to_csv().encode('utf-8'),modeldict]
-        self.saveByHashID(hashable_key,Wlist,filestring="_Wlist",log_artifact=log_artifact,log_artifact_key=log_artifact_key)
+
         
     def saveByHashID(self,hashable_key,thing,filestring="",log_artifact=0,log_artifact_key=0):
         thehash=joblib.hash(hashable_key)
