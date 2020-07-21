@@ -75,6 +75,7 @@ class SpatialModel():
             dfi=df.loc[idx0]
             modeldict_i['period']=idx0
             wtlist=self.makeInverseDistanceWeights(dfi,modeldict=modeldict_i)
+            
             wtlistlist.append(wtlist)
             for w,k in zip(wtlist,klist):
                 modeldict_i_k=deepcopy(modeldict_i) 
@@ -236,6 +237,22 @@ class SpatialModel():
         self.logger.info(f'filestring saved to path:{path}')
         return
     
+    def neighbornetwork(self,w):
+        
+        for i in range(3):
+            neighblist=w.neighbors[i]
+            print(f'{i} has {neighblist}')
+            for j in neighblist:
+                neighblist2=w.neighbors[j]
+                print(f'{j} has {neighblist2}')
+                for k in neighblist2:
+                    neighblist3=w.neighbors[k]
+                    print(f'{k} has {neighblist3}')
+                
+            
+            
+    
+    
     def makeInverseDistanceWeights(self,dfi,modeldict=None,skipW=0,):
         '''
         from libpysal.weights import W
@@ -272,6 +289,7 @@ class SpatialModel():
         
         savedWlist=self.checkForWList(dfi,wt_modeldict)
         if savedWlist:
+            #print(self.neighbornetwork(savedWlist[-1]))
             return savedWlist
         timelist=dfi.index.remove_unused_levels().levels[0]#dfi.index.levels[0]
         neighbors_dictlist=[{} for _ in range(len(klist))]
@@ -292,7 +310,7 @@ class SpatialModel():
                 distmat[distmat==0]=10**20# assuming only one's self can be zero distance away, also treats self if sold more than once
                 idxarray=np.arange(n_cum,n_cum+n)
                 n_cum+=n # for the next iteration
-                sortidx=distmat.argsort(axis=-1) # default is axis=-1, the 'columns' of the 2d array
+                sortidx=distmat.argsort(axis=-1) # default is axis=-1, sorting across the 'columns' of the 2d array, so each row is sorted. 
                 self.logger.info(f'making weights with weight type:{wt_type}')
                 for pos,idx in enumerate(idxarray):
                     sortvec=sortidx[pos,:]

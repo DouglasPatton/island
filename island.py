@@ -30,7 +30,7 @@ class IslandData(DataView):
             format="[%(asctime)s] %(levelname)s [%(name)s.%(funcName)s:%(lineno)d] %(message)s",
             datefmt='%Y-%m-%dT%H:%M:%S')
         self.logger = logging.getLogger(handlername)
-        self.klist=[2,4,6]#[2,4,6]#[25,50,100]
+        self.klist=[4]#[2,4,6]#[25,50,100]
         self.resultsdictlist=[]
         self.figdict={}
         self.sumstatsdict={}
