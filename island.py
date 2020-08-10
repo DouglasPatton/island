@@ -420,7 +420,7 @@ class IslandData(DataView):
             
     
     def createEffectsGraph(self,):
-        avg_df,avg_df_list=self.estimateWQEffects(effect=0.01) # a dataframe averaged within distance bands and with partial derivative and delta based marginal effects
+        avg_df,avg_df_list=self.estimateWQEffects(effect=3.28084**-1) # a dataframe averaged within distance bands and with partial derivative and delta based marginal effects
         self.dist_avg_df=avg_df
         self.dist_avg_df_list=avg_df_list
         x=list(avg_df.index)
