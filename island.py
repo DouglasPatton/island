@@ -333,7 +333,7 @@ class IslandData(DataView):
         wqnames=[var for idx,var in enumerate(names) if re.search('wq',var) or re.search('secchi',var)]
         df_plus=df.copy()
         for name in wqnames:
-            df_idx=df_plus.loc[:,name]!=0 # so dummy vars are not incremented
+            df_idx=df_plus.loc[:,name]!=0 # so dummy var X WQ interaction zeros are not incremented
             df_plus.loc[df_idx,name]+=incr
         return df_plus
         
@@ -406,15 +406,15 @@ class IslandData(DataView):
         return avg_df,avg_df_list
     
     
-    def estimateAnnualWQAvgTreatmentEffect(self,):
+    def estimateAnnualWQAvgMarginalEffect(self,):
         dflist=self.dist_avg_df_list
         for p in [0,1]:
             df=dflist[p]
             sum_df=df.sum()
-            ate=sum_df[f'wt_marginal_p{p}']
-            print(f'avg treatment effect wt sum for period{p} = {ate}')
+            ame=sum_df[f'wt_marginal_p{p}']
+            print(f'avg marginal effect wt sum for period{p} = {ame}')
             rate=0.03
-            print(f'at r={rate}, annual benefits for period{p} = {ate*rate}')
+            print(f'at r={rate}, annual benefits for period{p} = {ame*rate}')
             
         
             
