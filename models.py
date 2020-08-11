@@ -16,12 +16,14 @@ import pickle
 from haversine import haversine_vector, Unit
 import re
 from copy import deepcopy
-#from mlflow import log_metric, log_param, log_artifact, start_run
-import mlflow
 from datetime import datetime
+from statsmodels.regression.linear_model import OLS
 #from scipy.sparse import dok_matrix
 
-class SpatialModel():
+class Model():
+    '''
+    Formerly SpatialModel
+    '''
     def __init__(self,modeldict):
         self.logger = logging.getLogger(__name__)
         self.modeldict=modeldict
@@ -45,55 +47,51 @@ class SpatialModel():
         
     def run(self,df=None):
         # https://pysal.org/libpysal/generated/libpysal.weights.W.html#libpysal.weights.W
-        #mlflow.set_tracking_uri("http://127.0.0.1:5000")
-        mlflow.set_experiment(f'{datetime.now()}')
         modeldict=self.modeldict
-        
-        nn=self.modeldict['klist']
-        if type(nn) is int:
-            klist=[nn]
-        elif type(nn) is list:
-            klist=nn
-        else:assert False,f'halt, unrecongized nn:{nn}'
-        if not re.search('nn',modeldict['wt_type'].lower()):
-            klist=['all']
+        if re.search('statsmodels',modeldict['modeltype']):
+            pass
             
-            
-        if df is None:
-            try:self.df
-            except: self.arrayListToPandasDF()
-            df=self.df
-            assert False, 'broken, no distancevars'
-        
-        if self.modeldict['combine_pre_post']==1:
-            df_idx_0_list=[slice(None)]
         else:
-            df_idx_0_list=[0,1]
-        wtlistlist=[];resultsdictlist=[]
-        modeldict_i=deepcopy(modeldict) 
-        for idx0 in df_idx_0_list:
-            dfi=df.loc[idx0]
-            modeldict_i['period']=idx0
-            wtlist=self.makeInverseDistanceWeights(dfi,modeldict=modeldict_i)
-            
-            wtlistlist.append(wtlist)
-            for w,k in zip(wtlist,klist):
-                modeldict_i_k=deepcopy(modeldict_i) 
-                modeldict_i_k['klist']=k
-                try:mlflow.start_run()#: # mlflow context manager
-                except:mlflow.end_run();mlflow.start_run()
-                resultsdict=self.runPysalModel(dfi,w,nn=k,t=idx0,modeldict=modeldict_i_k)
-                mlflow.end_run()
-                resultsdictlist.append(resultsdict)
-        return resultsdictlist
+            nn=self.modeldict['klist']
+            if type(nn) is int:
+                klist=[nn]
+            elif type(nn) is list:
+                klist=nn
+            else:assert False,f'halt, unrecongized nn:{nn}'
+            if not re.search('nn',modeldict['wt_type'].lower()):
+                klist=['all']
+
+
+            if df is None:
+                try:self.df
+                except: self.arrayListToPandasDF()
+                df=self.df
+                assert False, 'broken, no distancevars'
+
+            if self.modeldict['combine_pre_post']==1:
+                df_idx_0_list=[slice(None)]
+            else:
+                df_idx_0_list=[0,1]
+            wtlistlist=[];resultsdictlist=[]
+            modeldict_i=deepcopy(modeldict) 
+            for idx0 in df_idx_0_list:
+                dfi=df.loc[idx0]
+                modeldict_i['period']=idx0
+                wtlist=self.makeInverseDistanceWeights(dfi,modeldict=modeldict_i)
+
+                wtlistlist.append(wtlist)
+                for w,k in zip(wtlist,klist):
+                    modeldict_i_k=deepcopy(modeldict_i) 
+                    modeldict_i_k['klist']=k
+                    resultsdict=self.runPysalModel(dfi,w,nn=k,t=idx0,modeldict=modeldict_i_k)
+                    resultsdictlist.append(resultsdict)
+            return resultsdictlist
+
     
-    
-    def runPysalModel(self,df,w,nn=None,t=None,modeldict=None):
+    def prepModelData(self,df,w=None,nn=None,t=None,modeldict=None):
         if modeldict is None: modeldict=self.modeldict
-        wt_type=modeldict['wt_type']
-        wt_norm=modeldict['wt_norm']
-        NNscope=modeldict['NNscope']
-        modeltype=modeldict['modeltype']
+        
+        
         yvar=modeldict['yvar']
         transform_dict=modeldict['transform']
         do_log_y=transform_dict['ln_y']
@@ -132,9 +130,23 @@ class SpatialModel():
         self.logger.info(f'x:{x}')
 
         args=[y,x,w]
+        kwargs={'name_y':yvar,'name_x':xvarlist}
+        try:
+            wt_type=modeldict['wt_type']
+            wt_norm=modeldict['wt_norm']
+            NNscope=modeldict['NNscope']
+            name_w=f'{wt_type}-{wt_norm}-{NNscope}-{nn}'
+            kwargs['name_w']=name_w
+        except:
+            self.logger.exception(f'no info found for weights when making kwargs')
+            
         
-        kwargs={'name_y':yvar,'name_x':xvarlist,'name_w':f'{wt_type}-{wt_norm}-{NNscope}-{nn}'}
-        
+        return args,kwargs
+    
+    
+    def runPysalModel(self,df,w,nn=None,t=None,modeldict=None):
+        args,kwargs=self.prepModelData(df,w,nn=nn,t=t,modeldict=modeldict)
+        modeltype=modeldict['modeltype']
         if modeltype.lower()=='sem':
             estimator=pysal_model.spreg.ML_Error
         elif modeltype.lower()=='slm':
@@ -155,20 +167,14 @@ class SpatialModel():
         hashable_key=[args[:2],{key:val for key,val in kwargs.items() if key!='w'}] # w probably not hashable, so exclude
         model_filestring=f'_model_{modeltype}'
         trysavedmodel=self.checkForSaveHash(hashable_key,filestring=model_filestring)
-        self.logparams(modeldict)
+        #self.logparams(modeldict)
         if trysavedmodel:
             self.logger.warning(f'hashkeysaved model model already exists for modeldict:{modeldict}, skipping')
             model=trysavedmodel         
         else:
             model=estimator(*args,**kwargs) # this is it!
-            try:
-                mlflow.log_metric('Pseudo_R2',model.pr2)
-            except AttributeError:
-                mlflow.log_metric('R2',model.r2)
-            except:
-                assert False, 'unexpected error'
             
-            self.saveByHashID(hashable_key,model,filestring=model_filestring,log_artifact=1,log_artifact_key=1)
+            self.saveByHashID(hashable_key,model,filestring=model_filestring)
         try:
             #print(model.summary)
             self.logger.info(model.summary)
@@ -178,7 +184,7 @@ class SpatialModel():
         resultsdict={'modeldict':deepcopy(modeldict),'results':model}
         return resultsdict
     
-    def logparams(self,modeldict,recursivekey=''):
+    def logparams(self,modeldict,recursivekey=''):#for mlflow, which has been removed
         for key,val in modeldict.items():
             if recursivekey:
                 key=recursivekey+'..'+key
@@ -201,9 +207,9 @@ class SpatialModel():
         return Wlist
     
     
-    def saveWList(self,Wlist,df,modeldict,log_artifact=0,log_artifact_key=0):
+    def saveWList(self,Wlist,df,modeldict):
         hashable_key=[df.to_csv().encode('utf-8'),modeldict]
-        self.saveByHashID(hashable_key,Wlist,filestring="_Wlist",log_artifact=log_artifact,log_artifact_key=log_artifact_key)
+        self.saveByHashID(hashable_key,Wlist,filestring="_Wlist")
         
     def checkForSaveHash(self,hashable_key,filestring=""):
         thehash=joblib.hash(hashable_key)
@@ -222,7 +228,7 @@ class SpatialModel():
             return None
 
         
-    def saveByHashID(self,hashable_key,thing,filestring="",log_artifact=0,log_artifact_key=0):
+    def saveByHashID(self,hashable_key,thing,filestring=""):
         thehash=joblib.hash(hashable_key)
         path=os.path.join(self.savespath,thehash+filestring+'.pickle')
         keypath=path[:-7]+'_hashable-key.pickle'
@@ -230,10 +236,6 @@ class SpatialModel():
             pickle.dump(thing,f)
         with open(keypath,'wb') as f:
             pickle.dump(hashable_key,f)
-        if log_artifact:
-            mlflow.log_artifact(path)
-        if log_artifact_key:
-            mlflow.log_artifact(keypath)
         self.logger.info(f'filestring saved to path:{path}')
         return
     
@@ -381,7 +383,7 @@ class SpatialModel():
             #self.logger.info(f'neighbors and weights: {neighbors_dictlist[k_idx],weights_dictlist[k_idx]}')
             wlist.append(libpysal_weights.W(neighbors_dictlist[k_idx],weights_dictlist[k_idx]))
         self.wlist=wlist
-        self.saveWList(wlist,dfi,wt_modeldict,log_artifact=1)
+        self.saveWList(wlist,dfi,wt_modeldict)
         return wlist
     
                              

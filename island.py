@@ -12,7 +12,7 @@ import matplotlib.ticker as ticker
 #import cpi # imported conditionally, later on #https://github.com/datadesk/cpi
 from data_viz import DataView
 from datetime import datetime
-from models import SpatialModel
+from models import Model
 from math import floor,log10,ceil
 import re
 
@@ -95,7 +95,7 @@ class IslandData(DataView):
         modeldict={
                 'combine_pre_post':0,
                 'period':None, # used later to record which time period is included in data for a model
-                'modeltype':'OLS',#,'GM_Error_Het',#'GM_Lag',#'SLM',#'SEM',#'SLM',
+                'modeltype':'OLS',#'statsmodels.OLS',#,'GM_Error_Het',#'GM_Lag',#'SLM',#'SEM',#'SLM',
                 'klist':self.klist,
                 #'crs':'epsg:4326',
                 'xvars':xvarlist,
@@ -167,20 +167,20 @@ class IslandData(DataView):
         return df,xvarlist
     
     
-    def runSpatialModel(self,modeldict=None,justW=0):
+    def runModel(self,modeldict=None,justW=0):
         if modeldict is None:
             modeldict=self.modeldict
-        spatial_model_tool_tool=SpatialModel(modeldict)
+        spatial_model_tool_tool=Model(modeldict)
         if justW:
             spatial_model_tool.justMakeWeights(df=self.df)
             return
         resultdictlist=spatial_model_tool_tool.run(df=self.df)
         self.resultsdictlist.extend(resultdictlist)
-        self.saveSpatialModelResults(resultdictlist)
+        self.saveModelResults(resultdictlist)
         
         #return self.resultsdictlist
     
-    def saveSpatialModelResults(self,resultsdict,load=0):
+    def saveModelResults(self,resultsdict,load=0):
         if load:
             with open(os.path.join(self.resultsdir,'resultsdictlist.pickle'),'rb') as f:
                 resultsdictlist=pickle.load(f)
@@ -214,7 +214,7 @@ class IslandData(DataView):
             assert self.resultsdictlist,"results not loaded, loading results"
             resultsdictlist=self.resultsdictlist
         except: 
-            resultsdictlist=self.saveSpatialModelResults([],load=1)
+            resultsdictlist=self.saveModelResults([],load=1)
         
         #flatresults=self.flattenListList(results)
         
@@ -458,7 +458,7 @@ class IslandData(DataView):
             assert self.resultsdictlist,"results not loaded, loading results"
             resultsdictlist=self.resultsdictlist
         except: 
-            resultsdictlist=self.saveSpatialModelResults([],load=1)
+            resultsdictlist=self.saveModelResults([],load=1)
         
         
         resultsdictflatlist=self.flattenListList(resultsdictlist)
@@ -535,7 +535,7 @@ class IslandData(DataView):
             assert self.resultsdictlist,"results not loaded, loading results"
             resultsdictlist=self.resultsdictlist
         except: 
-            resultsdictlist=self.saveSpatialModelResults([],load=1)
+            resultsdictlist=self.saveModelResults([],load=1)
         I=len(resultsdictlist)
         summary_text='Model Summaries\n'+f'for {I}  models\nPrinted on {datetime.now()}\n'
         
