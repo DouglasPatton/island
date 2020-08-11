@@ -48,6 +48,14 @@ class Model():
     def run(self,df=None):
         # https://pysal.org/libpysal/generated/libpysal.weights.W.html#libpysal.weights.W
         modeldict=self.modeldict
+        
+        if df is None:
+                try:self.df
+                except: self.arrayListToPandasDF()
+                df=self.df
+                assert False, 'broken, no distancevars'
+
+        
         if re.search('statsmodels',modeldict['modeltype']):
             pass
             
@@ -62,12 +70,7 @@ class Model():
                 klist=['all']
 
 
-            if df is None:
-                try:self.df
-                except: self.arrayListToPandasDF()
-                df=self.df
-                assert False, 'broken, no distancevars'
-
+            
             if self.modeldict['combine_pre_post']==1:
                 df_idx_0_list=[slice(None)]
             else:
