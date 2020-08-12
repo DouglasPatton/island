@@ -33,17 +33,17 @@ class IslandEffects:
         last_dist=self.modeldict['distance'][-1]
         label=f'Distance to Shoreline {last_dist}m-4000m'
         df_idx=pd.Series([False]*len(df.index),index=df.index)
-        for var in distancevars:
+        for var in distancevars: # loop through a bunch of 'or' operators to look for rows without a distance( incl bayfront/access).
              #df_idx+=df.loc[slice(None),var]==1
-            df_idx=df_idx|df.loc[slice(None),var]==1
+            df_idx=df_idx|df.loc[slice(None),var]==1 # | (pipe) is or for dataframes
         df.loc[slice(None),label]=1-df_idx
         distancevars.append(label)
         return df,distancevars
     
     def averageByDistance(self,df,distancevars):
         df,distancevars=self.addOmittedDistance(df,distancevars)
-        #avg_df=pd.DataFrame({col:[None]*len(distancevars)for col in df.columns},index=distancevars)
-        avg_df=pd.DataFrame()
+        #bigX_dist_avg_df=pd.DataFrame({col:[None]*len(distancevars)for col in df.columns},index=distancevars)
+        bigX_dist_avg_df=pd.DataFrame()
         avg_data_list=[]
         for var in distancevars:
             df_idx=df.loc[slice(None),var]==1
@@ -52,19 +52,19 @@ class IslandEffects:
             df_i=pd.DataFrame({key:mean_df.loc[key] for key in keys},index=[var])
             df_i.loc[:,'d_count']=df_idx.sum()
             avg_data_list.append(df_i)
-        avg_df=pd.concat(avg_data_list)
-        return avg_df
+        bigX_dist_avg_df=pd.concat(avg_data_list)
+        return bigX_dist_avg_df
             #for key,val in meanvals.items()
    
     def setTimeDummies(self,df):
         regex_dv_y2k=re.compile('dv_20[0-9][0-9]')
         cols=list(df.columns)
-        avg_df_list=[df.copy(),df.copy()]
+        bigX_dist_avg_df_list=[df.copy(),df.copy()] # one for pre, one for post Sandy
         for var in cols:
             if re.search(regex_dv_y2k,var):
-                avg_df_list[0].loc[:,var]=1/11
-                avg_df_list[1].loc[:,var]=1/4
-        return avg_df_list
+                bigX_dist_avg_df_list[0].loc[:,var]=1/11
+                bigX_dist_avg_df_list[1].loc[:,var]=1/4
+        return bigX_dist_avg_df_list
         
             
 
@@ -79,7 +79,7 @@ class IslandEffects:
         return df_plus
         
         
-    def estimateWQEffects(self,effect=0.01):
+    def estimateWQEffects(self,wq_change_m=0.01):
         df=self.df.copy()
         modeltype='ols';periodlist=[0,1]
         resultsdict=self.retrieveLastResults(modeltype=modeltype,periodlist=periodlist)
@@ -97,12 +97,13 @@ class IslandEffects:
         
         
         bigx=self.makeBigX(df) # condenses data across all times to latest observation at each lat/lon
-        avg_df=self.averageByDistance(bigx,distancevars)
-        avg_df.loc[slice(None),'CONSTANT']=1
-        avg_df_list=self.setTimeDummies(avg_df)
+        self.bigx=bigx
+        bigX_dist_avg_df=self.averageByDistance(bigx,distancevars)
+        bigX_dist_avg_df.loc[slice(None),'CONSTANT']=1
+        bigX_dist_avg_df_list=self.setTimeDummies(bigX_dist_avg_df)
         #bigx.index = pd.RangeIndex(len(bigx.index))
-        #print(avg_df)
-        #self.avg_df=avg_df
+        #print(bigX_dist_avg_df)
+        #self.bigX_dist_avg_df=bigX_dist_avg_df
         
         #effect_dict={}
         for period,result in resultsdict.items():
@@ -110,62 +111,81 @@ class IslandEffects:
             model=result['results']
             modeldict=result['modeldict']
             p=modeldict['period']
-            avg_df_p=avg_df_list[p]
+            bigX_dist_avg_df_p=bigX_dist_avg_df_list[p]
             names=list(model.name_x)
             wq_var_idx=[names.index(var) for var in wq_dist_vars]
-            x0=avg_df_p.loc[:,names]
-            x1=self.incrementWQ(x0,effect)
+            x0=bigX_dist_avg_df_p.loc[:,names]
+            x1=self.incrementWQ(x0,wq_change_m)
             betas=np.array(model.betas).flatten()
             wqbetas=betas[wq_var_idx]
             std_errs=np.array(model.std_err)
             wq_std_errs=std_errs[wq_var_idx]
             #effect_dict['modeldict']=modeldict
-            wt=avg_df_p.loc[:,'d_count'].to_numpy()
-            wt=wt/wt.sum()
+            dwt=bigX_dist_avg_df_p.loc[:,'d_count'].to_numpy() # number of obs per distance band and access/bayfront
+            dwt=dwt/dwt.sum() # as a share
             
             
             before=np.exp((x0@betas).to_numpy())
-            avg_df_p.loc[:,f'marginal_p{p}']=before*wqbetas
+            bigX_dist_avg_df_p.loc[:,f'marginal_p{p}']=before*wqbetas
             l=(wqbetas-1.96*wq_std_errs)
             #print(f'l.shape:{l.shape},before.shape:{before.shape}')
-            avg_df_p.loc[:,f'lower95_marginal_p{p}']=before*l
+            bigX_dist_avg_df_p.loc[:,f'lower95_marginal_p{p}']=before*l
             u=(wqbetas+1.96*wq_std_errs)
-            avg_df_p.loc[:,f'upper95_marginal_p{p}']=before*u
+            bigX_dist_avg_df_p.loc[:,f'upper95_marginal_p{p}']=before*u
             
-            avg_df_p.loc[:,f'wt_marginal_p{p}']=avg_df_p.loc[:,f'marginal_p{p}']*wt
-            avg_df_p.loc[:,f'wt_lower95_marginal_p{p}']=avg_df_p.loc[:,f'lower95_marginal_p{p}']*wt
-            avg_df_p.loc[:,f'wt_upper95_marginal_p{p}']=avg_df_p.loc[:,f'upper95_marginal_p{p}']*wt
+            bigX_dist_avg_df_p.loc[:,f'dwt_marginal_p{p}']=bigX_dist_avg_df_p.loc[:,f'marginal_p{p}']*dwt
+            bigX_dist_avg_df_p.loc[:,f'dwt_lower95_marginal_p{p}']=bigX_dist_avg_df_p.loc[:,f'lower95_marginal_p{p}']*dwt
+            bigX_dist_avg_df_p.loc[:,f'dwt_upper95_marginal_p{p}']=bigX_dist_avg_df_p.loc[:,f'upper95_marginal_p{p}']*dwt
             
             
             after=np.exp((x1@betas).to_numpy())
-            avg_df_p.loc[:,f'yhat_p{p}']=before
-            avg_df_p.loc[:,f'yhat_p{p}_wq+{effect}']=after
-            avg_df_p.loc[:,f'effect_p{p}']=(after-before)/effect
+            bigX_dist_avg_df_p.loc[:,f'yhat_p{p}']=before
+            bigX_dist_avg_df_p.loc[:,f'yhat_p{p}_wq+{wq_change_m}']=after
+            bigX_dist_avg_df_p.loc[:,f'effect_p{p}']=(after-before)/wq_change_m
+            bigX_dist_avg_df_p.loc[:,f'dwt_effect_p{p}']=bigX_dist_avg_df_p.loc[:,f'effect_p{p}']*dwt
             
-            avg_df_p.loc[:,f'wt_effect_p{p}']=avg_df_p.loc[:,f'effect_p{p}']*wt
+            bigX_dist_avg_df_p.loc[:,'ydelta']=after-before
+            ydelta_pct=(after-before)/before
+            bigX_dist_avg_df_p.loc[:,'ydelta_pct']=ydelta_pct #really per 1 not 100
+            yvar=modeldict['yvar']
+            y=bigX_dist_avg_df_p.loc[:,yvar] ### dist averages cover normalizing by distance band, which can be reversed with dwt.
+            ### but need to create more wt's to normalize by time.
             
-        return avg_df,avg_df_list
+            
+            
+            
+        self.bigX_dist_avg_df=bigX_dist_avg_df
+        self.bigX_dist_avg_df_list=bigX_dist_avg_df_list
+        return bigX_dist_avg_df,bigX_dist_avg_df_list
     
     
     def estimateAnnualWQAvgMarginalEffect(self,):
-        dflist=self.dist_avg_df_list
+        try:bigX_dist_avg_df_list=self.bigX_dist_avg_df_list # all dfs in list based on BigX, but with time dummy X's set for each period in list.
+        except: 
+            _,bigX_dist_avg_df_list=self.estimateWQEffects(effect=3.28084**-1) # a dataframe averaged within distance bands and with partial derivative and delta based marginal effects
         for p in [0,1]:
-            df=dflist[p]
-            sum_df=df.sum()
-            ame=sum_df[f'wt_marginal_p{p}']
-            print(f'avg marginal effect wt sum for period{p} = {ame}')
+            df=bigX_dist_avg_df_list[p]
+            sum_df=df.sum() # summing over the distance bands (and bayfront/access) in bigX_dist_avg_df's
+            ame=sum_df[f'dwt_marginal_p{p}']
+            print(f'avg marginal effect dwt sum for period{p} = {ame}')
             rate=0.03
             print(f'at r={rate}, annual benefits for period{p} = {ame*rate}')
             
-    def getWQEffect(self,effect_m=3.28084**-1):
-        
+    def getAnnualWQAvgEffect(self,wq_change_m=3.28084**-1):
+        # for non-marginal changes in wq
+        try: avg_df=self.bigX_dist_avg_df,bigX_dist_avg_df_list=self.bigX_dist_avg_df_list # all dfs based on BigX, but with time dummy X's set for each period in list. just averages in bigX_dist_avg_df
+        except: 
+            bigX_dist_avg_df,bigX_dist_avg_df_list=self.estimateWQEffects(effect=3.28084**-1) # a dataframe averaged within distance bands and with partial derivative and delta based marginal effects
+        for p in [0,1]:
+            df=bigX_dist_avg_df_list[p]
+            
             
     
     def createEffectsGraph(self,):
-        avg_df,avg_df_list=self.estimateWQEffects(effect=3.28084**-1) # a dataframe averaged within distance bands and with partial derivative and delta based marginal effects
-        self.dist_avg_df=avg_df
-        self.dist_avg_df_list=avg_df_list
-        x=list(avg_df.index)
+        try: bigX_dist_avg_df=self.bigX_dist_avg_df,bigX_dist_avg_df_list=self.bigX_dist_avg_df_list
+        except: 
+            bigX_dist_avg_df,bigX_dist_avg_df_list=self.estimateWQEffects(wq_change_m=3.28084**-1) # a dataframe averaged within distance bands and with partial derivative and delta based marginal effects
+        x=list(bigX_dist_avg_df.index)
         effect_name=[]
         for var in x: # a loop for shortening names
             if var[:8].lower()=='distance':
@@ -181,10 +201,10 @@ class IslandEffects:
         ax.set_ylabel('Partial Derivatives of Sale Price by Water Clarity')
         
         for p in [0,1]:
-            avg_df_p=avg_df_list[p]
-            effect=avg_df_p[f'marginal_p{p}'].to_numpy()
-            lower=avg_df_p[f'lower95_marginal_p{p}'].to_numpy()
-            upper=avg_df_p[f'upper95_marginal_p{p}'].to_numpy()
+            bigX_dist_avg_df_p=bigX_dist_avg_df_list[p]
+            effect=bigX_dist_avg_df_p[f'marginal_p{p}'].to_numpy()
+            lower=bigX_dist_avg_df_p[f'lower95_marginal_p{p}'].to_numpy()
+            upper=bigX_dist_avg_df_p[f'upper95_marginal_p{p}'].to_numpy()
             
             #print('lower',lower)
             #print('upper',upper)
