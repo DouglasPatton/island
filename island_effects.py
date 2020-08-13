@@ -81,7 +81,11 @@ class IslandEffects:
             df_idx=df_plus.loc[:,name]!=0 # so dummy var X WQ interaction zeros are not incremented
             df_plus.loc[df_idx,name]+=incr
         return df_plus
+    
+    def wtYfromBigX(self,bigX,yvar):
         
+    
+        return bigY_dist_wt_time_df
         
     def estimateWQEffects(self,wq_change_m=0.01):
         df=self.df.copy()
@@ -103,6 +107,8 @@ class IslandEffects:
         bigx=self.makeBigX(df) # condenses data across all times to latest observation at each lat/lon
         self.bigx=bigx
         bigX_dist_avg_df=self.averageByDistance(bigx,distancevars)
+        yvar=modeldict['yvar']
+        bigY_dist_wt_time_df=self.wtYfromBigX(bigx,yvar)
         bigX_dist_avg_df.loc[slice(None),'CONSTANT']=1
         bigX_dist_avg_df_list=self.setTimeDummies(bigX_dist_avg_df)
         #bigx.index = pd.RangeIndex(len(bigx.index))
@@ -151,7 +157,7 @@ class IslandEffects:
             bigX_dist_avg_df_p.loc[:,'ydelta']=after-before
             ydelta_pct=(after-before)/before
             bigX_dist_avg_df_p.loc[:,'ydelta_pct']=ydelta_pct #really per 1 not 100
-            yvar=modeldict['yvar']
+            
             y=bigX_dist_avg_df_p.loc[:,yvar] ### dist averages cover normalizing by distance band, which can be reversed with dwt.
             ### but need to create more wt's to normalize by time.
             
