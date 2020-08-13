@@ -15,6 +15,7 @@ class IslandEffects:
         last_unique_rows=[val for key,val in last_unique_dict.items()]
         #print(f'BigX len(last_unique_rows):{len(last_unique_rows)}')
         unique_df=df.iloc[last_unique_rows]
+        self.bigx=unique_df
         return unique_df
             
     '''def makeCensusDict(self,df):
@@ -99,9 +100,10 @@ class IslandEffects:
                 wq_dist_vars.append(name)
         wq_dist_vars.append('secchi')# to go with the omitted var at the end
         
-        
-        bigx=self.makeBigX(df) # condenses data across all times to latest observation at each lat/lon
-        self.bigx=bigx
+        try:
+            bigx=self.bigx
+        except
+            bigx=self.makeBigX(df) # condenses data across all times to latest observation at each lat/lon
         bigX_dist_avg_df=self.averageByDistance(bigx,distancevars)
         yvar=modeldict['yvar']
         bigY_dist_wt_time_df=self.wtYfromBigX(bigx,yvar)
@@ -153,9 +155,12 @@ class IslandEffects:
             bigX_dist_avg_df_p.loc[:,'ydelta']=after-before
             ydelta_pct=(after-before)/before
             bigX_dist_avg_df_p.loc[:,'ydelta_pct']=ydelta_pct #really per 1 not 100
-            
             y=bigX_dist_avg_df_p.loc[:,yvar] ### dist averages cover normalizing by distance band, which can be reversed with dwt.
             ### but need to create more wt's to normalize by time.
+            y1=y*ydelta_pct
+            bigX_dist_avg_df_p.loc[:,'y1']=y1
+            effect=y1-y
+            bigX_dist_avg_df_p.loc[:,'effect']=effect
             
             
             
