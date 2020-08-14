@@ -9,7 +9,7 @@ class IslandEffects:
         pass
     
     
-    def makeBigX(self,df):
+    def makebigX(self,df):
         len0,len1=df.shape
         latlonstring_iloc_dict={}
         latlon_string_list=(df.loc[:,'latitude'].astype(str)+df.loc[:,'longitude'].astype(str)).to_list()
@@ -17,9 +17,9 @@ class IslandEffects:
         for i,latlon in enumerate(latlon_string_list):
             last_unique_dict[latlon]=i # keeps only last since earlier are overwritten.
         last_unique_rows=[val for key,val in last_unique_dict.items()]
-        #print(f'BigX len(last_unique_rows):{len(last_unique_rows)}')
+        #print(f'bigX len(last_unique_rows):{len(last_unique_rows)}')
         unique_df=df.iloc[last_unique_rows]
-        self.bigx=unique_df
+        self.bigX=unique_df
         return unique_df
             
     '''def makeCensusDict(self,df):
@@ -83,15 +83,17 @@ class IslandEffects:
             df_plus.loc[df_idx,name]+=incr
         return df_plus
     
-    def wtYfromBigX(self,bigX,yvar):
+    def wtYfrombigX(self,bigX,yvar):
         
     
         return bigY_dist_wt_time_df
         
-    def estimateWQEffects(self,wq_change_m=0.01):
-        df=self.df.copy()
-        modeltype='ols';periodlist=[0,1]
-        resultsdict=self.retrieveLastResults(modeltype=modeltype,periodlist=periodlist)
+    def estimateWQEffects(self,wq_change_m=0.01,df=None,resultsdict=None):
+        if df is None:
+            df=self.df.copy()
+        if resultsdict is None:
+            modeltype='ols';periodlist=[0,1]
+            resultsdict=self.retrieveLastResults(modeltype=modeltype,periodlist=periodlist)
         model=resultsdict[0]['results']
         names=list(model.name_x)
         distancevars=['bayfront']
@@ -105,15 +107,15 @@ class IslandEffects:
         wq_dist_vars.append('secchi')# to go with the omitted var at the end
         
         try:
-            bigx=self.bigx
+            bigX=self.bigX
         except
-            bigx=self.makeBigX(df) # condenses data across all times to latest observation at each lat/lon
-        bigX_dist_avg_df=self.averageByDistance(bigx,distancevars)
+            bigX=self.makebigX(df) # condenses data across all times to latest observation at each lat/lon
+        bigX_dist_avg_df=self.averageByDistance(bigX,distancevars)
         yvar=modeldict['yvar']
-        bigY_dist_wt_time_df=self.wtYfromBigX(bigx,yvar)
+        bigY_dist_wt_time_df=self.wtYfrombigX(bigX,yvar)
         bigX_dist_avg_df.loc[slice(None),'CONSTANT']=1
         bigX_dist_avg_df_list=self.setTimeDummies(bigX_dist_avg_df)
-        #bigx.index = pd.RangeIndex(len(bigx.index))
+        #bigX.index = pd.RangeIndex(len(bigX.index))
         #print(bigX_dist_avg_df)
         #self.bigX_dist_avg_df=bigX_dist_avg_df
         
@@ -175,7 +177,7 @@ class IslandEffects:
     
     
     def estimateAnnualWQAvgMarginalEffect(self,):
-        try:bigX_dist_avg_df_list=self.bigX_dist_avg_df_list # all dfs in list based on BigX, but with time dummy X's set for each period in list.
+        try:bigX_dist_avg_df_list=self.bigX_dist_avg_df_list # all dfs in list based on bigX, but with time dummy X's set for each period in list.
         except: 
             _,bigX_dist_avg_df_list=self.estimateWQEffects(effect=3.28084**-1) # a dataframe averaged within distance bands and with partial derivative and delta based marginal effects
         for p in [0,1]:
@@ -186,14 +188,49 @@ class IslandEffects:
             rate=0.03
             print(f'at r={rate}, annual benefits for period{p} = {ame*rate}')
             
-    def getAnnualWQAvgEffect(self,wq_change_m=3.28084**-1):
-        # for non-marginal changes in wq
-        try: avg_df=self.bigX_dist_avg_df,bigX_dist_avg_df_list=self.bigX_dist_avg_df_list # all dfs based on BigX, but with time dummy X's set for each period in list. just averages in bigX_dist_avg_df
-        except: 
-            bigX_dist_avg_df,bigX_dist_avg_df_list=self.estimateWQEffects(effect=3.28084**-1) # a dataframe averaged within distance bands and with partial derivative and delta based marginal effects
-        for p in [0,1]:
-            df=bigX_dist_avg_df_list[p]
             
+    def getAnnualWQAvgEffect(self,wq_change_m=3.28084**-1,resultsdict=None):
+        '''
+        for non-marginal changes in wq
+        '''
+        if resultsdict is None:
+            modeltype='ols';periodlist=[0,1]
+            resultsdict=self.retrieveLastResults(modeltype=modeltype,periodlist=periodlist)
+        
+        #First calculate E[y1] and E[y2] then pct change for each row.
+        
+        try:
+            bigX=self.bigX
+        except
+            bigX=self.makebigX(self.df)
+        bigX.loc[slice(None),'CONSTANT']=1
+        bigXplus=self.incrementWQ(bigX,wq_change_m)
+        
+        for period,result in resultsdict.items():
+            model=result['results']
+            modeldict=result['modeldict']
+            yvar=modeldict['yvar']
+            p=modeldict['period']
+            names=list(model.name_x)
+            wq_var_idx=[names.index(var) for var in wq_dist_vars]
+            x0=bigX.loc[:,names]
+            x1=bigXplus.loc[:,names]
+            betas=np.array(model.betas).flatten()
+            wqbetas=betas[wq_var_idx]
+            std_errs=np.array(model.std_err)
+            yhat0=np.exp((x0@betas).to_numpy())
+            yhat1=np.exp((x1@betas).to_numpy())
+            pct_ch=(yhat1-yhat0)/yhat0 # except without the 100% exp(s2/2) not calculated b/c cancels out.
+            #now calculate y1-y0=y0[1+pct_ch] - y0 
+            bigY0=bigX[:,yvar]
+            bigY1=bigY0*(np.ones(bigY0.shape)+bigY0*pct_ch)
+            effect=bigY1-bigY0
+            bigX.loc[:,f'effect_p{p}']=effect
+            effect_list.append(effect)
+
+
+                
+        
             
     
     def createEffectsGraph(self,):
