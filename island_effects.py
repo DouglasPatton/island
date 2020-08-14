@@ -45,14 +45,16 @@ class IslandEffects:
         distancevars.append(label)
         return df,distancevars
     
-    def averageByDistance(self,df,distancevars):
+    def averageByDistance(self,df,distancevars,targetdf=None):
+        if targetdf is None:
+            targetdf=df.copy()
         df,distancevars=self.addOmittedDistance(df,distancevars)
         #bigX_dist_avg_df=pd.DataFrame({col:[None]*len(distancevars)for col in df.columns},index=distancevars)
         bigX_dist_avg_df=pd.DataFrame()
         avg_data_list=[]
         for var in distancevars:
             df_idx=df.loc[slice(None),var]==1
-            mean_df=df[df_idx].mean()
+            mean_df=targetdf[df_idx].mean()
             keys=mean_df.keys()
             df_i=pd.DataFrame({key:mean_df.loc[key] for key in keys},index=[var])
             df_i.loc[:,'d_count']=df_idx.sum()
@@ -83,10 +85,12 @@ class IslandEffects:
             df_plus.loc[df_idx,name]+=incr
         return df_plus
     
+    '''
     def wtYfrombigX(self,bigX,yvar):
         
     
         return bigY_dist_wt_time_df
+    '''
         
     def estimateWQEffects(self,wq_change_m=0.01,df=None,resultsdict=None):
         if df is None:
@@ -112,7 +116,7 @@ class IslandEffects:
             bigX=self.makebigX(df) # condenses data across all times to latest observation at each lat/lon
         bigX_dist_avg_df=self.averageByDistance(bigX,distancevars)
         yvar=modeldict['yvar']
-        bigY_dist_wt_time_df=self.wtYfrombigX(bigX,yvar)
+        #bigY_dist_wt_time_df=self.wtYfrombigX(bigX,yvar) # went in diff direction
         bigX_dist_avg_df.loc[slice(None),'CONSTANT']=1
         bigX_dist_avg_df_list=self.setTimeDummies(bigX_dist_avg_df)
         #bigX.index = pd.RangeIndex(len(bigX.index))
@@ -203,9 +207,7 @@ class IslandEffects:
             bigX=self.bigX
         except
             bigX=self.makebigX(self.df)
-        bigX.loc[slice(None),'CONSTANT']=1
-        bigXplus=self.incrementWQ(bigX,wq_change_m)
-        
+        bigX_t_avg_list=self.setTimeDummies(bigX.copy())   
         for period,result in resultsdict.items():
             model=result['results']
             modeldict=result['modeldict']
@@ -213,8 +215,13 @@ class IslandEffects:
             p=modeldict['period']
             names=list(model.name_x)
             wq_var_idx=[names.index(var) for var in wq_dist_vars]
-            x0=bigX.loc[:,names]
-            x1=bigXplus.loc[:,names]
+            bigX_t_avg=bigX_t_avg_list[p]
+            bigX_t_avg.loc[slice(None),'CONSTANT']=1 # matches name of beta from estimator
+            bigXplus_t_avg=self.incrementWQ(bigX_t_avg,wq_change_m)
+        
+            
+            x0=bigX_t_avg.loc[:,names]
+            x1=bigXplus_t_avg.loc[:,names]
             betas=np.array(model.betas).flatten()
             wqbetas=betas[wq_var_idx]
             std_errs=np.array(model.std_err)
@@ -225,8 +232,10 @@ class IslandEffects:
             bigY0=bigX[:,yvar]
             bigY1=bigY0*(np.ones(bigY0.shape)+bigY0*pct_ch)
             effect=bigY1-bigY0
-            bigX.loc[:,f'effect_p{p}']=effect
-            effect_list.append(effect)
+            effect_name=f'effect_p{p}'
+            bigX_t_avg.loc[:,effect_name]=effect
+            dist_avg_effects=self.averageByDistance(bigX,distancevars,targetdf=effect)
+            print('dist_avg_effects',dist_avg_effects)
 
 
                 
