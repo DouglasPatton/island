@@ -235,8 +235,10 @@ class IslandEffects:
             effect_name=f'effect_p{p}'
             bigX_t_avg.loc[:,effect_name]=effect
             dist_avg_effects=self.averageByDistance(bigX,distancevars,targetdf=effect)
-            print('dist_avg_effects',dist_avg_effects)
-
+            rate=.03
+            annual_dist_avg_effects=dist_avg_effects*.03
+            print(f'dist_avg_effects for period-{p}',dist_avg_effects)
+            print(f'annual_dist_avg_effects for period-{p}',annual_dist_avg_effects)
 
                 
         
