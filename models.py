@@ -119,7 +119,7 @@ class Model():
         
         modeldict['xvars']=xvarlist
         self.logger.info(f'xvarlist:{xvarlist}')
-        wqvar_idx_list=[idx for idx,var in enumerate(xvarlist) if re.search('wq',var) or re.search('secchi',var)]
+        wqvar_idx_list=[idx for idx,var in enumerate(xvarlist) if re.search('secchi',var)] # dropped search for secchi
         
         
         x=df.loc[:][xvarlist].to_numpy(dtype=np.float64)

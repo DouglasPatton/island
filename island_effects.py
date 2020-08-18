@@ -52,7 +52,7 @@ class IslandEffects:
     def averageByDistance(self,df,distancevars,targetdf=None):
         if targetdf is None:
             targetdf=df.copy()
-        else: print(f'targetdf type: {type(targetdf)}')
+        #else: print(f'targetdf type: {type(targetdf)}')
         df,distancevars=self.addOmittedDistance(df,distancevars)
         #bigX_dist_avg_df=pd.DataFrame({col:[None]*len(distancevars)for col in df.columns},index=distancevars)
         bigX_dist_avg_df=pd.DataFrame()
@@ -180,7 +180,7 @@ class IslandEffects:
             y=bigX_dist_avg_df_p.loc[:,yvar].to_numpy() ### dist averages cover normalizing by distance band, which can be reversed with dwt.
             ### but need to create more wt's to normalize by time.
             y1=y*(1+ydelta_pct)
-            print(f'(y.shape,y1.shape,ydelt_pct.shape):{(y.shape,y1.shape,ydelta_pct.shape)}')
+            #print(f'(y.shape,y1.shape,ydelt_pct.shape):{(y.shape,y1.shape,ydelta_pct.shape)}')
             bigX_dist_avg_df_p.loc[:,'y1']=y1
             effect=y1-y
             bigX_dist_avg_df_p.loc[:,'effect']=effect
@@ -259,8 +259,8 @@ class IslandEffects:
             pct_ch_df=pd.DataFrame(pct_ch,index=bigX.index)
             avg_pct_ch=self.averageByDistance(bigX,distancevars,
                                                     targetdf=pct_ch_df)
-            print('avg_pct_ch',avg_pct_ch)
-            print('pct_ch',pct_ch)
+            #print('avg_pct_ch',avg_pct_ch)
+            #print('pct_ch',pct_ch)
             #now calculate y1-y0=y0[1+pct_ch] - y0 
             bigY0=bigX.loc[:,yvar].copy()
             bigY1=bigY0*(1+pct_ch)
@@ -269,7 +269,7 @@ class IslandEffects:
             bigX_tdummy_avg.loc[:,effect_name]=effect
             rate=.03
             average_effect=effect.mean()
-            print(f'(bigY0.shape,bigY1.shape,effect.shape,pct_ch.shape):{(bigY0.shape,bigY1.shape,effect.shape,pct_ch.shape)}')
+            #print(f'(bigY0.shape,bigY1.shape,effect.shape,pct_ch.shape):{(bigY0.shape,bigY1.shape,effect.shape,pct_ch.shape)}')
             print(f'grand average effect period-{p}, {average_effect} at r={rate}, {average_effect*rate}')
             dist_avg_effects=self.averageByDistance(bigX,distancevars,
                                                     targetdf=bigX_tdummy_avg.loc[:,[effect_name,]])

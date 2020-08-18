@@ -136,7 +136,8 @@ class IslandData(DataView,IslandEffects):
         if type(distance_param) is list:
             newxvarlist=[]
             for xvar in xvarlist:
-                if not re.search('shorelinedistance',xvar):
+                if not (re.search('shorelinedistance',xvar) or re.search('wq',xvar)):
+                #if not re.search('shorelinedistance',xvar):
                     newxvarlist.append(xvar) 
             self.df,self.modeldict['xvars']=self.buildDistanceVarsFromList(df,distance_param,newxvarlist)
             
@@ -166,6 +167,13 @@ class IslandData(DataView,IslandEffects):
             newvar_wq='secchi*'+newvar
             df.loc[(slice(None),),newvar_wq]=df.loc[(slice(None),),newvar]*raw_wq
             xvarlist.append(newvar_wq)
+            
+        other_dist_vars=['wateraccess','bayfront']
+        pos=xvarlist.index('wateraccess')+1
+        for var in other_dist_vars:
+            wqvarname='secchi*'+var
+            df.loc[:,wqvarname]=df.loc[:,var]*raw_wq
+            xvarlist.insert(pos,wqvarname)
             #print(df,xvarlist)
         
         return df,xvarlist
@@ -355,7 +363,7 @@ class IslandData(DataView,IslandEffects):
         with open('semresults.html','w') as f:
             f.write(modeltablehtml)
             
-    
+    '''
     def changeVarlistWQtoSecchi(self,varlist):
         newlist=[]
         for var in varlist:
@@ -364,14 +372,14 @@ class IslandData(DataView,IslandEffects):
             else:newlist.append(var)
         
         return newlist
-    
+    '''
             
     def arrayListToPandasDF(self,):
         try:self.time_arraytup
         except: self.makeTimeListArrayList()
         timelist_arraylist,varlist=self.time_arraytup
-        varlist=self.changeVarlistWQtoSecchi(varlist)
-        self.modeldict['xvars']=self.changeVarlistWQtoSecchi(self.modeldict['xvars'])
+        #varlist=self.changeVarlistWQtoSecchi(varlist)
+        #self.modeldict['xvars']=self.changeVarlistWQtoSecchi(self.modeldict['xvars'])
         [nparraylist.append(np.arange(nparraylist[0].shape[0])) for nparraylist in timelist_arraylist] #appending a column to serve as idx
         varlist.append('idx') # name the new column 'idx'                                           
         columnlist=[np.concatenate([nparraylist[varidx] for nparraylist in timelist_arraylist],axis=0) for varidx in range(len(varlist))]
@@ -419,7 +427,7 @@ class IslandData(DataView,IslandEffects):
                 scale=var_shift_scale_dict['scale_dict'][p]
                 val=df.loc[p,var].to_numpy()
                 df.loc[p,var]=(val-shift)/scale
-                print(f'(var,shift,scale,p, df.loc[p,var].mean(),df.loc[p,var].std()):{(var,shift,scale,p, df.loc[p,var].mean(),df.loc[p,var].std())}')
+                #print(f'(var,shift,scale,p, df.loc[p,var].mean(),df.loc[p,var].std()):{(var,shift,scale,p, df.loc[p,var].mean(),df.loc[p,var].std())}')
             
         return df
         
