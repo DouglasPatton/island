@@ -63,7 +63,7 @@ class IslandData(DataView,IslandEffects):
         
     def setmodel(self):
         #all transforms happen separately for each period
-        std_transform={}#{'secchi':'centered'} #transorming secchi will cause all wq interactions to be transformed with parameters from secchi column
+        std_transform={'secchi':'centered'} #transorming secchi will cause all wq interactions to be transformed with parameters from secchi column
         #['saleprice','assessedvalue','totallivingarea','parcel_area','distance_park','distance_nyc','distance_golf','income','distance_shoreline']
         vardict={
             'sale_year':np.uint16,'saleprice':np.int64,'assessedvalue':np.int64,

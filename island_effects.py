@@ -1,3 +1,4 @@
+import os
 import pandas as pd
 import numpy as np
 import re
@@ -107,7 +108,10 @@ class IslandEffects:
             resultsdict=self.retrieveLastResults(modeltype=modeltype,periodlist=periodlist)
         model=resultsdict[0]['results']
         names=list(model.name_x)
-        
+        distancevars=['bayfront','wateraccess']
+        for name in names:
+            if name[:21]=='Distance to Shoreline':
+                distancevars.append(name)
         wq_dist_vars=[]
         for name in names:
             if name[:7]=='secchi*':# and not name[-11:]=='wateraccess':
