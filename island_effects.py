@@ -44,7 +44,7 @@ class IslandEffects:
             '''for var in distancevars: # loop through a bunch of 'or' operators to look for rows without a distance( incl bayfront/access).
                  #df_idx+=df.loc[slice(None),var]==1
                 df_idx=df_idx|df.loc[slice(None),var]==1 # | (pipe) is or for dataframes'''
-            df.loc[:,label]=1-df_idx
+            df.loc[:,label]=df_idx
             distancevars.append(label)
         return df,distancevars
     
@@ -82,8 +82,8 @@ class IslandEffects:
 
     def incrementWQ(self,df,incr):
         names=list(df.columns)
-        wqnames=[var for idx,var in enumerate(names) if var=='secchi' or re.search('secchi*D',var)] # *D necessary to distinguish from pre-existing distance bands
-        wqnames.extend(['secchi*bayfront', 'secchi*wateraccess'])
+        wqnames=[var for idx,var in enumerate(names) if var[:6]=='secchi'] # *D necessary to distinguish from pre-existing distance bands
+        #wqnames.extend(['secchi*bayfront', 'secchi*wateraccess'])
         df_plus=df.copy()
         for name in wqnames:
             df_idx=df_plus.loc[:,name]!=0 # so dummy var X WQ interaction zeros are not incremented
@@ -107,10 +107,7 @@ class IslandEffects:
             resultsdict=self.retrieveLastResults(modeltype=modeltype,periodlist=periodlist)
         model=resultsdict[0]['results']
         names=list(model.name_x)
-        distancevars=['bayfront','wateraccess']
-        for name in names:
-            if name[:21]=='Distance to Shoreline':
-                distancevars.append(name)
+        
         wq_dist_vars=[]
         for name in names:
             if name[:7]=='secchi*':# and not name[-11:]=='wateraccess':
@@ -124,7 +121,7 @@ class IslandEffects:
         bigX_dist_avg_df=self.averageByDistance(bigX,distancevars)
         
         #bigY_dist_wt_time_df=self.wtYfrombigX(bigX,yvar) # went in diff direction
-        bigX_dist_avg_df.loc[slice(None),'CONSTANT']=1
+        bigX_dist_avg_df.loc[:,'CONSTANT']=1
         bigX_dist_avg_df_list=self.setTimeDummies(bigX_dist_avg_df)
         #bigX.index = pd.RangeIndex(len(bigX.index))
         #print(bigX_dist_avg_df)
@@ -139,13 +136,16 @@ class IslandEffects:
             p=modeldict['period']
             bigX_dist_avg_df_p=bigX_dist_avg_df_list[p]
             names=list(model.name_x)
-            wq_var_idx=[names.index(var) for var in wq_dist_vars]
+            #wq_var_idx=[names.index(var) for var in wq_dist_vars]
             x0=bigX_dist_avg_df_p.loc[:,names]
+            #print('x0',x0)
             x1=self.incrementWQ(x0,wq_change_m)
-            betas=np.array(model.betas).flatten()
-            wqbetas=betas[wq_var_idx]
-            std_errs=np.array(model.std_err)
-            wq_std_errs=std_errs[wq_var_idx]
+            #print('x1',x1)
+            betas=pd.DataFrame(list(model.betas),index=names)#np.array(model.betas).flatten()
+            #print('betas',betas)
+            wqbetas=betas.loc[wq_dist_vars]
+            std_errs=pd.DataFrame(list(model.std_err),index=names)
+            wq_std_errs=std_errs.loc[wq_dist_vars]
             #effect_dict['modeldict']=modeldict
             dwt=bigX_dist_avg_df_p.loc[:,'d_count'].to_numpy() # number of obs per distance band and access/bayfront
             dwt=dwt/dwt.sum() # as a share
@@ -171,11 +171,12 @@ class IslandEffects:
             bigX_dist_avg_df_p.loc[:,f'dwt_effect_p{p}']=bigX_dist_avg_df_p.loc[:,f'effect_p{p}']*dwt
             
             bigX_dist_avg_df_p.loc[:,'ydelta']=after-before
-            ydelta_pct=(after-before)/before
+            ydelta_pct=((after-before)/before).flatten()
             bigX_dist_avg_df_p.loc[:,'ydelta_pct']=ydelta_pct #really per 1 not 100
-            y=bigX_dist_avg_df_p.loc[:,yvar] ### dist averages cover normalizing by distance band, which can be reversed with dwt.
+            y=bigX_dist_avg_df_p.loc[:,yvar].to_numpy() ### dist averages cover normalizing by distance band, which can be reversed with dwt.
             ### but need to create more wt's to normalize by time.
             y1=y*(1+ydelta_pct)
+            print(f'(y.shape,y1.shape,ydelt_pct.shape):{(y.shape,y1.shape,ydelta_pct.shape)}')
             bigX_dist_avg_df_p.loc[:,'y1']=y1
             effect=y1-y
             bigX_dist_avg_df_p.loc[:,'effect']=effect
@@ -221,6 +222,7 @@ class IslandEffects:
             bigX=self.bigX
         except:
             bigX=self.makebigX(self.df)
+            
         bigX_tdummy_avg_list=self.setTimeDummies(bigX.copy())   
         
         for period,result in resultsdict.items():
@@ -247,23 +249,27 @@ class IslandEffects:
             std_errs=np.array(model.std_err)
             yhat0=np.exp((x0@betas).to_numpy())
             yhat1=np.exp((x1@betas).to_numpy())
+            #print(f'yhat0.shape,yhat1.shape:{(yhat0.shape,yhat1.shape)}')
             pct_ch=(yhat1-yhat0)/yhat0 # except without the 100% exp(s2/2) not calculated b/c cancels out.
+            
             pct_ch_df=pd.DataFrame(pct_ch,index=bigX.index)
             avg_pct_ch=self.averageByDistance(bigX,distancevars,
                                                     targetdf=pct_ch_df)
-            
+            print('avg_pct_ch',avg_pct_ch)
+            print('pct_ch',pct_ch)
             #now calculate y1-y0=y0[1+pct_ch] - y0 
-            bigY0=bigX.loc[:,yvar].to_numpy()
+            bigY0=bigX.loc[:,yvar].copy()
             bigY1=bigY0*(1+pct_ch)
             effect=bigY1-bigY0
             effect_name=f'effect_p{p}'
             bigX_tdummy_avg.loc[:,effect_name]=effect
             rate=.03
             average_effect=effect.mean()
+            print(f'(bigY0.shape,bigY1.shape,effect.shape,pct_ch.shape):{(bigY0.shape,bigY1.shape,effect.shape,pct_ch.shape)}')
             print(f'grand average effect period-{p}, {average_effect} at r={rate}, {average_effect*rate}')
             dist_avg_effects=self.averageByDistance(bigX,distancevars,
                                                     targetdf=bigX_tdummy_avg.loc[:,[effect_name,]])
-            
+            self.bigX_tdummy_avg_list=bigX_tdummy_avg_list
             annual_dist_avg_effects=dist_avg_effects*.03
             print(f'dist_avg_effects for period-{p}',dist_avg_effects)
             print(f'annual_dist_avg_effects for period-{p}, r={rate}',annual_dist_avg_effects)
