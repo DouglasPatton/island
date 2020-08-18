@@ -34,7 +34,7 @@ class IslandData(DataView,IslandEffects):
         self.klist=[4]#[2,4,6]#[25,50,100]
         self.resultsdictlist=[]
         self.figdict={}
-        self.sumstatsdict={}
+        self.transform_record_dict={}
         self.TSHistogramlist=[]
         self.resultsDFdictlist=[]
         cwd=os.getcwd()
@@ -62,7 +62,9 @@ class IslandData(DataView,IslandEffects):
         
         
     def setmodel(self):
-        std_transform=[]#['saleprice','assessedvalue','totallivingarea','parcel_area','distance_park','distance_nyc','distance_golf','income','distance_shoreline']
+        #all transforms happen separately for each period
+        std_transform={}#{'secchi':'centered'} #transorming secchi will cause all wq interactions to be transformed with parameters from secchi column
+        #['saleprice','assessedvalue','totallivingarea','parcel_area','distance_park','distance_nyc','distance_golf','income','distance_shoreline']
         vardict={
             'sale_year':np.uint16,'saleprice':np.int64,'assessedvalue':np.int64,
             'postsandy':np.uint16,'secchi':np.float64,
@@ -385,28 +387,55 @@ class IslandData(DataView,IslandEffects):
         multi_index=pd.MultiIndex.from_frame(index_df)
         pd_data_dict={varlist[i]:columnlist[i] for i in range(len(varlist))}
         self.df_raw=pd.DataFrame(pd_data_dict,index=multi_index)
-        self.df=self.doStandardizeDF(self.df_raw)
+        self.df=self.doStandardizeDF(self.df_raw.copy())
     
     def doStandardizeDF(self,df):
-        df_t=df.apply(self.doSeriesSumStats,axis=0)
-        return df_t
+        periods=list(df.index.levels[0])
+        varlist=list(df.columns)
+        tdict={}
+        for var,t_type in self.std_transform.items():
+            '''if var == 'secchi':
+                wqvars=[_var for _var in varlist if re.search('wq',_var) or re.search('secchi',_var)]
+                shift_dict={p:df.loc[p,'secchi'].mean() for p in periods}
+                if t_type=='centered':
+                    scale_dict={p:1 for p in periods}
+                else:
+                    scale_dict={p:df.loc[p,'secchi'].std() for p in periods}
+                for _var in wqvars:
+                    tdict[_var]={'shift_dict':shift_dict,'scale_dict':scale_dict,'transform':t_type}
+            else:'''
+            shift_dict={p:df.loc[p,var].mean() for p in periods}
+            if t_type=='centered':
+                scale_dict={p:1 for p in periods}
+            else:
+                scale_dict={p:df.loc[p,var].std() for p in periods}
+            tdict[var]={'shift_dict':shift_dict,'scale_dict':scale_dict,'transform':t_type}
+                
+                    
         
-    def doSeriesSumStats(self,aseries):
-        varname=aseries.name
-        if varname not in self.std_transform:
-            self.logger.info(f'varname:{varname} not in std_transform...pass')
-            return aseries
-        if varname not in self.sumstatsdict:
-            smean=aseries.mean()
-            sstd=aseries.std()
-            self.sumstatsdict[varname]={'mean':smean,
-                                        'std':sstd}
-            aseries=(aseries-smean)/sstd
-            self.logger.info(f'varname:{varname} standardized. mean:{smean},std:{sstd}')
+        for var,var_shift_scale_dict in tdict.items():
+            for p in periods:
+                shift=var_shift_scale_dict['shift_dict'][p]
+                scale=var_shift_scale_dict['scale_dict'][p]
+                val=df.loc[p,var].to_numpy()
+                df.loc[p,var]=(val-shift)/scale
+                print(f'(var,shift,scale,p, df.loc[p,var].mean(),df.loc[p,var].std()):{(var,shift,scale,p, df.loc[p,var].mean(),df.loc[p,var].std())}')
+            
+        return df
+        
+    '''def doSeriesSumStats(self,aseries,s_mean=None,s_std=None,transform='standardize'):
+        
+        if varname not in self.transform_record_dict:
+            if s_mean is None: s_mean=aseries.mean()
+            if s_std is None: s_std=aseries.std()
+            self.transform_record_dict[varname]={'mean':s_mean,'std':s_std,'transform':transform}
+            if transform='center':scale=1 else:scale=s_std
+            aseries=(aseries-s_mean)/scale
+            self.logger.info(f'varname:{varname} transform:{transform}. mean:{s_mean},std:{s_std}, scale:{scale}')
             return aseries
         else:
             self.logger.info(f'varname:{varname} already standardized')
-            return aseries
+            return aseries'''
         
         
     def makeTable2(self,df=None,modeldict=None):

@@ -18,7 +18,7 @@ class IslandEffects:
             last_unique_dict[latlon]=i # keeps only last since earlier are overwritten.
         last_unique_rows=[val for key,val in last_unique_dict.items()]
         #print(f'bigX len(last_unique_rows):{len(last_unique_rows)}')
-        unique_df=df.iloc[last_unique_rows]
+        unique_df=df.iloc[last_unique_rows].copy()
         self.bigX=unique_df
         return unique_df
             
@@ -37,12 +37,15 @@ class IslandEffects:
     def addOmittedDistance(self,df,distancevars):
         last_dist=self.modeldict['distance'][-1]
         label=f'Distance to Shoreline {last_dist}m-4000m'
-        df_idx=pd.Series([False]*len(df.index),index=df.index)
-        for var in distancevars: # loop through a bunch of 'or' operators to look for rows without a distance( incl bayfront/access).
-             #df_idx+=df.loc[slice(None),var]==1
-            df_idx=df_idx|df.loc[slice(None),var]==1 # | (pipe) is or for dataframes
-        df.loc[slice(None),label]=1-df_idx
-        distancevars.append(label)
+        if not label in df.columns:
+            #df_idx=pd.Series([False]*len(df.index),index=df.index)
+            df_idx=1-df.loc[:,distancevars].sum(axis=1)
+            assert df_idx.max()==1, f' expecting 1 but df_idx.max():{df_idx.max()}'
+            '''for var in distancevars: # loop through a bunch of 'or' operators to look for rows without a distance( incl bayfront/access).
+                 #df_idx+=df.loc[slice(None),var]==1
+                df_idx=df_idx|df.loc[slice(None),var]==1 # | (pipe) is or for dataframes'''
+            df.loc[:,label]=1-df_idx
+            distancevars.append(label)
         return df,distancevars
     
     def averageByDistance(self,df,distancevars,targetdf=None):
@@ -55,7 +58,7 @@ class IslandEffects:
         avg_data_list=[]
         for var in distancevars:
             df_idx=df.loc[slice(None),var]==1
-            mean_df=targetdf[df_idx].mean()
+            mean_df=targetdf.loc[df_idx].mean()
             keys=mean_df.keys()
             df_i=pd.DataFrame({key:mean_df.loc[key] for key in keys},index=[var])
             df_i.loc[:,'d_count']=df_idx.sum()
@@ -79,7 +82,8 @@ class IslandEffects:
 
     def incrementWQ(self,df,incr):
         names=list(df.columns)
-        wqnames=[var for idx,var in enumerate(names) if re.search('wq',var) or re.search('secchi',var)]
+        wqnames=[var for idx,var in enumerate(names) if var=='secchi' or re.search('secchi*D',var)] # *D necessary to distinguish from pre-existing distance bands
+        wqnames.extend(['secchi*bayfront', 'secchi*wateraccess'])
         df_plus=df.copy()
         for name in wqnames:
             df_idx=df_plus.loc[:,name]!=0 # so dummy var X WQ interaction zeros are not incremented
@@ -94,6 +98,8 @@ class IslandEffects:
     '''
         
     def estimateWQEffects(self,wq_change_m=3.28084**-1,df=None,resultsdict=None):
+        
+        
         if df is None:
             df=self.df.copy()
         if resultsdict is None:
@@ -101,13 +107,13 @@ class IslandEffects:
             resultsdict=self.retrieveLastResults(modeltype=modeltype,periodlist=periodlist)
         model=resultsdict[0]['results']
         names=list(model.name_x)
-        distancevars=['bayfront']
+        distancevars=['bayfront','wateraccess']
         for name in names:
             if name[:21]=='Distance to Shoreline':
                 distancevars.append(name)
         wq_dist_vars=[]
         for name in names:
-            if name[:7]=='secchi*' and not name[-11:]=='wateraccess':
+            if name[:7]=='secchi*':# and not name[-11:]=='wateraccess':
                 wq_dist_vars.append(name)
         wq_dist_vars.append('secchi')# to go with the omitted var at the end
         
@@ -175,8 +181,8 @@ class IslandEffects:
             bigX_dist_avg_df_p.loc[:,'effect']=effect
             rate=.03
             annual_effects=bigX_dist_avg_df_p.loc[:,'effect']*rate
-            print(f'annual_dist_avg_effects for period-{p}, r={rate}',annual_effects)
-            print(f'weighted grand average effect for p-{p}, r={rate}, {annual_effects.T@dwt}')
+            print(f'annual_dist_avg_effects for period-{p}, r={rate}\n',annual_effects)
+            print(f'weighted grand average effect for p-{p}, r={rate},\n {annual_effects.T@dwt}')
             
             
             
@@ -242,6 +248,10 @@ class IslandEffects:
             yhat0=np.exp((x0@betas).to_numpy())
             yhat1=np.exp((x1@betas).to_numpy())
             pct_ch=(yhat1-yhat0)/yhat0 # except without the 100% exp(s2/2) not calculated b/c cancels out.
+            pct_ch_df=pd.DataFrame(pct_ch,index=bigX.index)
+            avg_pct_ch=self.averageByDistance(bigX,distancevars,
+                                                    targetdf=pct_ch_df)
+            
             #now calculate y1-y0=y0[1+pct_ch] - y0 
             bigY0=bigX.loc[:,yvar].to_numpy()
             bigY1=bigY0*(1+pct_ch)
