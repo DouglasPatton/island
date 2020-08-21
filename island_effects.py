@@ -3,6 +3,7 @@ import pandas as pd
 import numpy as np
 import re
 import matplotlib.pyplot as plt
+import matplotlib.ticker as ticker
 
 
 class IslandEffects:
@@ -303,9 +304,9 @@ class IslandEffects:
         
         for p in [0,1]:
             bigX_dist_avg_df_p=bigX_dist_avg_df_list[p]
-            effect=bigX_dist_avg_df_p[f'marginal_p{p}'].to_numpy()
-            lower=bigX_dist_avg_df_p[f'lower95_marginal_p{p}'].to_numpy()
-            upper=bigX_dist_avg_df_p[f'upper95_marginal_p{p}'].to_numpy()
+            effect=bigX_dist_avg_df_p[f'marginal_p{p}'].to_numpy(dtype=np.float64)
+            lower=bigX_dist_avg_df_p[f'lower95_marginal_p{p}'].to_numpy(dtype=np.float64)
+            upper=bigX_dist_avg_df_p[f'upper95_marginal_p{p}'].to_numpy(dtype=np.float64)
             
             #print('lower',lower)
             #print('upper',upper)
@@ -389,6 +390,6 @@ class IslandEffects:
         for b in range(bcount-1):# add global constant to all terms except last one, which was the omitted variable
             wqcoefs[b]=wqcoefs[b]+wqcoefs[-1]
             wqcoef_stderrs[b]=wqcoef_stderrs[b]+wqcoef_stderrs[-1]'''
-        self.logger.info(f'{[wqcoef_names,wqcoefs,wqcoef_stderrs ]}')
+        self.logger.info(f'[wqcoef_names,wqcoefs,wqcoef_stderrs ]:{[wqcoef_names,wqcoefs,wqcoef_stderrs ]}')
         self.makePlotWithCI(wqcoef_names,wqcoefs,wqcoef_stderrs,ax,plottitle=plottitle,color=color,hatch=hatch,ls=ls)
         

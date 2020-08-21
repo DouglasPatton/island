@@ -31,7 +31,7 @@ class IslandData(DataView,IslandEffects):
             format="[%(asctime)s] %(levelname)s [%(name)s.%(funcName)s:%(lineno)d] %(message)s",
             datefmt='%Y-%m-%dT%H:%M:%S')
         self.logger = logging.getLogger(handlername)
-        self.klist=[4]#[2,4,6]#[25,50,100]
+        self.klist=[2,4,6]#[25,50,100]
         self.resultsdictlist=[]
         self.figdict={}
         self.transform_record_dict={}
@@ -48,7 +48,7 @@ class IslandData(DataView,IslandEffects):
             os.mkdir(self.printdir)
         
         self.datadictlistpath=os.path.join(self.datadir,'datadictlist.pickle')
-        self.yeardummydict={f'dv_{i}':np.uint16 for i in range(2002,2016)}
+        self.yeardummydict={f'dv_{i}':np.int16 for i in range(2002,2016)}
         self.yeardummylist=[key for key in self.yeardummydict]
         self.vardict,self.modeldict,self.std_transform=self.setmodel()
         self.varlist=[var for var in self.vardict]
@@ -66,8 +66,8 @@ class IslandData(DataView,IslandEffects):
         std_transform={'secchi':'centered'} #transorming secchi will cause all wq interactions to be transformed with parameters from secchi column
         #['saleprice','assessedvalue','totallivingarea','parcel_area','distance_park','distance_nyc','distance_golf','income','distance_shoreline']
         vardict={
-            'sale_year':np.uint16,'saleprice':np.int64,'assessedvalue':np.int64,
-            'postsandy':np.uint16,'secchi':np.float64,
+            'sale_year':np.int16,'saleprice':np.int64,'assessedvalue':np.int64,
+            'postsandy':np.int16,'secchi':np.float64,
             'wqbayfront':np.float64,'wqwateraccess':np.float64,'wqwaterhouse':np.float64,
             'totalbathroomsedited':np.float64,'totallivingarea':np.float64,'parcel_area':np.float64,
             'distance_park':np.float64,'distance_nyc':np.float64,'distance_golf':np.float64,
@@ -75,11 +75,11 @@ class IslandData(DataView,IslandEffects):
             'wqshorelinedistancedv2000_3000':np.float64,'wqshorelinedistancedv3000_4000':np.float64,
             'education':np.float64,'income':np.float64,'povertylevel':np.float64,
             'pct_white':np.float64,'pct_asian':np.float64,'pct_black':np.float64,
-            'bayfront':np.uint16,'wateraccess':np.uint16,'waterhouse':np.uint16,
-            'shorelinedistance':np.uint16,'distance_shoreline':np.float64, 
-            'shorelinedistancedv3_1000':np.uint16,'shorelinedistancedv1000_2000':np.uint16,
-            'shorelinedistancedv2000_3000':np.uint16,'shorelinedistancedv3000_4000':np.uint16,
-            'soldmorethanonceinyear':np.uint16,'soldmorethanonceovertheyears':np.uint16,
+            'bayfront':np.int16,'wateraccess':np.int16,'waterhouse':np.int16,
+            'shorelinedistance':np.int16,'distance_shoreline':np.float64, 
+            'shorelinedistancedv3_1000':np.int16,'shorelinedistancedv1000_2000':np.int16,
+            'shorelinedistancedv2000_3000':np.int16,'shorelinedistancedv3000_4000':np.int16,
+            'soldmorethanonceinyear':np.int16,'soldmorethanonceovertheyears':np.int16,
             
             'latitude':np.float64,'longitude':np.float64            
             }
