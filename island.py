@@ -314,7 +314,7 @@ class IslandData(DataView,IslandEffects):
         with open(savepath,'w') as f:
             f.write(summary_text)
             
-    def doStars(self,names,betas,pvals,round_digits=5):        
+    def doStars(self,names,betas,pvals,round_digits=3):        
         text=''
         if round_digits:
             betas=[self.round_sig(beta,round_digits) for beta in betas]
