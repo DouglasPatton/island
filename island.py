@@ -152,8 +152,24 @@ class IslandData(DataView,IslandEffects):
             cutlist=cutlist+[ceil(max_d)]
         if cutlist[0]!=0:
             cutlist=[0]+cutlist
-        wateraccess=df.loc[(slice(None),),'wateraccess']
+
+        wq_varname_list=[] # to add in final loop
+        
+        other_dist_vars=['bayfront','wateraccess'] # reversing from earlier order
+        for var in other_dist_vars: # move em to the end
+            xvarlist.pop(xvarlist.index(var))
+            xvarlist.append(var)
+        #pos=xvarlist.index('wateraccess')+1
+        for var in other_dist_vars:
+            wqvarname='secchi*'+var
+            df.loc[:,wqvarname]=df.loc[:,var]*raw_wq
+            wq_varname_list.append(wqvarname)
+            #xvarlist.insert(pos,wqvarname)
+            #print(df,xvarlist)
+        
+        wateraccess=df.loc[(slice(None),),'wateraccess'] #to exclude from other distance bands
         bayfront=df.loc[(slice(None),),'bayfront']
+        
         for idx in range(len(cutlist)-2): # -1 b/c left and right, -2 to omit 1 dv
             newvar=f'Distance to Shoreline {cutlist[idx]}m-{cutlist[idx+1]}m'
             left=cutlist[idx];right=cutlist[idx+1]
@@ -164,17 +180,15 @@ class IslandData(DataView,IslandEffects):
             df.loc[bayfront==1,newvar]=0
             
             xvarlist.append(newvar)
-            newvar_wq='secchi*'+newvar
-            df.loc[(slice(None),),newvar_wq]=df.loc[(slice(None),),newvar]*raw_wq
-            xvarlist.append(newvar_wq)
+            newlist.append(newvar)
+            wqvarname='secchi*'+newvar
+            df.loc[(slice(None),),wqvarname]=df.loc[(slice(None),),newvar]*raw_wq
+            wq_varname_list.append(wqvarname)
+        for wqvarname in wq_varname_list:
+            # add these names at the end of xvarlist instead of alternating dist,secchi*dist
+            xvarlist.append(wqvarname)
             
-        other_dist_vars=['wateraccess','bayfront']
-        pos=xvarlist.index('wateraccess')+1
-        for var in other_dist_vars:
-            wqvarname='secchi*'+var
-            df.loc[:,wqvarname]=df.loc[:,var]*raw_wq
-            xvarlist.insert(pos,wqvarname)
-            #print(df,xvarlist)
+        
         
         return df,xvarlist
     
