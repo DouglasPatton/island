@@ -31,7 +31,7 @@ class IslandData(DataView,IslandEffects):
             format="[%(asctime)s] %(levelname)s [%(name)s.%(funcName)s:%(lineno)d] %(message)s",
             datefmt='%Y-%m-%dT%H:%M:%S')
         self.logger = logging.getLogger(handlername)
-        self.klist=[2,4,6]#[25,50,100]
+        self.klist=[3]#[2,4,6]#[25,50,100]
         self.resultsdictlist=[]
         self.figdict={}
         self.transform_record_dict={}
@@ -153,7 +153,7 @@ class IslandData(DataView,IslandEffects):
         if cutlist[0]!=0:
             cutlist=[0]+cutlist
 
-        wq_varname_list=[] # to add in final loop
+        wq_varname_list=[] # to add to the end of xvarlist
         
         other_dist_vars=['bayfront','wateraccess'] # reversing from earlier order
         for var in other_dist_vars: # move em to the end
@@ -180,13 +180,11 @@ class IslandData(DataView,IslandEffects):
             df.loc[bayfront==1,newvar]=0
             
             xvarlist.append(newvar)
-            newlist.append(newvar)
             wqvarname='secchi*'+newvar
             df.loc[(slice(None),),wqvarname]=df.loc[(slice(None),),newvar]*raw_wq
             wq_varname_list.append(wqvarname)
-        for wqvarname in wq_varname_list:
-            # add these names at the end of xvarlist instead of alternating dist,secchi*dist
-            xvarlist.append(wqvarname)
+        # add these names at the end of xvarlist instead of alternating dist,secchi*dist
+        xvarlist.extend(wq_varname_list)
             
         
         
@@ -315,7 +313,11 @@ class IslandData(DataView,IslandEffects):
                 except:
                     assert False, 'unexpected'
                 betas=[i[0] for i in modelresult.betas] # b/c each beta is stored as a list with 1 item
-                summary_text+=self.doStars(modelresult.name_x,betas,pvals)+'\n\n\n'
+                try:
+                    r2='r2,'+str(modelresult.r2)+'\n'
+                except:
+                    r2='r2,'+str(modelresult.pr2)+'\n'
+                summary_text+=self.doStars(modelresult.name_x,betas,pvals)+r2+'\n\n\n'
             else:    
                 summary_text+=modelresult.summary+'\n\n\n'
 
@@ -336,7 +338,7 @@ class IslandData(DataView,IslandEffects):
             text+=f'{names[i]},{betas[i]}{self.starFromPval(pvals[i])}\n'
         return text
     
-    def round_sig(self,x, dig=2):
+    def round_sig(self,x, dig=3):
         if x==0: return x
         return round(x, dig-int(floor(log10(abs(x))))-1)
     

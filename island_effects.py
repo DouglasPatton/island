@@ -186,9 +186,13 @@ class IslandEffects:
             effect=y1-y
             bigX_dist_avg_df_p.loc[:,'effect']=effect
             rate=.03
-            annual_effects=bigX_dist_avg_df_p.loc[:,'effect']*rate
-            print(f'annual_dist_avg_effects for period-{p}, r={rate}\n',annual_effects)
+            annual_effects=(bigX_dist_avg_df_p.loc[:,['effect']].copy()*rate).round(0)
+            
+            print(f'annual_dist_avg_effects for period-{p}, r={rate}\n')
+            print(annual_effects)
             print(f'weighted grand average effect for p-{p}, r={rate},\n {annual_effects.T@dwt}')
+            
+            annual_effects.to_csv(os.path.join(self.resultsdir,f'avg_annual_effects_r-{rate}_p-{p}.csv'),header=['Average Treatment Effect ($)'])
             
             
             
@@ -364,7 +368,7 @@ class IslandEffects:
         results=resultsdict['results']
         #modeldict=resultsdict['modeldict']
         #xvarlist=modeldict['xvars']
-        wqvars_idx,wqvars=zip(*[[idx,var] for idx,var in enumerate(results.name_x) if re.search('secchi\*distance',var.lower()) or re.search('secchi\*bayfront',var.lower())])
+        wqvars_idx,wqvars=zip(*[[idx,var] for idx,var in enumerate(results.name_x) if re.search('secchi\*',var.lower())])
         wqvars_idx=list(wqvars_idx)
         wqvars=list(wqvars)
         '''for idx,var in enumerate(results.name_x):
@@ -382,7 +386,7 @@ class IslandEffects:
         for var in wqvars: # a loop for shortening names
             if re.search('secchi\*distance',var.lower()):
                 wqcoef_names.append(var[29:])
-            elif re.search('secchi\*bayfront',var.lower()):
+            elif re.search('secchi\*',var.lower()):
                 wqcoef_names.append(var[7:])
             else:
                 wqcoef_names.append(var)
