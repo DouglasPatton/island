@@ -157,6 +157,7 @@ class Model():
         elif modeltype.lower()=='ols':
             kwargs['spat_diag']=True
             estimator=pysal_model.spreg.OLS
+            kwargs['robust']='hac'
         elif modeltype.lower()=='gm_error_het':
             estimator=pysal_model.spreg.GM_Error_Het # https://spreg.readthedocs.io/en/latest/generated/spreg.GM_Error_Het.html#spreg.GM_Error_Het
             kwargs['w']=args.pop(-1) #  move arg to kwarg for these estimators

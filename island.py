@@ -100,6 +100,7 @@ class IslandData(DataView,IslandEffects):
                 'combine_pre_post':0,
                 'period':None, # used later to record which time period is included in data for a model
                 'modeltype':'OLS',#'statsmodels.OLS',#,'GM_Error_Het',#'GM_Lag',#'SLM',#'SEM',#'SLM',
+                'ols-robust':'hac'
                 'klist':self.klist,
                 #'crs':'epsg:4326',
                 'xvars':xvarlist,
