@@ -31,7 +31,7 @@ class IslandData(DataView,IslandEffects):
             format="[%(asctime)s] %(levelname)s [%(name)s.%(funcName)s:%(lineno)d] %(message)s",
             datefmt='%Y-%m-%dT%H:%M:%S')
         self.logger = logging.getLogger(handlername)
-        self.klist=[2,4,6]#[25,50,100]
+        self.klist=[3]#[2,4,6]#[25,50,100]
         self.resultsdictlist=[]
         self.figdict={}
         self.transform_record_dict={}
@@ -154,7 +154,7 @@ class IslandData(DataView,IslandEffects):
         if cutlist[0]!=0:
             cutlist=[0]+cutlist
 
-        wq_varname_list=[] # to add in final loop
+        wq_varname_list=[] # to add to the end of xvarlist
         
         other_dist_vars=['bayfront','wateraccess'] # reversing from earlier order
         for var in other_dist_vars: # move em to the end
@@ -181,13 +181,11 @@ class IslandData(DataView,IslandEffects):
             df.loc[bayfront==1,newvar]=0
             
             xvarlist.append(newvar)
-            newlist.append(newvar)
             wqvarname='secchi*'+newvar
             df.loc[(slice(None),),wqvarname]=df.loc[(slice(None),),newvar]*raw_wq
             wq_varname_list.append(wqvarname)
-        for wqvarname in wq_varname_list:
-            # add these names at the end of xvarlist instead of alternating dist,secchi*dist
-            xvarlist.append(wqvarname)
+        # add these names at the end of xvarlist instead of alternating dist,secchi*dist
+        xvarlist.extend(wq_varname_list)
             
         
         
@@ -303,11 +301,14 @@ class IslandData(DataView,IslandEffects):
         
         
         resultsdictflatlist=self.flattenListList(resultsdictlist)
-        
-        for resultsdict in resultsdictflatlist:
+        #condense_dict={}
+        condense_index=[]
+        dfdict={}
+        for r,resultsdict in enumerate(resultsdictflatlist):
             modeldict=resultsdict['modeldict']
             modelresult=resultsdict['results']
             summary_text+=str(modeldict)+'\n'
+            
             if stars:
                 try:
                     pvals=[i[1] for i in modelresult.z_stat]
@@ -316,29 +317,80 @@ class IslandData(DataView,IslandEffects):
                 except:
                     assert False, 'unexpected'
                 betas=[i[0] for i in modelresult.betas] # b/c each beta is stored as a list with 1 item
-                summary_text+=self.doStars(modelresult.name_x,betas,pvals)+'\n\n\n'
+                
+                """
+                
+                try:
+                    r2='r2,'+str(modelresult.r2)+'\n'
+                except:
+                    r2='r2,'+str(modelresult.pr2)+'\n'"""
+                #summary_text+=self.doStars(modelresult.name_x,betas,pvals)+r2+'\n\n\n'
+                stardict=self.doStars(modelresult.name_x,betas,pvals)
+                modeltype=modeldict['modeltype']
+                try: 
+                    r2val=modelresult.r2
+                except:  
+                    r2val=modelresult.pr2
+               
+                r2round=self.round_sig(r2val)
+                stardict['R2']=str(r2round)
+                #self.update_condense_dict(condense_dict,stardict)
+                print('r2val',r2val,'r2round',r2round,'modeltype',modeltype)
+                period=modeldict['period']
+                if period==0:
+                    period='Pre-Sandy '
+                else:
+                    period='Post-Sandy '
+                #modelname=period+modeltype
+                modelname=modeltype
+                if not modeltype.lower()=='ols':
+                    modelname+=' NN-'+str(modeldict['klist'])
+                #condense_index.append(modelname)
+                m_index= pd.MultiIndex.from_tuples([(period,modelname)],names=['period','estimator'])
+                if period in dfdict:
+                    dfdict[period].append(pd.DataFrame(data=stardict,index=m_index))
+                else:
+                    dfdict[period]=[pd.DataFrame(data=stardict,index=m_index)]
             else:    
                 summary_text+=modelresult.summary+'\n\n\n'
-
-        
         if stars:
-            savepath=os.path.join(self.resultsdir,'modelresults_stars.txt')
+        #    modelresults_df=pd.DataFrame(data=condense_dict,index=condense_index)
+            dflist=[]
+            for key,period_dflist in dfdict.items():
+                dflist.extend(period_dflist)
+            modelresults_df=pd.concat(dflist,axis=0,sort=False,) # levels=['period','estimator']
+        if stars:
+            savepath=self.helper.getname(os.path.join(self.resultsdir,'modelresults_stars.csv'))
+            modelresults_df.T.to_csv(savepath,na_rep='-')
+            return
         else:
             savepath=os.path.join(self.resultsdir,'modelresults.txt')
         savepath=self.helper.getname(savepath)
         with open(savepath,'w') as f:
             f.write(summary_text)
-            
+    
+    
+    def update_condense_dict(self,cdict,newdict):
+        for key,val in newdict.items():
+            if not key in cdict:
+                cdict[key]=[val]
+            else:
+                cdict[key].append(val)
+                
+    
     def doStars(self,names,betas,pvals,round_digits=3):        
-        text=''
+        #text=''
+        stardict={}
         if round_digits:
             betas=[self.round_sig(beta,round_digits) for beta in betas]
         for i in range(len(names)):
-            text+=f'{names[i]},{betas[i]}{self.starFromPval(pvals[i])}\n'
-        return text
+            stardict[names[i]]=str(betas[i])+self.starFromPval(pvals[i])
+            #text+=f'{names[i]},{betas[i]}{self.starFromPval(pvals[i])}\n'
+        return stardict#text
     
-    def round_sig(self,x, dig=2):
+    def round_sig(self,x, dig=3):
         if x==0: return x
+        if x>1:dig+=1
         return round(x, dig-int(floor(log10(abs(x))))-1)
     
     def starFromPval(self,pval):
