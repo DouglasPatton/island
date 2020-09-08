@@ -19,10 +19,12 @@ class DataView:
     def __init__(self):
         self.logger=logging.getLogger(__name__)
         self.logger.debug('DataView object started')
-        plt.rc_context({'axes.edgecolor':'orange', 
-                        'xtick.color':'k', 'ytick.color':'k', 
-                        'figure.facecolor':'white'})
-        self.plot_dict_list=[{'plottitle':'Pre-Sandy','color':'r','hatch':'.'*5,'ls':'--'},
+        plt.rc_context({
+            'figure.autolayout': True,
+            'axes.edgecolor':'k', 
+            'xtick.color':'k', 'ytick.color':'k', 
+            'figure.facecolor':'white'})
+        self.plot_dict_list=[{'plottitle':'Pre-Sandy','color':'b','hatch':'.'*5,'ls':'--'},
                              {'plottitle':'Post-Sandy','color':'g','hatch':None,'ls':'-'}]
         #self.fig=plt.figure(figsize=[14,80])
         
@@ -34,7 +36,7 @@ class DataView:
             lower,upper=zip(*[(y[i]-std_err[i]*1.96,y[i]+std_err[i]*1.96) for i in range(k)])
         else: assert not (lower is None or upper is None), f'expected None but lower:{lower},upper:{upper}'
         ax.fill_between(x,lower,upper,alpha=0.2,color=color,hatch=hatch,label=f'95% CI for {plottitle}')
-        ax.plot(x,[0]*len(x),':',label='_0',color='k',alpha=0.3)
+        ax.plot(x,[0]*len(x),':',label='_0',color='k',alpha=0.5)
         [ax.axvline(x=x[i],ls=':',alpha=0.3,label='_band',color='k') for i in range(k)]
         
         

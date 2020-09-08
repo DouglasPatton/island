@@ -8,7 +8,7 @@ import matplotlib.ticker as ticker
 
 class IslandEffects:
     def __init__(self,):
-        pass
+        self.xlabel_rotate=65
     
     
     def makebigX(self,df):
@@ -116,6 +116,7 @@ class IslandEffects:
         wq_dist_vars=[]
         for name in names:
             if name[:7]=='secchi*':# and not name[-11:]=='wateraccess':
+            #if name[:7]=='secchi*' and not name[-11:]=='wateraccess':
                 wq_dist_vars.append(name)
         wq_dist_vars.append('secchi')# to go with the omitted var at the end
         
@@ -157,13 +158,17 @@ class IslandEffects:
             
             
             before=np.exp((x0@betas).to_numpy())
-            bigX_dist_avg_df_p.loc[:,f'marginal_p{p}']=before*wqbetas
-            l=(wqbetas-1.96*wq_std_errs)
+            marginal=before*wqbetas.to_numpy()
+            #print('marginal',marginal)
+            bigX_dist_avg_df_p.loc[:,f'marginal_p{p}']=marginal
+            #print("bigX_dist_avg_df_p.loc[:,f'marginal_p{p}']",bigX_dist_avg_df_p.loc[:,f'marginal_p{p}'])
+            l=(wqbetas-1.96*wq_std_errs).to_numpy()
             #print(f'l.shape:{l.shape},before.shape:{before.shape}')
             bigX_dist_avg_df_p.loc[:,f'lower95_marginal_p{p}']=before*l
-            u=(wqbetas+1.96*wq_std_errs)
+            u=(wqbetas+1.96*wq_std_errs).to_numpy()
             bigX_dist_avg_df_p.loc[:,f'upper95_marginal_p{p}']=before*u
-            
+            #print('l',l)
+            #print('u',u)
             bigX_dist_avg_df_p.loc[:,f'dwt_marginal_p{p}']=bigX_dist_avg_df_p.loc[:,f'marginal_p{p}']*dwt
             bigX_dist_avg_df_p.loc[:,f'dwt_lower95_marginal_p{p}']=bigX_dist_avg_df_p.loc[:,f'lower95_marginal_p{p}']*dwt
             bigX_dist_avg_df_p.loc[:,f'dwt_upper95_marginal_p{p}']=bigX_dist_avg_df_p.loc[:,f'upper95_marginal_p{p}']*dwt
@@ -287,11 +292,25 @@ class IslandEffects:
         
             
     
-    def createEffectsGraph(self,):
+    def createEffectsGraph(self,drop_wateraccess=False):
         try: bigX_dist_avg_df=self.bigX_dist_avg_df,bigX_dist_avg_df_list=self.bigX_dist_avg_df_list
         except: 
+            self.logger.exception(f'creating new bigX_dist_avg_df and list')
             bigX_dist_avg_df,bigX_dist_avg_df_list=self.estimateWQEffects(wq_change_m=3.28084**-1) # a dataframe averaged within distance bands and with partial derivative and delta based marginal effects
+        if drop_wateraccess:
+            bigX_dist_avg_df.drop(index='wateraccess',inplace=True)
+            [df.drop(index='wateraccess',inplace=True) for df in bigX_dist_avg_df_list]
+        """else:
+            df_idx=bigX_dist_avg_df.index
+            wa_idx=list(df_idx).index('wateraccess')
+            new_idx=list(df_idx)
+            wa=new_idx.pop(wa_idx)
+            new_idx.insert(2,wa)
+            print('new_idx',new_idx)
+            bigX_dist_avg_df=bigX_dist_avg_df.reindex(new_idx,copy=True)
+            bigX_dist_avg_df_list=[df.reindex(new_idx,copy=True) for df in bigX_dist_avg_df_list]"""
         x=list(bigX_dist_avg_df.index)
+        print(x)
         effect_name=[]
         for var in x: # a loop for shortening names
             if var[:8].lower()=='distance':
@@ -299,25 +318,26 @@ class IslandEffects:
             else:
                 effect_name.append(var)
         
-        fig=plt.figure(dpi=600,figsize=[8,6])
-        plt.xticks(rotation=17)
+        fig=plt.figure(dpi=600,figsize=[10,6])
+        plt.xticks(rotation=self.xlabel_rotate)
         ax=fig.add_subplot()
         ax.set_title('Marginal Effects for Water Clarity by Distance Band')#Fixed Effects Estimates for Water Clarity by Distance from Shore Band')
         ax.set_xlabel('Distance from Shore Bands (not to scale)')
-        ax.set_ylabel('Partial Derivatives of Sale Price by Water Clarity')
+        ax.set_ylabel('Partial Derivatives of Sale Price by Water Clarity ($/m)')
         
         for p in [0,1]:
             bigX_dist_avg_df_p=bigX_dist_avg_df_list[p]
+            #print('bigX_dist_avg_df_p',bigX_dist_avg_df_p)
             effect=bigX_dist_avg_df_p[f'marginal_p{p}'].to_numpy(dtype=np.float64)
             lower=bigX_dist_avg_df_p[f'lower95_marginal_p{p}'].to_numpy(dtype=np.float64)
             upper=bigX_dist_avg_df_p[f'upper95_marginal_p{p}'].to_numpy(dtype=np.float64)
-            
+            #print('effect',effect)
             #print('lower',lower)
             #print('upper',upper)
             self.makePlotWithCI(effect_name,effect,None,ax,**self.plot_dict_list[p],lower=lower,upper=upper)
         ax.legend(loc=1)
         ax.margins(0)
-        ax.yaxis.set_major_formatter(ticker.FormatStrFormatter('$%.f'))
+        #ax.yaxis.set_major_formatter(ticker.FormatStrFormatter('$%.f'))
         figpath=self.helper.getname(os.path.join(self.printdir,'wq_effects_graph.png'))
         fig.savefig(figpath)
     
@@ -345,11 +365,11 @@ class IslandEffects:
                             outdict[key]=resultsdict
         return outdict
                     
-    def createWQGraph(self,modeltype='ols'):
+    def createWQGraph(self,modeltype='ols',drop_wateraccess=False,drop_secchi=True):
         lastresults=self.retrieveLastResults(modeltype=modeltype,periodlist=[0,1])
         
         fig=plt.figure(dpi=600,figsize=[8,6])
-        plt.xticks(rotation=17)
+        plt.xticks(rotation=self.xlabel_rotate)
         ax=fig.add_subplot()
         ax.set_title('Fixed Effects Estimates of Water Quality Coefficients')#Fixed Effects Estimates for Water Clarity by Distance from Shore Band')
         ax.set_xlabel('Distance from Shore Bands (not to scale)')
@@ -357,20 +377,43 @@ class IslandEffects:
         #next part is not yet flexible due to color/hatch/linestyle(ls)
         
         for p in [0,1]:
-            self.extractAndPlotWQ(lastresults[p],ax,**self.plot_dict_list[p])
+            self.extractAndPlotWQ(lastresults[p],ax,drop_wateraccess=drop_wateraccess,drop_secchi=drop_secchi,**self.plot_dict_list[p])
         ax.legend(loc=1)
         ax.margins(0)
         figpath=self.helper.getname(os.path.join(self.printdir,'wq_graph.png'))
         fig.savefig(figpath)
         
     
-    def extractAndPlotWQ(self,resultsdict,ax,plottitle='',color='b',hatch='x',ls='-'):
+    def extractAndPlotWQ(self,resultsdict,ax,plottitle='',color='b',hatch='x',ls='-',drop_wateraccess=False,drop_secchi=False):
         results=resultsdict['results']
         #modeldict=resultsdict['modeldict']
         #xvarlist=modeldict['xvars']
-        wqvars_idx,wqvars=zip(*[[idx,var] for idx,var in enumerate(results.name_x) if re.search('secchi\*',var.lower())])
+        if drop_wateraccess:
+            water_str='wateraccess'
+        else: water_str=''
+        if drop_secchi:
+            secchi_str='secchi\*'
+        else:
+            secchi_str='secchi'
+        wqvars_idx,wqvars=zip(*[[idx,var] for idx,var in enumerate(results.name_x) if re.search(secchi_str,var.lower()) and var.lower()[-11:]!=water_str])
         wqvars_idx=list(wqvars_idx)
         wqvars=list(wqvars)
+        if not drop_secchi:
+            secchi_idx=wqvars.index('secchi')
+            svar=wqvars.pop(secchi_idx)
+            wqvars.append(svar)
+            sidx=wqvars_idx.pop(secchi_idx)
+            wqvars_idx.append(sidx)
+        """if not drop_wateraccess:
+            wa_idx=wqvars.index('secchi*wateraccess')
+            wa=wqvars.pop(wa_idx)
+            wqvars.insert(2,wa)
+            wa=wqvars_idx.pop(wa_idx)
+            wqvars_idx.insert(2,wa)"""
+            
+            
+            
+        
         '''for idx,var in enumerate(results.name_x):
             if var.lower()=='secchi':
                 wqvars_idx.append(idx)
@@ -380,8 +423,8 @@ class IslandEffects:
         #print('betas',results.betas)
         #print('std_err',results.std_err)
         
-        wqcoefs=[results.betas[idx][0]*100 for idx in wqvars_idx] # b/c pysal returns each beta inside its own list. *100 b/c pct. 
-        wqcoef_stderrs=[results.std_err[idx]*100 for idx in wqvars_idx] # 100 b/c pct.
+        wqcoefs=[results.betas[idx][0] for idx in wqvars_idx] # b/c pysal returns each beta inside its own list. *100 b/c pct. 
+        wqcoef_stderrs=[results.std_err[idx] for idx in wqvars_idx] # 100 b/c pct.
         wqcoef_names=[]
         for var in wqvars: # a loop for shortening names
             if re.search('secchi\*distance',var.lower()):

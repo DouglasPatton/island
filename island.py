@@ -100,7 +100,7 @@ class IslandData(DataView,IslandEffects):
                 'combine_pre_post':0,
                 'period':None, # used later to record which time period is included in data for a model
                 'modeltype':'OLS',#'statsmodels.OLS',#,'GM_Error_Het',#'GM_Lag',#'SLM',#'SEM',#'SLM',
-                'ols-robust':'hac'
+                'ols-robust':'white',#'hac',
                 'klist':self.klist,
                 #'crs':'epsg:4326',
                 'xvars':xvarlist,
@@ -275,7 +275,7 @@ class IslandData(DataView,IslandEffects):
             newdict = self.myFlatDict(val)
             for key2, val2 in newdict.items():
                 flatdict[f'{key}:{key2}'] = [val2]
-        return flatdict
+        return flatdictdf_idx
     
     def simplifyDict(self,adict):
         sdict={};splitchar=','
@@ -397,7 +397,7 @@ class IslandData(DataView,IslandEffects):
         rounded_pval=round(pval,2)
         if rounded_pval>0.1:
             return ''
-        elif rounded_pval>0.5:
+        elif rounded_pval>0.05:
             return '*'
         elif rounded_pval>0.01:
             return '**'
