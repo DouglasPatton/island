@@ -368,7 +368,7 @@ class IslandEffects:
     def createWQGraph(self,modeltype='ols',drop_wateraccess=False,drop_secchi=True):
         lastresults=self.retrieveLastResults(modeltype=modeltype,periodlist=[0,1])
         
-        fig=plt.figure(dpi=600,figsize=[8,6])
+        fig=plt.figure(dpi=600,figsize=[10,6])
         plt.xticks(rotation=self.xlabel_rotate)
         ax=fig.add_subplot()
         ax.set_title('Fixed Effects Estimates of Water Quality Coefficients')#Fixed Effects Estimates for Water Clarity by Distance from Shore Band')
