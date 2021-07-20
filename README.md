@@ -1,6 +1,9 @@
 # island
 ## long island hedonic analysis
 
+### build the environment
+ 1. `conda create -c conda-forge --name island python=3 pysal jupyterlab pandas scipy matplotlib statsmodels`
+ 2. `pip install haversine`
 
 ### Explore/visualize
 time series of histograms

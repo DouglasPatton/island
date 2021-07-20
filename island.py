@@ -106,7 +106,7 @@ class IslandData(DataView,IslandEffects):
                 'xvars':xvarlist,
                 'yvar':'saleprice_real-2015',
                 'transform':{'ln_wq':0,'ln_y':1},
-                'wt_type':'NN',#'inverse_distance_NN_exp2',#'inverse_distance_NN',
+                'wt_type':'inverse_distance_NN10',#'inverse_distance_NN_exp2',#'inverse_distance_NN',
                 #'inverse_distance_nn_exp2',#'inverse_distance_NN_exp1',#'inverse_distance',#
                 'wt_norm':'rowsum',#'rowmax',#'doublesum',#
                 'NNscope':'year',#'period',#     # 'period' groups obs by pre or post, 'year' groups by year
@@ -206,20 +206,21 @@ class IslandData(DataView,IslandEffects):
         #return self.resultsdictlist
     
     def saveModelResults(self,resultsdict,load=0):
+        path=os.path.join(self.resultsdir,'resultsdictlist.pickle')
         if load:
-            with open(os.path.join(self.resultsdir,'resultsdictlist.pickle'),'rb') as f:
+            with open(path,'rb') as f:
                 resultsdictlist=pickle.load(f)
             self.resultsdictlist.extend(resultsdictlist)
             return resultsdictlist
         else:
             try:
-                with open('resultsdictlist.pickle','rb') as f:
+                with open(path,'rb') as f:
                     oldresults=pickle.load(f)
                 oldresults.extend(resultsdict)
                 resultsdictlist=oldresults
             except:
                 resultsdictlist=[resultsdict]
-            with open('resultsdictlist.pickle','wb') as f:
+            with open(path,'wb') as f:
                 pickle.dump(resultsdictlist,f)
         return
   
@@ -441,7 +442,7 @@ class IslandData(DataView,IslandEffects):
         return newlist
     '''
             
-    def arrayListToPandasDF(self,):
+    def arrayListToPandasDF(self,remove_duplicates=True):
         try:self.time_arraytup
         except: self.makeTimeListArrayList()
         timelist_arraylist,varlist=self.time_arraytup
@@ -461,7 +462,12 @@ class IslandData(DataView,IslandEffects):
         index_df=pd.DataFrame(data=index,columns=indexvarlist)
         multi_index=pd.MultiIndex.from_frame(index_df)
         pd_data_dict={varlist[i]:columnlist[i] for i in range(len(varlist))}
-        self.df_raw=pd.DataFrame(pd_data_dict,index=multi_index)
+        df=pd.DataFrame(pd_data_dict,index=multi_index)
+        if remove_duplicates:
+            df_duplicates=df.drop(columns='idx').duplicated()
+            self.logger.info(f'removing {(df_duplicates.sum())} duplicates')
+            df=df[~df_duplicates]
+        self.df_raw=df
         self.df=self.doStandardizeDF(self.df_raw.copy())
     
     def doStandardizeDF(self,df):
