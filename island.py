@@ -106,7 +106,8 @@ class IslandData(DataView,IslandEffects):
                 'xvars':xvarlist,
                 'yvar':'saleprice_real-2015',
                 'transform':{'ln_wq':0,'ln_y':1},
-                'wt_type':'inverse_distance_NN10',#'inverse_distance_NN_exp2',#'inverse_distance_NN',
+                'wt_type':'inverse_distance_NN',#k specified above in self.klist
+                #'inverse_distance_NN_exp2',#'inverse_distance_NN',
                 #'inverse_distance_nn_exp2',#'inverse_distance_NN_exp1',#'inverse_distance',#
                 'wt_norm':'rowsum',#'rowmax',#'doublesum',#
                 'NNscope':'year',#'period',#     # 'period' groups obs by pre or post, 'year' groups by year
@@ -442,7 +443,7 @@ class IslandData(DataView,IslandEffects):
         return newlist
     '''
             
-    def arrayListToPandasDF(self,remove_duplicates=True):
+    def arrayListToPandasDF(self,remove_duplicates=True,standardize=True):
         try:self.time_arraytup
         except: self.makeTimeListArrayList()
         timelist_arraylist,varlist=self.time_arraytup
@@ -464,11 +465,23 @@ class IslandData(DataView,IslandEffects):
         pd_data_dict={varlist[i]:columnlist[i] for i in range(len(varlist))}
         df=pd.DataFrame(pd_data_dict,index=multi_index)
         if remove_duplicates:
+            logstr=f"before dropping duplicates, df.shape:{df.shape},p0:{df[df.index.get_level_values('postsandy')==0].shape}, p1:{df[df.index.get_level_values('postsandy')==1].shape}"
+            print(logstr)
+            self.logger.info(logstr)
             df_duplicates=df.drop(columns='idx').duplicated()
-            self.logger.info(f'removing {(df_duplicates.sum())} duplicates')
+            logstr=f'removing {(df_duplicates.sum())} duplicates'
+            print(logstr)
+            self.logger.info(logstr)
             df=df[~df_duplicates]
+            logstr=f"after dropping duplicates, df.shape:{df.shape},p0:{df[df.index.get_level_values('postsandy')==0].shape}, p1:{df[df.index.get_level_values('postsandy')==1].shape}"
+            self.logger.info(logstr)
+            print(logstr)
+                
+            
         self.df_raw=df
-        self.df=self.doStandardizeDF(self.df_raw.copy())
+        if standardize:
+            self.df=self.doStandardizeDF(self.df_raw.copy())
+        else: self.df=df
     
     def doStandardizeDF(self,df):
         periods=list(df.index.levels[0])
@@ -541,8 +554,8 @@ class IslandData(DataView,IslandEffects):
                     table2+=f'{round(descrip[m],1)},'
                 if descrip['min'] in [0,1] and descrip['max'] in [0,1]:
                     if level==0:
-                        binaries+=f'level{level},{xvar},{descrip["mean"]*descrip["count"]},'
-                    else:binaries+=f'level{level},{xvar},{descrip["mean"]*descrip["count"]}\n'
+                        binaries+=f'level{level},{xvar},{int(round(descrip["mean"]*descrip["count"],0))},'
+                    else:binaries+=f'level{level},{xvar},{int(round(descrip["mean"]*descrip["count"],0))}\n'
                     
                     
             table2+='\n'
