@@ -294,7 +294,7 @@ class IslandEffects:
     
     def createEffectsGraph(self,drop_wateraccess=False):
         try: bigX_dist_avg_df=self.bigX_dist_avg_df,bigX_dist_avg_df_list=self.bigX_dist_avg_df_list
-        except: 
+        except: pl
             self.logger.exception(f'creating new bigX_dist_avg_df and list')
             bigX_dist_avg_df,bigX_dist_avg_df_list=self.estimateWQEffects(wq_change_m=3.28084**-1) # a dataframe averaged within distance bands and with partial derivative and delta based marginal effects
         if drop_wateraccess:
