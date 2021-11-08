@@ -319,7 +319,7 @@ class IslandEffects:
                 effect_name.append(var)
         
         fig=plt.figure(dpi=600,figsize=[10,6])
-        plt.xticks(rotation=self.xlabel_rotate)
+        #plt.xticks(rotation=self.xlabel_rotate)
         ax=fig.add_subplot()
         ax.set_title('Marginal Effects for Water Clarity by Distance Band')#Fixed Effects Estimates for Water Clarity by Distance from Shore Band')
         ax.set_xlabel('Distance from Shore Bands (not to scale)')
@@ -337,8 +337,12 @@ class IslandEffects:
             self.makePlotWithCI(effect_name,effect,None,ax,**self.plot_dict_list[p],lower=lower,upper=upper)
         ax.legend(loc=1)
         ax.margins(0)
+        plt.draw()
+        ax.set_xticklabels(ax.get_xticklabels(), rotation=65, ha='right')
+        fig.tight_layout()
         #ax.yaxis.set_major_formatter(ticker.FormatStrFormatter('$%.f'))
         figpath=self.helper.getname(os.path.join(self.printdir,'wq_effects_graph.png'))
+        
         fig.savefig(figpath)
     
     def retrieveLastResults(self,modeltype='ols',periodlist=[0,1]):
@@ -369,7 +373,8 @@ class IslandEffects:
         lastresults=self.retrieveLastResults(modeltype=modeltype,periodlist=[0,1])
         
         fig=plt.figure(dpi=600,figsize=[10,6])
-        plt.xticks(rotation=self.xlabel_rotate)
+        #plt.xticks(rotation=self.xlabel_rotate)
+        #fig.autofmt_xdate(rotation=45)
         ax=fig.add_subplot()
         ax.set_title('Fixed Effects Estimates of Water Quality Coefficients')#Fixed Effects Estimates for Water Clarity by Distance from Shore Band')
         ax.set_xlabel('Distance from Shore Bands (not to scale)')
@@ -380,6 +385,9 @@ class IslandEffects:
             self.extractAndPlotWQ(lastresults[p],ax,drop_wateraccess=drop_wateraccess,drop_secchi=drop_secchi,**self.plot_dict_list[p])
         ax.legend(loc=1)
         ax.margins(0)
+        plt.draw()
+        ax.set_xticklabels(ax.get_xticklabels(), rotation=65,ha='right')
+        fig.tight_layout()
         figpath=self.helper.getname(os.path.join(self.printdir,'wq_graph.png'))
         fig.savefig(figpath)
         

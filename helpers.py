@@ -17,7 +17,7 @@ class Helper:
         print(f'opening {filename} with length:{len(datadict)} and type:{type(datadict)}')
         self.logger.info(f'opening {filename} with length:{len(datadict)} and type:{type(datadict)}')
         keylist=[key for key in datadict]
-        self.logger.debug(f'for filestem:{os.path.split(filename)[1]} keylist:{keylist}')
+        #self.logger.debug(f'for filestem:{os.path.split(filename)[1]} keylist:{keylist}')
         return datadict
     
     
