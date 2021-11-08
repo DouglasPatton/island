@@ -1,6 +1,6 @@
 # island
 ## long island hedonic analysis
-
+ -  [draft paper](https://github.com/DouglasPatton/island/blob/master/Long%20Island%20Hedonic%20Paper%20Draft.pdf)
 ### build the environment
  1. `conda create -c conda-forge --name island python=3 pysal jupyterlab pandas scipy matplotlib statsmodels`
  2. `pip install haversine`
